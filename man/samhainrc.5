@@ -1,0 +1,776 @@
+.TH SAMHAINRC 5 "Jul 29, 2004" "" "samhainrc manual"
+.SH NAME
+samhainrc \- samhain(8) configuration file
+
+.SH WARNING
+.PP
+The information in this man page is not always up to date.
+The authoritative documentation is the user manual.
+
+.SH DESCRIPTION
+.PP
+The configuration file for 
+.BR samhain (8)
+is named
+.I samhainrc
+and located in
+.I /etc
+by default.
+.PP
+It contains several sections, indicated by headings in square brackets.
+Each section may hold zero or more 
+.BI key= value
+pairs. Blank lines and lines starting with '#' are comments.
+Everything before the first section and after an 
+.I "[EOF]" 
+is ignored. The file may be (clear text) signed by PGP/GnuPG, and
+.B samhain
+may invoke GnuPG to check the signature 
+if compiled with support for it.
+.PP
+Conditional inclusion of entries for some host(s) is 
+supported via any number of
+.BI @ hostname /@ end
+directives.
+.BI @ hostname
+and
+.BI @ end
+must each be on separate lines. Lines in between will only be
+read if 
+.I "hostname"
+(which may be a regular expression) matches the local host.
+.PP
+Likewise, conditional inclusion of entries based on system type is
+supported via any number of
+.BI $ sysname:release:machine /$ end
+directives.
+.br
+.I "sysname:release:machine"
+can be inferred from
+.I "uname -srm"
+and may be a regular expression.
+.PP
+Filenames/directories to check may be wildcard patterns.
+.PP
+Options given on the command line will override
+those in the configuration file. 
+The recognized sections in the configuration file are as follows:
+.PP
+Boolean options can be set with any of 1|true|yes or 0|false|no.
+.TP
+.I "[ReadOnly]"
+This section may contain
+.br 
+.BI file= PATH
+and
+.br
+.BI dir= [depth]PATH
+entries for files and directories to check. All modifications except access
+times will be reported for these files. 
+.I [depth] (use without brackets)
+is an optional parameter to define a per\-directory recursion
+depth.
+.TP
+.I "[LogFiles]"
+As above, but modifications of timestamps, file size, and signature will
+be ignored.
+.TP
+.I "[GrowingLogFiles]"
+As above, but modifications of file size will only be ignored if the size has
+.IR increased .
+.TP
+.I "[Attributes]"
+As above, but only modifications of ownership and access permissions
+will be checked.
+.TP
+.I "[IgnoreAll]"
+As above, but report no modifications for 
+these files/directories. Access failures
+will still be reported.
+.TP
+.I "[IgnoreNone]"
+As above, but report all modifications for these files/directories,
+including access time.
+.TP
+.I "[User0]"
+.TP
+.I "[User1]"
+.TP
+.I "[User2]"
+.TP
+.I "[User3]"
+.TP
+.I "[User4]"
+These are reserved for user-defined policies.
+.TP
+.I "[Prelink]"
+For prelinked executables / libraries or directories holding them.
+.TP
+.I "[Log]"
+This section defines the filtering rules for logging. 
+It may contain the following entries:
+.br
+.BI  MailSeverity= val
+where the threshold value
+.I val
+may be one of
+.IR debug ,
+.IR info ,
+.IR notice ,
+.IR warn ,
+.IR mark ,
+.IR err ,
+.IR crit ,
+.IR alert ,
+or
+.IR none .
+By default, everything equal to and above the threshold will be logged. 
+The specifiers
+.IR * , 
+.IR ! , 
+and
+.I =
+are interpreted as 'all', 'all but', and 'only', respectively (like
+in the Linux version of syslogd(8)).
+Time stamps have the priority 
+.IR warn , 
+system\-level errors have the priority
+.IR err ,
+and important start\-up messages the priority
+.IR alert .
+The signature key for the log file will never be logged to syslog or the
+log file itself.
+For failures to verify file integrity, error levels are defined
+in the next section.
+.br
+.BI  PrintSeverity= val,
+.br
+.BI  LogSeverity= val,
+.br
+.BI  ExportSeverity= val,
+.br
+.BI  ExternalSeverity= val,
+.br
+.BI  PreludeSeverity= val,
+.br
+.BI  DatabaseSeverity= val,
+and
+.br
+.BI  SyslogSeverity= val
+set the thresholds for logging via stdout (or 
+.IR /dev/console ), 
+log file, TCP forwarding, calling external programs,
+and 
+.BR syslog (3).
+.TP
+.I "[EventSeverity]"
+.BI  SeverityReadOnly= val,
+.br
+.BI  SeverityLogFiles= val,
+.br
+.BI  SeverityGrowingLogs= val,
+.br
+.BI  SeverityIgnoreNone= val,
+.br
+.BI  SeverityIgnoreAll= val,
+.br
+.BI  SeverityPrelink= val,
+.br
+.BI  SeverityUser0= val,
+.br
+.BI  SeverityUser1= val,
+.br
+.BI  SeverityUser2= val,
+.br
+.BI  SeverityUser3= val,
+and
+.br
+.BI  SeverityUser4= val
+define the error levels for failures to verify the integrity of
+files/directories of the respective types. I.e. if such a file shows
+unexpected modifications, an error of level
+.I val
+will be generated, and logged to all facilities with a threshold of at least
+.IR val .
+.br
+.BI  SeverityFiles= val
+sets the error level for file access problems, and 
+.br
+.BI  SeverityDirs= val 
+for directory access problems.
+.br
+.BI SeverityNames= val
+sets the error level for obscure file names 
+(e.g. non\-printable characters), and for files
+with invalid UIDs/GIDs.
+.TP
+.I "[External]"
+.BI OpenCommand= path
+Start the definition of an external logging program|script.
+.br
+.BI SetType= log|srv
+Type/purpose of program (log for logging).
+.br
+.BI SetCommandline= list
+Command line options.
+.br
+.BI SetEnviron= KEY=val
+Environment for external program.
+.br
+.BI SetChecksum= val
+Checksum of the external program (checked before invoking).
+.br
+.BI SetCredentials= username
+User as who the program will run.
+.br
+.BI SetFilterNot= list
+Words not allowed in message.
+.br
+.BI SetFilterAnd= list
+Words required (ALL) in message.
+.br
+.BI SetFilterOr= list
+Words required (at least one) in message.
+.br
+.BI SetDeadtime= seconds
+Time between consecutive calls.
+.TP
+.I "[Utmp]"
+Configuration for watching login/logout events.
+.br
+.BI LoginCheckActive= 0|1
+Switch off/on login/logout reporting.
+.br
+.BI LoginCheckInterval= val
+Interval (seconds) between checks for login/logout events.
+.br
+.BI SeverityLogin= val
+.br
+.BI SeverityLoginMulti= val
+.br
+.BI SeverityLogout= val
+Severity levels for logins, multiple logins 
+by same user, and logouts.
+.TP
+.I "[SuidCheck]"
+Settings for finding SUID/SGID files on disk.
+.br
+.BI SuidCheckActive= 0|1 
+Switch off/on the check.
+.br
+.BI SuidCheckExclude= path
+  A directory (and its subdirectories) 
+  to exclude from the check. Only one directory can be specified this way. 
+.br
+.BI SuidCheckSchedule= schedule
+Crontab-like schedule for checks. 
+.br
+.BI SeveritySuidCheck= severity 
+Severity for events. 
+.br
+.BI SuidCheckFps= fps 
+Limit files per seconds for SUID check. 
+.br
+.BI SuidCheckNosuid= 0|1 
+Check filesystems mounted as nosuid. Defaults to not.
+.br
+.BI SuidCheckQuarantineFiles= 0|1 
+Whether to quarantine files. Defaults to not.
+.br
+.BI SuidCheckQuarantineMethod= 0|1|2
+Quarantine method. Delete = 1, remove suid/sgid flags = 1, move to quarantine directory = 2. Defaults to 1 (remove suid/sgid flags).
+.br
+.BI 
+.TP
+.I "[Mounts]"
+Configuration for checking mounts.
+.br
+.BI MountCheckActive= 0|1
+Switch off/on this module.
+.br
+.BI MountCheckInterval= seconds
+  The interval between checks (default 300).
+.br
+.BI SeverityMountMissing= severity 
+Severity for reports on missing mounts. 
+.br
+.BI SeverityOptionMissing= severity 
+Severity for reports on missing mount options. 
+.br
+.BI CheckMount= path
+[mount_options]
+.br
+Mount point to check. Mount options must be given as 
+comma-separated list, separated by a blank from the preceding mount point.
+.TP
+.I "[UserFiles]"
+Configuration for checking paths relative to user home directories.
+.br
+.BI UserFilesActive= 0|1
+Switch off/on this module.
+.br
+.BI UserFilesName= filename 
+policy
+.br
+Files to check for under each $HOME. Allowed values for 'policy'
+are: allignore, attributes, logfiles, loggrow, noignore (default), 
+readonly, user0, user1, user2, user3, and user4.
+.br
+.BI UserFilesCheckUids= uid_list
+A list of UIDs where we want to check. The default
+is all. Ranges (e.g. 100-500) are allowed. If there is an open range (e.g.
+1000-), it must be last in the list.
+.TP
+.I "[ProcessCheck]"
+Settings for finding hidden/fake,required processes on the local host.
+.br
+.BI ProcessCheckActive= 0|1 
+Switch off/on the check.
+.br
+.BI ProcessCheckInterval= seconds
+  The interval between checks (default 300).
+.br
+.BI SeverityProcessCheck= severity 
+Severity for events (default crit). 
+.br
+.BI ProcessCheckMinPID= pid
+The minimum PID to check (default 0).
+.br
+.BI ProcessCheckMaxPID= pid
+The maximum PID to check (default 32767).
+.br
+.BI ProcessCheckPSPath= path 
+The path to ps (autodetected at compile time).
+.br
+.BI ProcessCheckPSArg= argument 
+The argument to ps (autodetected at compile time).
+Must yield PID in first column.
+.br
+.BI ProcessCheckExists= regular_expression
+Check for existence of a process matching the given regular expression.
+.TP
+.I "[PortCheck]"
+Settings for checking open ports on the local host.
+.br
+.BI PortCheckActive= 0|1 
+Switch off/on the check.
+.br
+.BI PortCheckInterval= seconds
+  The interval between checks (default 300).
+.br
+.BI PortCheckUDP= yes|no
+Whether to check UPD ports as well (default yes). 
+.br
+.BI SeverityPortCheck= severity 
+Severity for events (default crit). 
+.br
+.BI PortCheckInterface= ip_address 
+Additional interface to check.
+.br
+.BI PortCheckOptional= ip_address:list 
+Ports that may, but need not be open. The ip_address is the one
+of the interface, the list must be
+comma or whitespace separated, each item must be (port|service)/protocol,
+e.g. 22/tcp,nfs/tcp/nfs/udp.
+.br
+.BI PortCheckRequired= ip_address:list 
+Ports that are required to be open. The ip_address is the one
+of the interface, the list must be
+comma or whitespace separated, each item must be (port|service)/protocol,
+e.g. 22/tcp,nfs/tcp/nfs/udp.
+.TP
+.I "[Database]"
+Settings for 
+.I logging 
+to a database.
+.br
+.BI SetDBHost= db_host
+Host where the DB server runs (default: localhost). 
+Should be a numeric IP address for PostgreSQL.
+.br
+.BI SetDBName= db_name
+Name of the database (default: samhain).
+.br
+.BI SetDBTable= db_table
+Name of the database table (default: log).
+.br
+.BI SetDBUser= db_user 
+Connect as this user (default: samhain).
+.br
+.BI SetDBPassword= db_password
+Use this password (default: none).
+.br
+.BI SetDBServerTstamp= true|false 
+Log server timestamp for client messages (default: true).
+.br
+.BI UsePersistent= true|false
+Use a persistent connection (default: true).
+.TP
+.I "[Misc]"
+.BI Daemon= no|yes
+Detach from controlling terminal to become a daemon.
+.br
+.BI  MessageHeader= format
+Costom format for message header. Replacements:
+.I %F 
+source file name,
+.I %L 
+source file line,
+.I %S 
+severity,
+.I %T
+timestamp,
+.I %C
+message class.
+.br
+.BI VersionString= string 
+Set version string to include in file signature database 
+(along with hostname and date).
+.br
+.BI SetReverseLookup= true|false
+If false, skip reverse lookups when connecting to a host known by name
+rather than IP address.
+.br
+.BI  HideSetup= yes|no
+Don't log name of config/database files on startup.
+.br
+.BI  SyslogFacility= facility
+Set the syslog facility to use. Default is LOG_AUTHPRIV.
+.br
+.BI MACType= HASH-TIGER|HMAC-TIGER
+Set type of message authentication code (HMAC). 
+Must be identical on client and server. 
+.br
+.BI StartupLoadDelay= val
+Defines the interval (in seconds) to wait after startup before
+loading the databse from the server. Default is no wait.
+.br
+.BI SetLoopTime= val
+Defines the interval (in seconds) for timestamps.
+.br
+.BI SetConsole= device
+Set the console device (default /dev/console).
+.br
+.BI MessageQueueActive= 1|0
+Whether to use a SysV IPC message queue.
+.br
+.BI PreludeMapToInfo= list of severities
+The severities (see section 
+.IR [Log] )
+that should be mapped to impact
+severity 
+.I info
+in prelude.
+.br
+.BI PreludeMapToLow= list of severities
+The severities (see section 
+.IR [Log] )
+that should be mapped to impact
+severity 
+.I low
+in prelude.
+.br
+.BI PreludeMapToMedium= list of severities
+The severities (see section 
+.IR [Log] )
+that should be mapped to impact
+severity 
+.I medium
+in prelude.
+.br
+.BI PreludeMapToHigh= list of severities
+The severities (see section 
+.IR [Log] )
+that should be mapped to impact
+severity 
+.I high
+in prelude.
+.br
+.BI SetMailTime= val
+defines the maximum interval (in seconds) between succesive e\-mail reports.
+Mail might be empty if there are no events to report.
+.br
+.BI SetMailNum= val
+defines the maximum number of messages that are stored before e\-mailing them.
+Messages of highest priority are always sent immediately.
+.br
+.BI SetMailAddress= username @ host
+sets the recipient address for mailing. 
+.I "No aliases should be used."
+For security, you should prefer a numerical host address.
+.br
+.BI SetMailRelay= server
+sets the hostname for the mail relay server (if you need one).
+If no relay server is given, mail is sent directly to the host given in the
+mail address, otherwise it is sent to the relay server, who should
+forward it to the given address.
+.br
+.BI SetMailSubject= val
+defines a custom format for the subject of an email message.
+.br
+.BI SetMailSender= val
+defines the sender for the 'From:' field of a message.
+.br
+.BI SetMailFilterAnd= list
+defines a list of strings all of which must match a message, otherwise
+it will not be mailed.
+.br
+.BI SetMailFilterOr= list
+defines a list of strings at least one of which must match a message, otherwise
+it will not be mailed.
+.br
+.BI SetMailFilterNot= list
+defines a list of strings none of which should match a message, otherwise
+it will not be mailed.
+.br
+.BI SamhainPath= /path/to/binary
+sets the path to the samhain binary. If set, samhain will checksum
+its own binary both on startup and termination, and compare both.
+.br
+.BI SetBindAddress= IP_address
+The IP address (i.e. interface on multi-interface box) to use
+for outgoing connections. 
+.br
+.BI SetTimeServer= server
+sets the hostname for the time server. 
+.br
+.BI TrustedUser= name|uid
+Add a user to the set of trusted users (root and the effective user
+are always trusted. You can add up to 7 more users).
+.br
+.BI SetLogfilePath= AUTO|/path 
+Path to logfile (AUTO to tack hostname on compiled-in path). 
+.br
+.BI SetLockfilePath= AUTO|/path 
+Path to lockfile (AUTO to tack hostname on compiled-in path). 
+.TP
+.B Standalone or client only
+.br
+.BI SetNiceLevel= -19..19
+Set scheduling priority during file check.
+.br
+.BI SetIOLimit= bps 
+Set IO limits (kilobytes per second) for file check.
+.br
+.BI SetFilecheckTime= val
+Defines the interval (in seconds) between succesive file checks.
+.br
+.BI FileCheckScheduleOne= schedule
+Crontab-like schedule for file checks. If used, 
+.I SetFilecheckTime
+is ignored.
+.br
+.BI UseHardlinkCheck= yes|no 
+Compare number of hardlinks to number of subdirectories for directories.
+.br
+.BI HardlinkOffset= N:/path 
+Exception (use multiple times for multiple 
+exceptions). N is offset (actual - expected hardlinks) for /path.
+.br
+.BI AddOKChars= N1,N2,..
+List of additional acceptable characters (byte value(s)) for the check for 
+weird filenames. Nn may be hex (leading '0x': 0xNN), octal 
+(leading zero: 0NNN), or decimal.
+Use 
+.I all
+for all.
+.br
+.BI FilenamesAreUTF8= yes|no
+Whether filenames are UTF-8 encoded (defaults to no). If yes, filenames
+are checked for invalid UTF-8 encoding and for ending in invisible characters.
+.br
+.BI IgnoreAdded= path_regex
+Ignore if this file/directory is added/created. 
+.br
+.BI IgnoreMissing= path_regex
+Ignore if this file/directory is missing/deleted. 
+.br
+.BI ReportOnlyOnce= yes|no
+Report only once on a modified file (default yes).
+.br
+.BI  ReportFullDetail= yes|no
+Report in full detail on modified files (not only modified items).
+.br
+.BI UseLocalTime= yes|no
+Report file timestamps in local time rather than GMT (default no).
+Do not use this with Beltane. 
+.br
+.BI  ChecksumTest= {init|update|check|none}
+defines whether to initialize/update the database or verify files against it.
+If 'none', you should supply the required option on the command line.
+.br
+.BI SetPrelinkPath= path
+Path of the prelink executable (default /usr/sbin/prelink).
+.br
+.BI SetPrelinkChecksum= checksum
+TIGER192 checksum of the prelink executable (no default).
+.br
+.BI SetLogServer= server
+sets the hostname for the log server. 
+.br
+.BI SetServerPort= portnumber
+sets the port on the server to connect to. 
+.br
+.BI SetDatabasePath= AUTO|/path 
+Path to database (AUTO to tack hostname on compiled-in path). 
+.br
+.BI DigestAlgo= SHA1|MD5
+Use SHA1 or MD5 instead of the TIGER checksum (default: TIGER192).
+.br
+.BI RedefReadOnly= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the ReadOnly policy.
+Tests are: CHK (checksum), TXT (store literal content), LNK (link), 
+HLN (hardlink), INO (inode), USR (user), GRP (group), MTM (mtime),
+ATM (atime), CTM (ctime), SIZ (size), RDEV (device numbers) 
+and/or MOD (file mode).
+.br
+.BI RedefAttributes= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the Attributes policy.
+.br
+.BI RedefLogFiles= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the LogFiles policy.
+.br
+.BI RedefGrowingLogFiles= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the GrowingLogFiles policy.
+.br
+.BI RedefIgnoreAll= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the IgnoreAll policy.
+.br
+.BI RedefIgnoreNone= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the IgnoreNone policy.
+.br
+.BI RedefUser0= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the User0 policy.
+.br
+.BI RedefUser1= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the User1 policy.
+.br
+.BI RedefUser2= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the User2 policy.
+.br
+.BI RedefUser3= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the User3 policy.
+.br
+.BI RedefUser4= +/-XXX,+/-YYY,...
+Add or subtract tests XXX from the User4 policy.
+.TP
+.B Server Only
+.br
+.BI SetUseSocket= yes|no
+If unset, do not open the command socket. The default is no.
+.br
+.BI SetSocketAllowUid= UID 
+Which user can connect to the command socket. The default is 0 (root). 
+.br
+.BI SetSocketPassword= password 
+Password (max. 14 chars, no '@') for password-based authentication on the
+command socket (only if the OS does not support passing 
+credentials via sockets).
+.br
+.BI SetChrootDir= path
+If set, chroot to this directory after startup.
+.br
+.BI SetStripDomain= yes|no 
+Whether to strip the domain from the client hostname when 
+logging client messages (default: yes).
+.br
+.BI SetClientFromAccept= true|false
+If true, use client address as known to the communication layer. Else
+(default) use client name as claimed by the client, try to verify against
+the address known to the communication layer, and accept 
+(with a warning message) even if this fails.
+.br
+.BI  UseClientSeverity= yes|no
+Use the severity of client messages.
+.br
+.BI  UseClientClass= yes|no
+Use the class of client messages.
+.br
+.BI SetServerPort= number
+The port that the server should use for listening (default is 49777).
+.br
+.BI SetServerInterface= IPaddress
+The IP address (i.e. interface on multi-interface box) that the
+server should use for listening (default is all). Use INADDR_ANY to reset
+to all. 
+.br
+.BI  SeverityLookup= severity
+Severity of the message on client address != socket peer.
+.br
+.BI UseSeparateLogs= true|false
+If true, messages from different clients will be logged to separate
+log files (the name of the client will be appended to the name of the main
+log file to construct the logfile name).
+.br
+.BI  SetClientTimeLimit= seconds
+The maximum time between client messages. If exceeded, a warning will 
+be issued (the default is 86400 sec = 1 day).
+.br
+.BI SetUDPActive= yes|no
+yule 1.2.8+: Also listen on 514/udp (syslog). 
+
+
+.TP
+.I "[Clients]"
+This section is only relevant if 
+.B samhain
+is run as a log server for clients running on another (or the same) machine.
+.br
+.BI Client= hostname @ salt @ verifier 
+registers a client at host 
+.I hostname
+(fully qualified hostname required) for access to the
+log server. 
+Log entries from unregistered clients will not be accepted.
+To generate a salt and a valid verifier, use the command
+.B "samhain -P"
+.IR "password" ,
+where
+.I password
+is the password of the client. A simple utility program 
+.B samhain_setpwd
+is provided to re\-set the compiled\-in default password of the client
+executable to a user\-defined
+value. 
+.TP
+.I "[EOF]"
+An optional end marker. Everything below is ignored.
+
+.SH SEE ALSO
+.PP
+.BR samhain (8)
+
+.SH AUTHOR
+.PP
+Rainer Wichmann (http://la\-samhna.de)
+
+.SH BUG REPORTS
+.PP
+If you find a bug in
+.BR samhain ,
+please send electronic mail to
+.IR support@la\-samhna.de .
+Please include your operating system and its revision, the version of
+.BR samhain ,
+what C compiler you used to compile it, your 'configure' options, and
+anything else you deem helpful.
+
+.SH COPYING PERMISSIONS
+.PP
+Copyright (\(co) 2000, 2004, 2005 Rainer Wichmann
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual page provided the copyright notice and this permission
+notice are preserved on all copies.
+.ig
+Permission is granted to process this file through troff and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual page).
+..
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual page under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+

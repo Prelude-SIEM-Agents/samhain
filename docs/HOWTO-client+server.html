@@ -1,0 +1,441 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>HOWTO client+server</title>
+<style type="text/css">
+<!--
+
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2d4488;
+}
+
+div.warnblock {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #FF9900;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #285577; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #2d5588; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style></head>
+
+<body>
+<div class="body">
+<p style="text-align: center; background: #ccc; border: 1px solid #2d5588;"><a 
+   style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/">samhain file integrity 
+   scanner</a>&nbsp;|&nbsp;<a style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/s_documentation.html">online 
+   documentation</a></p>
+<br><center>
+<h1>Setting up a client/server samhain system</h1>
+</center>
+<br>
+<hr>
+<p>
+This document aims to explain how to set up a client/server 
+samhain system, where the client (samhain) runs on one machine to be
+monitored, and sends reports via TCP/IP to a remote server (yule).
+</p>
+<p>
+<b>Please note:</b> the server (yule) does not perform any filesystem and/or
+kernel checks. If you want to perform such checks on the log server host,
+you need to run a samhain client on this host as well.
+</p>
+<p>
+Client and server are 
+<b>distict applications</b>, and must be
+built seperately. By default, installation names and paths (e.g.
+the configuration file) are
+different. Do not blame us if you abuse './configure' options to 
+cause name clashes, if you install both on the same host.
+</p>
+
+<h2>Introduction</h2>
+<p>
+Samhain can be compiled for remote logging to a central server via a
+secure (AES-encrypted, signed, and authenticated) TCP/IP connection.
+</p><p>
+In addition, both the client configuration file and the file signature
+database can be stored on the server. The client will then pull them from
+the server upon startup.
+</p><p>
+This requires three basic steps:
+</p>
+<ol>
+<li>
+compile and install server and client,
+</li>
+<li>
+establish trust between client and server, and
+</li>
+<li>
+enable remote logging in the client's configuration file.
+</li>
+</ol>
+
+
+<h2>Compiling</h2>
+
+<h3>The server - yule</h3>
+
+<p>
+<b>Note: </b> the server can be started with root privileges (e.g. to use
+a privileged port &lt; 1024), but it will always 
+drop root privileges irrevocably
+before accepting any connections, and run as a non-root user. This user
+can be specified explicitely with the <i>configure</i> 
+option <tt>--enable-identity=USER</tt>. The default is
+the first existing user
+out of the list <i>yule, daemon, nobody</i>.
+</p>
+
+<pre>
+
+bash$ ./configure --enable-network=server
+bash$ make
+bash$ make install
+
+</pre>
+
+<h3>The client - samhain</h3>
+
+
+<ul>
+<li>
+ <p>
+ If you just want remote logging:
+ </p><p>
+ <tt>&nbsp; &nbsp;./configure --enable-network=client 
+   --with-logserver=server.example.com</tt>
+ </p>
+</li>
+<li>
+ <p>
+ If you want configuration and database files on the server:
+ </p><p>
+ <tt>&nbsp; &nbsp;./configure --enable-network=client 
+ --with-logserver=server.example.com \<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; --with-config-file=REQ_FROM_SERVER/etc/samhainrc \<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; --with-data-file=REQ_FROM_SERVER/var/lib/samhain/samhain_file</tt>
+ </p>
+</li>
+</ul>
+<p>
+The path after the keyword <tt>REQ_FROM_SERVER</tt> has the following meaning:
+<ul>
+<li>for the configuration file: 
+   <ul>
+   <li> if <i>initializing</i>, and the connection to the server
+        fails, samhain will fall back on the local file (if given);
+   </li>
+   <li> if in <i>check mode</i>, it is <i>ignored</i>. Samhain will
+        abort if the connection to the server fails.
+   </li>
+   </ul>
+   Thus, the local path allows you to initialize the database from a local
+   configuration file before the client is known to the server.
+</li>
+<li>for the database file: 
+   <ul>
+   <li> if <i>initializing</i>, the database is written to the local file;
+   </li>
+   <li> if in <i>check mode</i>, the local path is <i>ignored</i>. Samhain will
+        abort if the connection to the server fails.
+   </li>
+   </ul>
+   Thus, <i>init</i> (or <i>update</i>) always requires a local file that
+   must be uploaded to the server thereafter. <b>Note</b> that if you
+   use the <b>Beltane</b> web-based frontend, database updates can be performed
+   on the server without ever running an <i>update</i> on the client.
+</li>
+</ul>
+
+<h2>Establishing trust between client and server</h2>
+
+<p>
+By default, samhain uses the SRP (Secure Remote Password) protocol,
+with a password that is <i>embedded in the client binary</i>, and a
+corresponding verifier that is in the <i>server configuration file</i>.
+</p>
+
+<h3>Embedding the password in the client, and register it with the server</h3>
+
+<p>
+To embed the password in the binary, there is a dummy password compiled
+in as placeholder, and a utility <i>samhain_setpwd</i> is provided that
+</p>
+
+<ol>
+<li>
+    takes a password as input,
+</li>
+<li>
+    searches the original binary for the 
+    correct place (i.e. the placeholder), and
+</li>
+<li>
+    writes a copy of the original binary, with the placeholder replaced
+    by the password. The original is left untouched. The copy cannot
+    be changed to another password anymore.
+</li>
+</ol>
+
+
+<p>
+For convenience, the server has functions to
+</p>
+
+<ul>
+<li>
+<p>
+generate a random password in the correct format: 
+</p><p>
+<tt>&nbsp; &nbsp;sh$ yule -G</tt>
+</p>
+</li>
+<li>
+<p>
+and generate a corresponding entry for the 
+server configuration file:
+</p><p>
+ <tt>&nbsp; &nbsp;sh$ yule -P PASSWORD</tt>.
+<p>
+</li>
+<li>
+The generated entry has a string <tt>'HOSTNAME'</tt> that you should
+replace with the fully qualified name of the client. This entry must
+then be placed in the <tt>[Clients]</tt> section of the yule configuration
+file (e.g. <tt>/etc/yulerc</tt>).
+</li>
+<li>
+Finally, you need to tell yule to reload the configuration (send SIGHUP,
+or use <tt>/etc/init.d/yule reload</tt>).
+</li>
+</ul>
+
+
+<h3>Example</h3>
+
+<pre style="background-color:#DDDDDD; color:#000000">
+
+rainer$ ./samhain_setpwd
+
+Usage: samhain_setpwd &lt;filename&gt; &lt;suffix&gt; &lt;new_password&gt;
+
+   This program is a utility that will:
+    - search in the binary executable &lt;filename&gt; for samhain's
+      compiled-in default password,
+    - change it to &lt;new_password&gt;,
+    - and output the modified binary to &lt;filename&gt;.&lt;suffix&gt;
+
+   To allow for non-printable chars, &lt;new_password&gt; must be
+   a 16-digit hexadecimal number (only 0-9,A-F allowed in input),
+   thus corresponding   to an 8-byte password.
+
+   Example: 'samhain_setpwd samhain new 4142434445464748'
+   takes the file 'samhain', sets the password to 'ABCDEFGH'
+   ('A' = 41 hex, 'B' = 42 hex, ...) and outputs the result
+   to 'samhain.new'.
+
+rainer$ yule -G
+5B5CDF18CE8D66A3
+
+rainer$ ./samhain_setpwd samhain new 5B5CDF18CE8D66A3
+INFO   old password found
+INFO   replaced:  f7c312aaaa12c3f7  by:  5b5cdf18ce8d66a3
+INFO   finished
+
+rainer$ scp ./samhain.new root@client.example.com:/usr/local/sbin/samhain
+samhain              100% |********************************|   592 KB    00:00
+
+rainer$ yule -P 5B5CDF18CE8D66A3
+Client=HOSTNAME@8A542F99C3514499@744C3A3EE8323470D9DAD42E2485BD0B138F6B4116E964\
+A9991A0B0D221E1AADE5800968804B99B494C39E7B9DD5710D18F1E6703D1DB6D6393295E05DF6A\
+6AA8D10BB4A21D7D9DC4901D444500D4EA358C1B44A3E3D44ACEC645F938F790A11AB0D03586143\
+977E2BCE3A2D689445AC89134B409E68F34B0DE8BD8242ADD7C0
+
+rainer$ yule -P 5B5CDF18CE8D66A3 | sed s%HOSTNAME%client.example.com% &gt;&gt; /etc/yulerc
+
+rainer$ tail -2 /etc/yulerc
+[Clients]
+Client=client.example.com@8A542F99C3514499@744C3A3EE8323470D9DAD42E2485BD0B138F
+6B4116E964A9991A0B0D221E1AADE5800968804B99B494C39E7B9DD5710D18F1E6703D1DB6D6393
+295E05DF6A6AA8D10BB4A21D7D9DC4901D444500D4EA358C1B44A3E3D44ACEC645F938F790A11AB
+0D03586143977E2BCE3A2D689445AC89134B409E68F34B0DE8BD8242ADD7C0
+
+rainer$ /etc/init.d/yule reload
+
+</pre>
+
+<p>
+<b>Note 1:</b> the verifier <tt>Client=client.example.com@.....</tt> must be
+in the <b>[Clients]</b> section of the server configuration file. It is
+convenient if this is the last section in the config file, because then
+you can just concatenate the output of <tt>yule -P PASSWORD</tt> to the
+configuration file. This allows for better automatisation with a simple
+script.
+</p>
+<p>
+<b>Note 2:</b> samhain comes with a <b>deploy system</b> that handles
+the deployment of clients, including password embedding and server
+configuration, in a semi-automatic way. 
+This deploy system is tested and used in a production system
+of more than 50 machines, and described in detail in Chapt. 10 of the MANUAL.
+</p>
+
+<h2>Enabling remote logging</h2>
+<p>
+Samhain has multiple independent logging facilities (such as a local logfile,
+syslog, e-mail, TCP/IP, etc.) that can be used
+in parallel. You therefore have to specify in the client's configuration
+file, <b>which logging facility</b> you want to use.
+</p>
+<p>
+Selecting logging facilities is done by setting appropriate <b>thresholds</b>
+in the <b>[Log]</b> section of the configuration file: each 
+message with a <b>priority</b> exceeding
+the threshold will be logged via the respective facility. Setting
+the threshold to <i>none</i> will disable a facility. For details,
+refer to Chapt. 4 in the MANUAL.
+</p>
+<h3>Example</h3>
+<p>
+To enable remote logging to the server for all messages of
+priority <i>error</i> or higher, use the following directive in the
+client configuration file:
+</p>
+<pre style="background-color:#DDDDDD; color:#000000">
+
+[Log]
+ExportSeverity=err
+
+</pre>
+
+
+<h2>Databases and config files on the server</h2>
+
+<p>
+The client does <i>not</i> tell the server the path to the requested
+file - it just requests a config or a database file. It's entirely the
+responsibility of the server to locate the correct file and send it.
+</p>
+<p>
+The server has a <i>data directory</i>, which by default would be 
+<tt>/var/lib/yule</tt>, but depends on your compile options.
+</p>
+<p>
+Config files and baseline databases for clients must be located
+in this directory, and they must be named as follows:
+</p>
+<p>
+Configuration files: <tt>rc.</tt><i>client.mydomain.tld</i> or 
+simply <tt>rc</tt> 
+(this can be used as a catchall file).
+</p>
+<p>
+Database files: <tt>file.</tt><i>client.mydomain.tld</i> or 
+simply <tt>file</tt> 
+(this can be used as a catchall file).
+</p>
+</div>
+</body>
+</html>

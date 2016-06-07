@@ -1,0 +1,134 @@
+#!/usr/bin/make -f
+# Samhain debian/rules 
+# GNU copyright 20001 to 2003 by Javier Fernandez-Sanguino
+# based on
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
+# Modified to use mydefargs by Rainer Wichmann.
+#
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This is the debhelper compatability version to use.
+export DH_COMPAT=4
+
+package=@install_name@
+
+# CAVEAT: including the --enable-base= option is for packages to be
+#         distributed INTERNALLY on your network, NOT for packages
+#         to be distributed to THIRD PARTIES
+
+build: build-stamp
+build-stamp:
+	dh_testdir
+	@top_srcdir@/configure @mydefargs@
+	$(MAKE) 
+	echo '#!/bin/sh' > ./sstrip
+	echo 'echo "*** SSTRIP DISABLED ***"' >> ./sstrip
+	if ! test x$(PASSWORD) = x; then \
+		if test -f samhain_setpwd; then \
+			./samhain_setpwd samhain new $(PASSWORD); \
+			rm samhain; \
+			mv samhain.new samhain; \
+		fi; \
+	fi
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp
+	-[ -f Makefile ] && $(MAKE) distclean
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+	# Fix the permissions
+	#chmod o-rX `pwd`/debian/tmp/var/log/samhain \
+	#	`pwd`/debian/tmp/var/run/samhain \
+	#	`pwd`/debian/tmp/var/lib/samhain \
+	#	`pwd`/debian/tmp/etc/samhain
+
+	# $(MAKE) install install-boot DESTDIR=`pwd`/debian/tmp
+	$(MAKE) install install-boot DESTDIR=`pwd`/debian/@install_name@
+
+	# However, remove the rc.d links
+	-rm -rf `pwd`/debian/tmp/etc/rc?.d
+
+	# install -m 755 encode `pwd`/debian/tmp/usr/bin/samhain_encode
+
+	# install -m 644 profiles/debianlinux_i386/samhainrc `pwd`/debian/tmp@myconffile@
+	# install -m 644 debian/samhain.logrotate `pwd`/debian/tmp/etc/logrotate.d/samhain
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+
+# Build architecture-dependent files here.
+binary-arch: build install
+#	dh_testversion
+	dh_testdir
+	dh_testroot
+	dh_installdebconf	
+	dh_installdocs 
+	[ -f debian/@install_name@/usr/share/doc/@install_name@/MANUAL-2_4.html.tar ] && \
+		cd debian/@install_name@/usr/share/doc/@install_name@ && \
+		tar xf MANUAL-2_4.html.tar && mv MANUAL-2_4 manual.html && \
+		rm -f MANUAL-2_4.html.tar && \
+		mv MANUAL-2_4.pdf manual.pdf
+	dh_installexamples @top_srcdir@/scripts/example_pager.pl \
+		@top_srcdir@/scripts/example_sms.pl \
+		@top_srcdir@/scripts/concat.pl \
+		@top_srcdir@/scripts/samhain.logrotator \
+		@top_srcdir@/scripts/samhainadmin.pl \
+		@top_srcdir@/scripts/check_samhain.pl \
+		@top_srcdir@/yulerc.template \
+		@top_srcdir@/samhainrc.linux
+	dh_installmenu
+	dh_installinit -- defaults 19
+	[ -f debian/@install_name@.postinst.debhelper ] && \
+	        cd debian && \
+		cat @install_name@.postinst.debhelper | \
+		    sed 's%/etc/init.d/@install_name@ start%:%' > postinst.tmp && \
+		    mv postinst.tmp @install_name@.postinst.debhelper
+	[ -f debian/@install_name@.postinst.debhelper ] && \
+	        cd debian && \
+		cat @install_name@.postinst.debhelper | \
+		    sed 's%invoke-rc.d @install_name@ start%:%' > postinst.tmp && \
+		    mv postinst.tmp @install_name@.postinst.debhelper
+	[ -f debian/@install_name@.prerm.debhelper ] && \
+		cd debian && \
+		cat @install_name@.prerm.debhelper | \
+		    sed 's%/etc/init.d/@install_name@ stop%/etc/init.d/@install_name@ stop || echo service @install_name@ already stopped%' > prerm.tmp && \
+		    mv prerm.tmp @install_name@.prerm.debhelper
+	[ -f debian/@install_name@.prerm.debhelper ] && \
+		cd debian && \
+		cat @install_name@.prerm.debhelper | \
+		    sed 's%invoke-rc.d @install_name@ stop%invoke-rc.d @install_name@ stop || echo service @install_name@ already stopped%' > prerm.tmp && \
+		    mv prerm.tmp @install_name@.prerm.debhelper
+	# dh_installmanpages
+	dh_installchangelogs @top_srcdir@/docs/Changelog
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+
+define checkdir
+	test -f debian/rules
+endef
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install
+

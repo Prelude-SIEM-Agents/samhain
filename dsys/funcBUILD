@@ -1,0 +1,251 @@
+#########################################################################
+#
+# Subroutine for bulding from source
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+#------------------------------------------------------------------------
+# List available sources
+#------------------------------------------------------------------------
+listSRC() {
+
+
+    OKSRCLIST=""; export OKSRCLIST
+
+    echo > $tmpF;
+
+    needEXE ls gpg
+
+    cd "${basedir}/source" || printFATAL "could not cd to ${basedir}/source"
+
+    LIST=`ls samhain*.tar.gz 2>/dev/null`
+
+    if test x"$LIST" = x
+    then
+	printFATAL "No source tarball found in ${basedir}/source. Please use 'deploy.sh download'." 
+    fi
+
+    for ff in $LIST
+    do
+	sh_version=`echo "$ff" | sed 's/.*samhain\-//g' | sed 's/\.tar\.gz//g'`
+	if test x"${sh_version}" = x
+	then
+	    printFATAL "Cannot determine version for $ff"
+	fi
+
+	if test "$ff" != "samhain-${sh_version}.tar.gz"
+	then
+	    printFATAL "Version number not correctly extracted from $ff"
+        fi
+
+	if test -f "samhain-${sh_version}.tar.gz.asc"
+	then
+	    :
+	else
+	    printWARNING "No detached signature for $ff found"
+	    continue
+        fi
+
+	sig_lines=`(LANG="C"; gpg --status-fd 1 --verify "samhain-${sh_version}.tar.gz.asc" "samhain-${sh_version}.tar.gz" 2>/dev/null)`
+        sig_ok=`echo ${sig_lines} | grep 'GOODSIG'`
+        sig_nokey=`echo ${sig_lines} | grep 'NO_PUBKEY'`
+
+	if test x"${sig_nokey}" != x
+	then
+	    printWARNING "Public key (ID 0F571F6C) not found, trying to import it."
+	    gpg --import ${basedir}/private/0F571F6C.asc 2>&5
+	    sig_lines=`(LANG="C"; gpg --status-fd 1 --verify "samhain-${sh_version}.tar.gz.asc" "samhain-${sh_version}.tar.gz" 2>/dev/null)`
+            sig_ok=`echo ${sig_lines} | grep 'GOODSIG'`
+            sig_nokey=`echo ${sig_lines} | grep 'NO_PUBKEY'`
+        fi
+
+	if test x"${sig_nokey}" != x
+	then
+	    printFATAL "Importing public key failed."
+        fi
+
+        if test x"${sig_ok}" = x
+        then
+	    printWARNING "File $ff has no good signature"
+	    continue
+        fi
+
+	if test x"$1" = x
+	then
+	    OKSRCLIST="$OKSRCLIST ${sh_version}"
+        else
+	    if test x"$1" = x"${sh_version}"
+	    then
+		OKSRCLIST="${sh_version}"
+		return 0
+	    fi
+        fi
+    done
+
+    if test x"$OKSRCLIST" = x
+    then
+	printFATAL "No source tarball found. Please use 'deploy.sh download'." 
+    fi
+
+    for dd in $OKSRCLIST
+    do
+      echo $dd >> "$tmpF"
+    done
+
+    OKSRCLIST=`cat "$tmpF" | sort -r | sed 9q`
+    export OKSRCLIST
+
+    rm -f "$tmpF" && touch "$tmpF"
+    echo $OKSRCLIST > "$tmpF"
+
+    return 0
+}
+
+selBVERSION() {
+    #---------------------------------------------------------------------
+    # Select version to build
+    #---------------------------------------------------------------------
+    if test x"$src_version" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "No version selected, aborting."
+	fi
+
+	promptINFO "Checking which versions are available"
+
+	((listSRC | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+	OKSRCLIST=`cat "$tmpF"`
+	n=0
+	for word in $OKSRCLIST
+	do
+	    n=`expr $n + 1`
+	    eval part$n="$word"
+	done
+
+	command="promptMENU 'Please select version to build' "
+	for word in $OKSRCLIST
+	do
+	    command="$command '${word}'"
+	done
+	eval ${command}
+	m=$?
+	if test x$m = x1
+	then
+	    (exit 0); exit 0; 
+	elif test x$m = "x-1"
+	then
+	    printFATAL "Something went wrong !"
+	else
+	    src_version="$MENU"; export src_version
+	fi
+
+    else
+	((listSRC "$src_version" | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    fi
+}
+
+selBARCH() {
+    #---------------------------------------------------------------------
+    # Select arch to build
+    #---------------------------------------------------------------------
+    if test x"$arch" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "No operating system selected, aborting."
+	fi
+	cd "$basedir"/configs || printFATAL "Cannot cd to $basedir/configs !"
+	LIST=`ls *.configure 2>/dev/null`
+	if test x"$LIST" = x
+	then
+		printFATAL "No config files found in ${basedir}/configs." 
+        fi
+
+	n=0
+	command="promptMENU 'Please select operating system of build host' "
+	ALIST=""
+	FLIST=""
+	for ff in $LIST
+	do
+	    n=`expr $n + 1`
+	    osp=`echo $ff | sed s/\.configure//`
+	    ALIST="$ALIST $osp"
+	    FLIST="$FLIST $osp"
+	    if test $n -lt 8
+	    then
+		command="$command '${osp}'"
+            fi
+	done
+	command="$command other"
+	    
+	eval ${command}
+	m=$?
+	if test x$m = x1
+	then
+	    (exit 0); exit 0;
+	elif test x$m = "x-1"
+	then
+	    printFATAL "Something went wrong !"
+	else
+	    arch="$MENU"; export arch
+	    if test x"$arch" = xother
+	    then
+		promptINPUT "Please select operating system of build host from $FLIST or enter new one"
+		if test x$m = x1
+		then
+		    (exit 0); exit 0;
+		elif test x$m = "x-1"
+		then
+		    printFATAL "Something went wrong !"
+		else
+		    found=`echo $FLIST | sed -n /$INPUT/p 2>/dev/null`
+		    if test x"$found" = x
+		    then
+			printLOG "Copy configuration for $INPUT from generic"
+			cp generic.configure "${INPUT}.configure"
+		    fi
+		    arch="$INPUT"; export arch
+		fi
+            fi
+	fi
+
+    fi
+    # arch selected or exited
+}
+
+selBFORMAT() {
+    if test x"$format" = x
+    then
+	promptMENU "Please select format of binary package" "run" "rpm" "deb" "tbz2" "solaris-pkg" "depot"
+	if test x$m = x1
+	then
+	    (exit 0); exit 0
+	elif test x$m = "x-1"
+	then
+	    printFATAL "Something went wrong !"
+	else
+	    format="$MENU"; export format
+	fi
+    fi
+}

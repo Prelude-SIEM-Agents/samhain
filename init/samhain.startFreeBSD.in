@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# PROVIDE: @install_name@
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="@install_name@"
+rcvar=`set_rcvar`
+
+pidfile="@mylockfile@"
+
+# there are no required_files in general,
+# as they might be downloaded from the server
+#
+# required_files="@myconffile@ @mydatafile@"
+
+extra_commands="reload"
+stop_postcmd="remove_stale_files"
+
+command="@sbindir@/@install_name@"
+
+is_set()
+{
+    eval "[ -n \"\${$1+X}\" ]"
+}
+
+remove_stale_files()
+{
+    if test -f @mylockfile@; then
+	/bin/rm -f @mylockfile@
+    fi
+    /bin/rm -f @mylockdir@/${name}.sock
+}
+
+load_rc_config "$name"
+
+if ! is_set ${rcvar}; then 
+    eval "${rcvar}=YES"
+fi
+
+run_rc_command "$1"
+

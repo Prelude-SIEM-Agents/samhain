@@ -1,0 +1,1094 @@
+#! /bin/sh
+
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+#VERSION2.0
+
+# -----------------------------------------------------------------------
+# Be Bourne compatible
+# -----------------------------------------------------------------------
+
+if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
+  emulate sh
+  NULLCMD=:
+elif test -n "${BASH_VERSION+set}" && (set -o posix) >/dev/null 2>&1; then
+  set -o posix
+fi
+
+# -----------------------------------------------------------------------
+# Make sure we support functions (from the autoconf manual)
+# -----------------------------------------------------------------------
+
+SHELL="${SHELL-/bin/sh}"
+if test x"$1" = "x--re-executed" 
+then
+    shift
+elif "$SHELL" -c 'foo () { (exit 0); exit 0; }; foo' 2>/dev/null
+then
+    :
+else
+    for cmd in sh bash ash bsh ksh zsh sh5; do
+	X="$PATH:/bin:/usr/bin:/usr/afsws/bin:/usr/ucb";
+	OLD_IFS=${IFS}
+	IFS=':'; export IFS 
+	for dir in $X; do
+	    shell="$dir/$cmd"
+	    if (test -f "$shell" || test -f "$shell.exe")
+	    then
+	        if "$shell" -c  'foo () { (exit 0); exit 0; }; foo' 2>/dev/null
+		then
+		    SHELL="$shell"; export SHELL
+		    IFS=${OLD_IFS}; export IFS
+		    exec "$shell" "$0" --re-executed ${1+"$@"}
+		fi
+	    fi
+	done
+	IFS=${OLD_IFS}; export IFS
+    done
+    echo "-----------------------------------------------------------------"
+    echo "ERROR: Unable to locate a shell interpreter with function support" >&2
+    echo "-----------------------------------------------------------------"
+    { (exit 1); exit 1; }
+fi
+
+# -----------------------------------------------------------------------
+# Test for 'echo -n'
+# -----------------------------------------------------------------------
+
+case `echo "testing\c"; echo 1,2,3`,`echo -n testing; echo 1,2,3` in
+  *c*,*  ) ECHO_N=-n ECHO_C= ;;
+  *)       ECHO_N= ECHO_C='\c' ;;
+esac
+
+as_cr_letters='abcdefghijklmnopqrstuvwxyz'
+as_cr_LETTERS='ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+as_cr_Letters=$as_cr_letters$as_cr_LETTERS
+as_cr_digits='0123456789'
+as_cr_alnum=$as_cr_Letters$as_cr_digits
+
+
+#########################################################################
+#
+# Configuration section
+#
+#########################################################################
+
+# -----------------------------------------------------------------------
+# The following part will be cut and saved to ~/.deploy.conf
+# -----------------------------------------------------------------------
+
+#__BEGIN_CUT__
+
+#########################################################################
+#
+# This file is sourced by a Bourne shell script.
+# Thus you need to take care of proper shell syntax.
+#
+#########################################################################
+
+# if you need, you can expand your PATH environment variable here
+# just uncomment and replace /opt/contrib/bin with whatever you need
+#
+# PATH="/opt/contrib/bin:${PATH}"; export PATH
+
+# the base directory of the deployment system
+# CLI option: --basedir=...
+#
+defbasedir="@mydataroot@/profiles"
+
+# the name of the database of installed clients
+# no CLI option
+#
+defdatabase="yulerc.install.db"
+
+# be quiet; 0 = false, 1 = true, 2 = very quiet
+# CLI option: --quiet | --quiet=2
+#
+silent=0; 
+
+# assume yes as answer to all prompts and run non-interactively
+# 0 = false, 1 = true
+# CLI option: --yes
+#
+assumeyes=0; 
+
+# which 'dialog' to use (e.g. "Xdialog")
+# "no" for plain text; empty ("") lets the program search for dialog
+# CLI option: --dialog=...
+#
+prefdialog=""
+
+# operating system; no default
+# CLI option: --arch=...
+#
+arch=""
+
+# Format for binary packages (run | deb | rpm | tbz2 | solaris-pkg | depot) 
+# CLI option: --format=...
+#
+format=""
+ 
+# logfile; default is none
+# CLI option: --logfile=...
+#
+logfile=""
+
+# The path to the yule (samhain server) executable.
+# CLI option: --yule_exec=...
+#
+yule_exec="@sbindir@/yule"
+
+# The path to the yule (samhain server) configuration file.
+# CLI option: --yule_conf=...
+#
+yule_conf="@sysconfdir@/yulerc"
+
+# The path to the data directory of yule (samhain server).
+# This is the directory where client configuration/database files
+# are stored.
+# CLI option: --yule_data=...
+#
+yule_data="@mydataroot@"
+
+# The temporary directory to use. Default is '/tmp', but some
+# sites may mount this 'noexec'.
+#
+temp_dir="/tmp"
+
+#__END_CUT__
+
+# -----------------------------------------------------------------------
+# Write configuration file to user home directory/Read configuration file
+# -----------------------------------------------------------------------
+
+if test -f ~/.deploy.conf 
+then
+    . ~/.deploy.conf
+else
+    #
+    # From the autoconf configure script - search ourselves
+    #
+    case $0 in
+	*[\\/]* ) as_myself=$0 ;;
+	*) old_IFS=$IFS; IFS=:
+	for as_dir in $PATH
+	do
+	    IFS=$old_IFS
+	    test -z "$as_dir" && as_dir=.
+	    test -r "$as_dir/$0" && as_myself=$as_dir/$0 && break
+	done
+	;;
+    esac
+    # We did not find ourselves, most probably we were run as `sh COMMAND'
+    # in which case we are not to be found in the path.
+    if test "x$as_myself" = x; then
+	as_myself=$0
+    fi
+    if test ! -f "$as_myself"; then
+	{ echo "ERROR: cannot find myself; rerun with an absolute path" >&2
+    { (exit 1); exit 1; }; }
+    fi
+    cat "$as_myself" | sed  -n -e '/^#__BEGIN_CUT__/,/^#__END_CUT__/ p ' >~/.deploy.conf && {
+	echo
+	echo "-----------------------------------------------------"
+	echo " Configuration file ~/.deploy.conf created"
+	echo " You may want to edit it to adapt it to your needs"
+	echo "-----------------------------------------------------"
+	echo
+	}
+fi
+
+export silent
+export assumeyes
+export arch
+export logfile
+export format 
+export yule_exec
+export yule_conf
+export yule_data
+export temp_dir
+
+# dialog
+#
+DIALOG="${prefdialog}";
+export DIALOG
+
+# base directory
+#
+basedir="$defbasedir"; 
+export basedir
+
+# simulate only; 0 = false, 1 = true
+#
+simulate=0; 
+export simulate
+
+# version
+#
+version=2.0; 
+export version
+
+# host; no default
+#
+host=
+export host
+
+# hostgroup; empty default
+#
+hostgroup=
+export hostgroup
+
+
+# action; no default
+#
+action=
+export action
+
+# the 'log.lastrun' logfile
+#
+logOpen=0
+export logOpen
+
+
+# source version; default = current
+#
+src_version=""
+export src_version
+
+# checksrc; do you want to delete if PGP signature check fails ?
+#
+cs_delete=0
+export cs_delete
+
+# build; do you want to pack the executable ?
+#
+bd_packed=''
+export bd_packed
+
+bd_user='root'
+export bd_user
+
+# addpath
+#
+bd_addpath=""
+export bd_addpath
+
+# Install; do you want to initialize the database ?
+#
+is_init=y
+export is_init
+
+# Install; do you want to replace the rc.host file ?
+#
+is_rcfile=y
+export is_rcfile
+
+# Install; do you want to start the client ?
+#
+is_startup=y
+export is_startup
+
+# Install; optional local command ?
+#
+local_command=""; export local_command
+
+# Info on packages ?
+#
+showpkg=n
+export showpkg
+
+#########################################################################
+#
+# Help Subroutines
+#
+#########################################################################
+
+# -----------------------------------------------------------------------
+# We cannot source these, because we don't know yet the base directory
+# -----------------------------------------------------------------------
+
+showUNINSTALL() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] uninstall"
+    echo
+    echo "Uninstall the samhain client from the specified host. Can only be"
+    echo "used if the client has been installed with deploy.sh version 2."
+    echo
+    echo "Options:"
+    echo
+    echo " --host=<hostname>      The host where you want to uninstall."
+    echo " --tmpdir=<path>        Temporary directory to use on the this host."
+    echo
+    { (exit 0); exit 0; }
+}
+
+showINFO() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] info"
+    echo
+    echo "Show info for hosts in client database (default), or for available"
+    echo "binary installer packages."
+    echo
+    echo "Options:"
+    echo
+    echo " --packages             Show info on packages."
+    echo
+    { (exit 0); exit 0; }
+}
+
+showCLEAN() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] clean"
+    echo
+    echo "Remove all files that are no longer needed:"
+    echo "  - Source tarballs in ${basedir}/source"
+    echo "  - Unused installer packages in ${basedir}/archpkg"
+    echo
+    { (exit 0); exit 0; }
+}
+
+showCHECKSRC() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] checksrc"
+    echo
+    echo "Check PGP signatures of source tarballs in the source/ subdirectory"
+    echo "of the deploy system."
+    echo "You must have gpg (GnuPG) in your PATH, and you should have imported"
+    echo "the samhain release PGP key (Key ID 0F571F6C, Rainer Wichmann)."
+    echo "To import the key, simply execute the command"
+    echo "\"gpg --keyserver blackhole.pca.dfn.de --recv-keys 0F571F6C\""
+    echo
+    echo "Options:"
+    echo
+    echo " --delete               Delete source tarballs if PGP signature"
+    echo "        cannot be verified."
+    echo
+    { (exit 0); exit 0; }
+}
+
+showDOWNLOAD() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] download"
+    echo
+    echo "Download a samhain source tarball from http://www.la-samhna.de,"
+    echo "check its PGP signature, and install it into the source/ subdirectory"
+    echo "of the deploy system."
+    echo "You must have gpg (GnuPG) in your PATH, and you should have imported"
+    echo "the samhain release PGP key (Key ID 0F571F6C, Rainer Wichmann)."
+    echo "To import the key, simply execute the command"
+    echo "\"gpg --keyserver blackhole.pca.dfn.de --recv-keys 0F571F6C\""
+    echo 
+    echo "Options:"
+    echo
+    echo " --version=<version>    Version of samhain to download. The"
+    echo "        default is \"current\" to download the current version."
+    echo
+    { (exit 0); exit 0; }
+}
+
+showBUILD() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] build"
+    echo
+    echo "Copy a source tarball to a build machine, build a binary package, and fetch"
+    echo "the package. Will bail out if not running under ssh-agent. If you are sure"
+    echo "that you don't need ssh-agent, set the environment variable SSH_AGENT_PID"
+    echo "to some arbitrary string before launching the deploy.sh command."
+    echo
+    echo "Options:"
+    echo
+    echo " --host=<hostname>      The build host."
+    echo " --arch=<arch>          The architecture/operating system to build for."
+    echo "        This is used to get the \"./configure\" options from the file"
+    echo "        \${basedir}/configs/\${arch}.configure."
+    echo " --version=<version>    The version of samhain you want to build."
+    echo " --format=<run|rpm|deb|tbz2|solaris-pkg|depot>"
+    echo "        The format of the package. \"run\" is a portable tar"
+    echo "        package, \"deb\" is for Debian, \"tbz2\" for Gentoo,"
+    echo "        \"rpm\" for any RPM-based Linux, \"solaris-pkg\""
+    echo "        for Sun Solaris, and \"depot\" for HP-UX"
+    echo " --packed=<password>    The client password, if you want to"
+    echo "        create a packed executable. Defaults to empty (don't pack)"
+    echo " --user=<username>      Login as <username> to the build host (root)."
+    echo " --add-path=<path>      Append 'path' to the PATH variable on the build host."
+    echo " --tmpdir=<path>        Temporary directory to use on the build host."
+    { (exit 0); exit 0; }
+}
+
+showINSTALL() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] install"
+    echo
+    echo "Copy a pre-built binary installer package to a remote host, stop the client"
+    echo "running there (if any), install the (new) client, optionally initialize"
+    echo "the file signature database and fetch it from the remote host, update"
+    echo "the server configuration file and reload the server."
+    echo
+    echo "Options:"
+    echo
+    echo " --host=<FQDN>          The host where you want to install."
+    echo " --group=<group>        Optional group the host belongs to."
+    echo " --arch=<arch>          The architecture/operating system of this host."
+    echo "        This is used to get the correct binary package."
+    echo " --version=<version>    The version of samhain you want to install."
+    echo " --format=<run|rpm|deb|tbz2|solaris-pkg|depot>"
+    echo "        The format of the binary package."
+    echo " --yule_exec=<path>     The path to the 'yule' executable."
+    echo " --yule_conf=<path>     The path to the 'yule' configuration file."
+    echo " --yule_data=<path>     The path to the 'yule' data directory."
+    echo " --no-init              Do not initialize the file signature database."
+    echo " --no-rcfile            Do not replace the rc.host file on server."
+    echo " --no-start             Do not start the client after installation."
+    echo " --local=<path>         Local command (executed twice: "
+    echo "                        after config installation and before client startup)."
+    echo " --tmpdir=<path>        Temporary directory to use on the this host."
+    { (exit 0); exit 0; }
+}
+
+showUSAGE() {
+    echo "deploy.sh $version"
+    echo "USAGE: deploy.sh [options] command"
+    echo 
+    echo "Commands: info | clean | download | checksrc | build | install | uninstall"
+    echo
+    echo "Options:"
+    echo " -h | --help            Print general usage information."
+    echo " -h | --help <command>  Print usage information for \"command\"."
+    echo " --basedir=<directory>  Set the basedir for the deployment system."
+    echo "                        The default is ${defbasedir}."
+    echo " -q | --quiet           Produce output suitable for logging." 
+    echo "        You can also use -q=# to set the quiet level up to" 
+    echo "        a maximum of 2. Note that -q=2 implies --yes (see below)."
+    echo " -s | --simulate        Perform  a  simulation  of events that"
+    echo "        would occur but do not actually change the  system."
+    echo " -y | --yes             Assume "yes" as answer to"
+    echo "        all prompts and run non-interactively."
+    echo " -o <file> | --logfile=<file>"
+    echo "        Specify an output file for messages that would go to stdout"
+    echo "        otherwise. Has no effect on stderr (error messages)."
+    echo " -d <dialog> | --dialog=<dialog>  Specify your preferred \"dialog\""
+    echo "        clone (e.g. Xdialog). Use \"no\" to force plain text."
+    if test x"$1" = x
+    then
+	{ (exit 0); exit 0; }
+    else
+        { (exit $1); exit $1; }
+    fi
+}
+
+#########################################################################
+#
+# Command line
+#
+#########################################################################
+
+for option
+do
+
+  # If the previous option needs an argument, assign it.
+  #
+  if test -n "$opt_prev"; then
+    eval "$opt_prev=\$option"
+    eval export "$opt_prev"
+    opt_prev=
+    continue
+  fi
+
+  case "$option" in
+  -*=*) optarg=`echo "$option" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case "$option" in
+
+  # Info
+
+  --packages | -packages)
+    showpkg=y; export showpkg;
+    ;;
+
+  # Install
+
+  --yule_exec | -yule_exec | --yule-exec | -yule-exec)
+    opt_prev=yule_exec
+    ;;
+
+  --yule_exec=* | -yule_exec=* | --yule-exec=* | -yule-exec=*)
+    yule_exec="$optarg"; export yule_exec
+    ;;
+
+  --yule_conf | -yule_conf | --yule-conf | -yule-conf)
+    opt_prev=yule_conf
+    ;;
+
+  --yule_conf=* | -yule_conf=* | --yule-conf=* | -yule-conf=*)
+    yule_conf="$optarg"; export yule_conf
+    ;;
+
+  --yule_data | -yule_data | --yule-data | -yule-data)
+    opt_prev=yule_data
+    ;;
+
+  --yule_data=* | -yule_data=* | --yule-data=* | -yule-data=*)
+    yule_data="$optarg"; export yule_data
+    ;;
+
+  --no-init | -no-init)
+    is_init=n; export is_init
+    ;;
+
+  --no-rcfile | -no-rcfile)
+    is_rcfile=n; export is_rcfile
+    ;;
+
+  --no-start | -no-start)
+    is_startup=n; export is_startup
+    ;;
+
+  --local | -local)
+    opt_prev=local_command
+    ;;
+
+  --local=* | -local=*)
+    local_command="$optarg"; export local_command
+    ;;
+
+  --group | -group)
+    opt_prev=hostgroup
+    ;;
+
+  --group=* | -group=*)
+    hostgroup="$optarg"; export hostgroup
+    ;;
+
+  # Build
+
+  --format | -format)
+    opt_prev=format
+    ;;
+
+  --format=* | -format=*)
+    format="$optarg"; export format
+    ;;
+
+  --packed | --pack | -packed | -pack)
+    opt_prev=bd_packed
+    ;;
+
+  --packed=* | -packed=*)
+    bd_packed="$optarg"; export bd_packed
+    ;;
+
+  --user | -user)
+    opt_prev=bd_user
+    ;;
+
+  --user=* | -user=*)
+    bd_user="$optarg"; export bd_user
+    ;;
+
+  --add-path | -add-path | --addpath | -addpath)
+    opt_prev=bd_addpath
+    ;;
+
+  --add-path=* | -add-path=* | --addpath=* | -addpath=*)
+    bd_addpath="$optarg"; export bd_addpath
+    ;;
+
+  # Checksource
+
+  --delete | -delete)
+    cs_delete=1; export cs_delete
+    ;;
+
+  # Download
+
+  --version | -version)
+    opt_prev=src_version
+    ;;
+  --version=* | -version=*)
+    src_version="$optarg"; export src_version
+    ;;
+
+  # Generic
+
+  --basedir | -basedir)
+    opt_prev=basedir
+    ;;
+  --basedir=* | -basedir=*)
+    basedir="$optarg"; export basedir
+    ;;
+
+  --host | -host)
+    opt_prev=host
+    ;;
+  --host=* | -host=*)
+    host="$optarg"; export host
+    ;;
+
+  --arch | -arch)
+    opt_prev=arch
+    ;;
+  --arch=* | -arch=*)
+    arch="$optarg"; export arch
+    ;;
+
+  --tmpdir | -tmpdir)
+    opt_prev=temp_dir
+    ;;
+  --tmpdir=* | -tmpdir=*)
+    temp_dir="$optarg"; export temp_dir
+    ;;
+
+  -o | --logfile | -logfile)
+    opt_prev=logfile
+    ;;
+  -o=* | --logfile=* | -logfile=*)
+    logfile="$optarg"; export logfile
+    ;;
+
+  -h | --h | --help | -help | help)
+    if test $# -gt 1
+    then
+	if test x"$2" = xdownload
+	then
+	    showDOWNLOAD
+	elif test x"$2" = xinfo
+	then
+	    showINFO
+	elif test x"$2" = xchecksrc
+	then
+	    showCHECKSRC
+	elif test x"$2" = xclean
+	then
+	    showCLEAN
+	elif test x"$2" = xbuild
+	then
+	    showBUILD
+	elif test x"$2" = xinstall
+	then
+	    showINSTALL
+	elif test x"$2" = xuninstall
+	then
+	    showUNINSTALL
+	else
+	    showUSAGE 1
+	fi
+    fi
+    showUSAGE
+    ;;
+
+  -q | --quiet | -quiet | --silent | -silent)
+    if test x"$silent" = x0
+    then
+	silent=1; export silent
+    else
+	silent=2; export silent
+    fi
+    ;;
+  -q=* | --quiet=* | --silent=* | -silent=*)
+    silent="$optarg"; export silent
+    ;;
+
+  -s | --simulate | -simulate | --dry-run | -dry-run | --recon | -recon | --just-print | -just-print | --no-act | -no-act)
+    simulate=1; export simulate
+    ;;
+
+  -y | --yes | -yes)
+    assumeyes=1; export assumeyes
+    ;;
+
+  -d | --dialog | -dialog)
+    opt_prev=DIALOG
+    ;;
+  -d=* | --dialog=* | -dialog=*)
+    DIALOG="$optarg"; export DIALOG
+    ;;
+
+  -*)
+    showUSAGE 1
+    ;;
+
+  clean | download | checksrc | build | install | info | uninstall)
+    action="$option"; export action
+    break ;;
+  esac
+
+done
+
+#########################################################################
+#
+# Subroutines
+#
+#########################################################################
+
+# -----------------------------------------------------------------------
+# Printing/logging Subroutines
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcPRINT
+
+# -----------------------------------------------------------------------
+# Interaction Subroutines
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcDIALOG
+
+# -----------------------------------------------------------------------
+# Setup test Subroutines
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcSETUP
+
+# -----------------------------------------------------------------------
+# Subroutines for determining existence of / path to executables
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcEXE
+
+# -----------------------------------------------------------------------
+# Subroutines for building
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcBUILD
+
+# -----------------------------------------------------------------------
+# Subroutines for installing
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcINSTALL
+
+# -----------------------------------------------------------------------
+# Subroutines for client database
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/funcDB
+
+# -----------------------------------------------------------------------
+# Subroutine for the 'download' command
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/comDOWNLOAD
+
+# -----------------------------------------------------------------------
+# Subroutine for the 'checksrc' command
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/comCHECKSRC
+
+# -----------------------------------------------------------------------
+# Subroutine for the 'clean' command
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/comCLEAN
+
+# -----------------------------------------------------------------------
+# Subroutine for the 'build' command
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/comBUILD
+
+# -----------------------------------------------------------------------
+# Subroutine for the 'install' command
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/comINSTALL
+
+# -----------------------------------------------------------------------
+# Subroutine for the 'install' command
+# -----------------------------------------------------------------------
+. ${basedir}/libexec/comUNINSTALL
+
+
+#########################################################################
+#
+# Main
+#
+#########################################################################
+
+main_exit_status=0
+
+tmpdir=
+
+# Find a dialog clone
+#
+findDIALOG
+
+# Check for basedir and tmpdir
+#
+testSETUP1
+
+# Logfile setup
+#
+exec 5>${basedir}/tmp/logfile.lastrun
+now=`date`
+echo "$now: $0 " ${1+"$@"} >&5 
+lastlog="${basedir}/tmp/logfile.lastrun"; export lastlog
+logOpen=1
+
+# Temporary directory/file setup
+#
+tmpD="$tmpdir/build.gui.$$"
+mkdir "$tmpD" || printFATAL "Cannot create temporary directory $tmpD"
+export tmpD
+tmpF="$tmpD/tmpF.$$"
+touch $tmpF || printFATAL "Cannot create temporary file $tmpF"
+export tmpF
+tmpERR="$tmpD/tmpERR.$$"
+echo '0' > $tmpERR || printFATAL "Cannot create temporary file $tmpERR"
+export tmpERR
+
+# Trap exit and cleanup
+#
+trap "exit_status=$?; rm -rf $tmpD; exit ${exit_status};" 0
+trap "(exit 1); exit 1;" 1 2 13 15
+
+# Check for action to perform, and host, if required
+#
+testSETUP2
+
+if test x"$action" = xdownload
+then
+    if test x"$src_version" = x
+    then
+	src_version="current"; export src_version
+    fi
+    #---------------------------------------------------------------------
+    # Vodoo code to tee both stdout and stderr, but keep them seperate.
+    #---------------------------------------------------------------------
+    if test x"$DIALOG" = x
+    then
+        ((commandDOWNLOAD | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    else
+        commandDOWNLOAD 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version DOWNLOAD logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+    fi
+elif test x"$action" = xinfo
+then
+    if test x"${showpkg}" = xn
+    then
+      if test x"$DIALOG" = x
+      then
+        ((dbSHOWHOSTS "${host}" | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+      else
+        dbSHOWHOSTS "${host}" 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version INFO logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+      fi
+    else
+      if test x"$DIALOG" = x
+      then
+        ((dbSHOWPKG show | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+      else
+        dbSHOWPKG show 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version INFO logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+      fi
+    fi
+elif test x"$action" = xchecksrc
+then
+    if test x"$DIALOG" = x
+    then
+        ((commandCHECKSRC | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    else
+        commandCHECKSRC 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version CHECKSRC logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+    fi
+elif test x"$action" = xclean
+then
+    if test x"$DIALOG" = x
+    then
+        ((commandCLEAN | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    else
+        commandCLEAN 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version CLEAN logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+    fi
+elif test x"$action" = xbuild
+then
+
+    #---------------------------------------------------------------------
+    # Make sure we are running under ssh-agent.
+    #---------------------------------------------------------------------
+    if test x"$SSH_AGENT_PID" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "Not running under ssh-agent, and not running interactive: cannot continue."
+	else
+            promptYESNO "Not running under ssh-agent, continue anyway" "no"
+            test "x$YESNO" = xn && { (exit 0; ); exit 0; }
+        fi
+    fi
+
+    #---------------------------------------------------------------------
+    # Setup.
+    #---------------------------------------------------------------------
+    selBVERSION
+    selBARCH
+    selBFORMAT
+
+    if test x"$DIALOG" = x
+    then
+        ((commandBUILD | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    else
+        commandBUILD 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version BUILD logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+    fi
+
+elif test x"$action" = xinstall
+then
+
+    needEXE ssh scp ssh-agent
+
+    #---------------------------------------------------------------------
+    # Make sure we are running under ssh-agent.
+    #---------------------------------------------------------------------
+    if test x"$SSH_AGENT_PID" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "Not running under ssh-agent, and not running interactive: cannot continue."
+	else
+            promptYESNO "Not running under ssh-agent, continue anyway" "no"
+            test "x$YESNO" = xn && { (exit 0; ); exit 0; }
+        fi
+    fi
+
+    #---------------------------------------------------------------------
+    # Setup.
+    #---------------------------------------------------------------------
+    is_root=`id -u 2>/dev/null`
+    if test "x$?" = x0 && test "x${is_root}" != x0
+    then
+        promptYESNO "You are not root, continue anyway" "no"
+        test "x$YESNO" = xn && { (exit 0; ); exit 0; }
+    else
+	is_root=0
+    fi
+    pathYULE
+    pathYDATA
+    selbinARCH
+    selbinVERSION
+    if test "x${is_init}" = xy
+    then
+        promptYESNO "Initialize database" "yes"
+        is_init=$YESNO
+    fi
+    if test "x${is_rcfile}" = xy
+    then
+        promptYESNO "Replace rc.host file on server" "yes"
+        is_rcfile=$YESNO
+    fi
+    if test "x${is_startup}" = xy
+    then
+        promptYESNO "Start client after installation" "yes"
+        is_startup=$YESNO
+    fi
+    if test -f "${yule_conf}"
+    then
+	:
+    else
+	promptINPUT "Please enter the path to the yule configuration file"
+	yule_conf="$INPUT"; export yule_conf
+	if test -f "${yule_conf}"
+	then
+	    :
+	else
+	    printFATAL "Cannot find ${yule_conf}"
+	fi
+    fi
+
+    if test x"$DIALOG" = x
+    then
+        ((commandINSTALL | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    else
+        commandINSTALL 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version INSTALL logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+    fi
+
+elif test x"$action" = xuninstall
+then
+
+    needEXE ssh scp ssh-agent
+
+    #---------------------------------------------------------------------
+    # Make sure we are running under ssh-agent.
+    #---------------------------------------------------------------------
+    if test x"$SSH_AGENT_PID" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "Not running under ssh-agent, and not running interactive: cannot continue."
+	else
+            promptYESNO "Not running under ssh-agent, continue anyway" "no"
+            test "x$YESNO" = xn && { (exit 0; ); exit 0; }
+        fi
+    fi
+
+    #---------------------------------------------------------------------
+    # Setup.
+    #---------------------------------------------------------------------
+
+    dbINFO "$host"
+
+    if test x"$?" = x0
+    then
+        if test x"${DB_status}" = "xD2_installed"
+	then
+	    :
+        else
+	    if test x"${DB_status}" = "xD2_removed"
+	    then
+                promptYESNO "Already uninstalled on host $host, continue" "no"
+                test "x$YESNO" = xn && { (exit 0; ); exit 0; }
+	    else
+	        printFATAL "No deploy version 2 installation on host $host: ${DB_status}"
+            fi
+        fi
+    else
+        printFATAL "Cannot uninstall on host $host"
+    fi
+
+    if test x"$DIALOG" = x
+    then
+        ((commandUNINSTALL | tee -a "$lastlog") 6>&1 1>&2 2>&6 | \
+        tee -a "$lastlog") 6>&1 1>&2 2>&6
+    else
+        commandUNINSTALL 2>&1 | tee -a "$lastlog" >/dev/null | $DIALOG \
+    	--title "deploy.sh $version UNINSTALL logfile" \
+    	--backtitle "Logfile:  $lastlog" \
+    	--tailbox "$lastlog" 19 75
+    fi
+
+fi
+
+if test x"${main_exit_status}" = x0
+then
+    test -f "$tmpERR" && main_exit_status=`cat "$tmpERR" | tr -d '\n'`
+fi
+
+(exit ${main_exit_status}); exit ${main_exit_status};

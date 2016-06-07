@@ -1,0 +1,311 @@
+#########################################################################
+#
+# More subroutines for client DB
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+DBFTEST=0
+
+dbSETFLAG() {
+    case "$line" in
+    *\</client\>*)
+    DBFTEST=0;
+    return 0;
+    ;;
+
+    *\<client_host\>${DB_host}\</client_host\>*)
+    DBFTEST=1;
+    return 1;
+    ;;
+
+    *)
+    return ${DBFTEST};
+    ;;
+    esac
+}
+
+
+DB_arch=""; export DB_arch;
+DB_status=""; export DB_status;
+DB_version=""; export DB_version;
+DB_date=""; export DB_date;
+DB_name=""; export DB_name;
+
+dbINFO() {
+
+    if test "x$1" = x
+    then
+	printFATAL "No host specified, aborting"
+    else
+        DB_host="$1"
+    fi
+
+    DB_arch=""; export DB_arch;
+    DB_status=""; export DB_status;
+    DB_version=""; export DB_version;
+    DB_date=""; export DB_date;
+    DB_name=""; export DB_name;
+
+    if test x"$DATABASE" = x
+    then
+        DATABASE="${basedir}/${defdatabase}"
+    fi
+
+    if test -f "${DATABASE}"
+    then	 
+        SStr1=`grep '<yule_db>' "${DATABASE}"`
+        if test "x${SStr1}" != "x"
+        then
+
+	SStr2=`grep "<client_host>${DB_host}</client_host>" "${DATABASE}"`
+
+	SStr3=
+
+	  if test "x${SStr2}" != "x"
+	  then
+	    exec 3<&0 <"${DATABASE}"
+	    while
+		read line
+	    do
+		# for some reason, var=xx only works in a function call (why?)
+		#
+		# here we test if we are still in the same client block
+		# (set_flag will return 0 for </client> and following)
+		dbSETFLAG "$line"
+
+		if test "x$?" = "x1"
+		then
+		    case "$line" in
+		    *\<client_os_machine\>*\</client_os_machine\>)
+		    DB_arch=`echo "$line" | sed '/^\(.*\)<client_os_machine>\([0-9a-zA-Z_-]*\)<\/client_os_machine>\(.*\)$/{ s//\2/; q; }'`
+	            export DB_arch
+		    ;;
+
+		    *\<client_install_status\>*\</client_install_status\>)
+		    DB_status=`echo "$line" | sed '/^\(.*\)<client_install_status>\([0-9a-zA-Z_-]*\)<\/client_install_status>\(.*\)$/{ s//\2/; q; }'`
+                    export DB_status
+		    ;;
+
+		    *\<client_install_date\>*\</client_install_date\>)
+		    DB_date=`echo "$line" | sed '/^\(.*\)<client_install_date>\([ 0-9a-zA-Z_.:,-]*\)<\/client_install_date>\(.*\)$/{ s//\2/; q; }'`
+	            export DB_date
+		    ;;
+
+		    *\<client_install_name\>*\</client_install_name\>)
+		    DB_name=`echo "$line" | sed '/^\(.*\)<client_install_name>\([0-9a-zA-Z_-]*\)<\/client_install_name>\(.*\)$/{ s//\2/; q; }'`
+                    export DB_name
+		    ;;
+
+		    *\<client_install_prefix\>*\</client_install_prefix\>)
+		    ;;
+
+		    *\<client_install_version\>*\</client_install_version\>)
+		    DB_version=`echo "$line" | sed '/^\(.*\)<client_install_version>\([0-9a-zA-Z_.-]*\)<\/client_install_version>\(.*\)$/{ s//\2/; q; }'`
+		    export DB_version
+		    ;;
+
+		    *)
+		    ;;
+
+		    esac
+		else
+		    :
+		fi
+	    done 
+	    exec 0<&3 3<&-
+	    return 0
+	  else
+	    printINFO "Host ${DB_host} not found in client database"
+	    return 1
+          fi
+	else
+	  printINFO "Client database ${DATABASE} in bad shape"
+	  return 1
+        fi
+    else
+	printINFO "Client database ${DATABASE} not available"
+	return 1
+    fi	    
+}
+
+DB_hostlist=""; export DB_hostlist
+
+dbHOSTLIST() {
+
+    DB_hostlist=""; export DB_hostlist
+
+    if test x"$DATABASE" = x
+    then
+        DATABASE="${basedir}/${defdatabase}"
+    fi
+
+    if test -f "${DATABASE}"
+    then
+        DB_hostlist=`cat "${DATABASE}" | grep 'client_host' | sed '/^\(.*\)<client_host>\([0-9a-zA-Z.-]*\)<\/client_host>\(.*\)$/{ s//\2/; }' | sort`
+	export DB_hostlist
+	return 0
+    else
+	printINFO "Client database ${DATABASE} not available"
+	return 1
+    fi
+}
+
+dbSHOWHOSTS() {
+
+    if test "x$1" = x
+    then
+        dbHOSTLIST
+    else
+        DB_hostlist="$1"
+    fi
+
+    if test "x$?" = x1
+    then
+	printLOG "No known hosts - database unavailable"
+    fi
+    if test "x${DB_hostlist}" = x
+    then
+	printLOG "No known hosts - database unavailable, empty, or corrupt"
+    fi
+
+    for ff in ${DB_hostlist}
+    do
+        dbINFO "$ff"
+
+	
+        if test "x$?" = x1
+        then
+	    :
+        else
+	    test -z "${DB_date}" && DB_date="INDEF"
+	    test -z "${DB_arch}" && DB_arch="INDEF"
+	    test -z "${DB_version}" && DB_version="INDEF"
+
+	    tmp_status="-"
+	    if test "x$DB_status" = xinstalled
+	    then
+	        tmp_status="o"
+	    elif test "x$DB_status" = xD2_installed
+	    then
+	        tmp_status="i"
+	    elif test "x$DB_status" = xD2_removed
+	    then
+                tmp_status="u"
+            fi
+            out=`echo | awk '{ printf "%1s %14s %-11s %19s %s\n", "'"${tmp_status}"'", "'"${DB_arch}"'", "'"${DB_version}"'", "'"${DB_date}"'", "'"${ff}"'" }'`
+	    printINFO "${out}"
+	fi
+    done
+}
+
+
+dbSHOWPKG() {
+
+    delete=no
+    show=no
+
+    if test x"$1" = xshow
+    then
+	show=yes
+    fi
+    if test x"$2" = xdelete
+    then
+	delete=yes
+    fi
+
+    cd "${basedir}/archpkg" || printFATAL "Cannot cd to ${basedir}/archpkg"
+
+    dbHOSTLIST
+
+    if test x"$DATABASE" = x
+    then
+        DATABASE="${basedir}/${defdatabase}"
+    fi
+
+    LIST=`ls`
+    this_dir=`pwd`
+
+    for dd in $LIST
+    do
+      if test -d "$dd"
+      then
+          cd "$dd"
+
+	  PKGLIST=`ls samhain-* 2>/dev/null`
+
+	  for ff in $PKGLIST
+	  do
+	      if test -f "$ff"
+	      then
+	          version=`echo "$ff" | sed -e 's%samhain-%%'`
+		  
+		  tmp_status="-"
+
+		  grep "$version" "${DATABASE}" >/dev/null 2>&1
+		  if test "x$?" = x0
+		  then
+		      for hh in ${DB_hostlist}
+                      do
+                          dbINFO "$hh"
+                          if test x"${DB_arch}" = x"${dd}" && \
+			     test x"${DB_version}" = x"${version}"
+			  then
+	                      tmp_status="-"
+	                      if test "x$DB_status" = xinstalled
+	                      then
+	                          tmp_status="o"
+	                      elif test "x$DB_status" = xD2_installed
+	                      then
+	                          tmp_status="i"
+                              fi
+			      break
+                          fi
+                      done
+		  else
+		      tmp_status="-"
+                  fi
+
+		  if test x"${show}" = xyes
+		  then
+		      printINFO "${tmp_status} ${dd}/${version}"
+		  fi
+
+		  if test x"${delete}" = xyes && test x"${tmp_status}" = "x-"
+		  then
+		      printLOG "REMOVE ${dd}/${version}"
+
+	              if test x"$simulate" = x0
+	              then
+		          rm -f "samhain-${version}"
+		          rm -f "install-${version}"
+		          rm -f "configure-${version}"
+                      else
+		          printINFO "rm -f ${dd}/samhain-${version}"
+		          printINFO "rm -f ${dd}/install-${version}"
+		          printINFO "rm -f ${dd}/configure-${version}"
+		      fi
+		  fi
+              fi
+          done
+	  cd "${this_dir}"
+      fi  
+    done
+}

@@ -1,0 +1,127 @@
+#! /bin/sh
+
+### BEGIN INIT INFO
+# Provides: @install_name@
+# Required-Start: $syslog $network
+# Required-Stop: $syslog $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Keep an eye on stuff
+# Description: Keep an eye on stuff
+### END INIT INFO
+
+
+# source function library
+if test -f /lib/lsb/init-functions; then
+. /lib/lsb/init-functions
+else
+	echo "File /lib/lsb/init-functions not found"
+	exit 5
+fi
+
+prefix="@prefix@"
+exec_prefix="@exec_prefix@"
+DAEMON=@sbindir@/@install_name@
+NAME=@install_name@
+
+if test ! -f ${DAEMON}; then
+	log_failure_msg "Service $NAME is not installed"
+  	exit 5
+fi
+
+if test "x$2" != "x" && test "x$1" != "xstatus"; then
+	log_failure_msg "Excess arguments $@"
+	exit 2
+fi
+
+log_sh_msg () {
+case "$1" in
+	0)
+	log_success_msg "Service $NAME $2"
+	break;
+	;;
+	1)
+	log_failure_msg "Service $NAME: Error"
+	break;
+	;;
+	4)
+	log_failure_msg "Service $NAME: Permission denied"
+	break;
+	;;
+	5)
+	log_failure_msg "Service $NAME is not installed"
+	break;
+	;;
+	7)
+	log_failure_msg "Service $NAME is not running"
+	break;
+	;;
+	*)
+	log_failure_msg "Service $NAME: Error"
+	break;
+	;;
+esac
+}
+
+log_stat_msg () {
+case "$1" in
+	0)
+	echo "Service $NAME: Running";
+	break;
+	;;
+	1)
+	echo "Service $NAME: Stopped and /var/run pid file exists";
+	break;
+	;;
+	3)
+	echo "Service $NAME: Stopped";
+	break;
+	;;
+	*)
+	echo "Service $NAME: Status unknown";
+	break;
+	;;
+esac
+}
+
+case "$1" in
+  start)
+	${DAEMON} start
+	ERRNUM=$?
+	SH_ACT="started"
+	;;
+  stop)
+	${DAEMON} stop
+	ERRNUM=$?
+	if test -f @mylockfile@; then
+	    /bin/rm -f @mylockfile@
+	fi
+	if test -S @mylockdir@/${NAME}.sock; then
+	    /bin/rm -f @mylockdir@/${NAME}.sock
+        fi
+	SH_ACT="stopped"
+	;;
+  restart)
+	${DAEMON} restart
+	ERRNUM=$?
+	SH_ACT="restarted"
+	;;
+  reload|force-reload)
+	${DAEMON} reload
+	ERRNUM=$?
+	SH_ACT="reloaded"
+	;;
+  status)
+	${DAEMON} status
+	ERRNUM=$?
+	log_stat_msg ${ERRNUM}
+	exit ${ERRNUM}
+	;;
+  *)
+        log_warning_msg "Usage: @install_name@ {start|stop|restart|(force-)reload|status}"
+	exit 2
+	;;
+esac
+
+log_sh_msg ${ERRNUM} "${SH_ACT}"
+exit ${ERRNUM}

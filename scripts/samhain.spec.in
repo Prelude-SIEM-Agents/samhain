@@ -1,0 +1,162 @@
+#
+# Accepted parameters for 'rpmbuild':
+#
+# --with gpg		- enables gpg support
+# --with tests		- make tests before building
+
+Summary: File integrity and host-based IDS
+Name: samhain
+Version: @VERSION@
+Release: 1
+License: GPL
+Group: System Environment/Base
+Source: %{name}-%{version}.tar.gz
+BuildRoot: %{_tmppath}/%{name}-%{version}-root
+Packager: Andre Oliveira da Costa <brblueser@uol.com.br>
+Provides: %{name}
+%if %{?_with_gpg:1}%{!?_with_gpg:0}
+BuildPreReq: gpg
+%endif
+
+%description
+samhain is an open source file integrity and host-based intrusion
+detection system for Linux and Unix. It can run as a daemon process, and
+and thus can remember file changes -- contrary to a tool that runs from
+cron, if a file is modified you will get only one report, while
+subsequent checks of that file will ignore the modification as it is
+already reported (unless the file is modified again). 
+
+samhain can optionally be used as client/server system to provide
+centralized monitoring for multiple host. Logging to a (MySQL or
+PostgreSQL) database is supported.
+
+This package contains only the single host version.
+
+%prep
+%setup -q -n samhain-%{version}
+
+%build
+%if %{?_with_tests:1}%{!?_with_tests:0}
+# test installation (test #7 is only included if --with gpg has been
+# specified)
+for i in `seq 6` %{?_with_gpg:7}; do ./test/test.sh $i; done
+%endif
+./configure --prefix=%{_usr} \
+            --sbindir=%{_sbindir} \
+            --sysconfdir=%{_sysconfdir} \
+            --localstatedir=%{_localstatedir} \
+            --mandir=%{_mandir} \
+%{?_with_gpg:	--with-gpg=`type -p gpg`}
+
+make 
+
+%install
+rm -rf $RPM_BUILD_ROOT
+# sstrip shouldn't be used since binaries will be stripped later
+cat << EOF > sstrip
+#!/bin/sh
+echo "*** SSTRIP DISABLED ***"
+EOF
+make DESTDIR=${RPM_BUILD_ROOT} install
+# copy script files to /var/lib/samhain so that we can use them right
+# after the package is installed
+install -m 700 samhain-install.sh init/samhain.startLinux init/samhain.startLSB ${RPM_BUILD_ROOT}%{_localstatedir}/lib/%{name}
+
+%clean
+rm -rf ${RPM_BUILD_ROOT}
+
+%post
+if [ "$1" = 1 ]; then
+        # Activate boot-time start up
+        cd %{_localstatedir}/lib/%{name}
+        /bin/sh ./samhain-install.sh --verbose install-boot
+        if test -f /sbin/chkconfig; then
+		/sbin/chkconfig --add samhain
+		/sbin/chkconfig samhain on
+	fi
+fi
+cat << EOF
+
+Samhain is installed but is NOT running yet, and the database of
+file signatures is NOT initialized yet. Read the documentation,
+review configuration files, and then (i) initialize it
+(%{_sbindir}/samhain -t init) 
+and (ii) start it manually
+(%{_sysconfdir}/init.d/samhain start).
+
+It is configured to start automatically on the next boot for runlevels
+[2-5].
+
+EOF
+
+
+%preun
+# stop running instance of samhain, if any
+if [ -f %{_localstatedir}/run/%{name}.pid ]; then
+        %{_sysconfdir}/init.d/samhain stop
+fi
+if [ "$1" = 0 ]; then
+        # remove boot-time scripts and links
+        cd %{_localstatedir}/lib/samhain
+        if [ -f ./samhain-install.sh ]; then
+	    /bin/sh ./samhain-install.sh --verbose uninstall-boot
+	else
+	    if [ -f /sbin/chkconfig ]; then
+		/sbin/chkconfig samhain off
+		/sbin/chkconfig --del  samhain
+            fi
+        fi
+fi
+
+
+%files
+%defattr(-,root,root)
+%dir %{_localstatedir}/run
+%dir %{_localstatedir}/log
+%doc docs/BUGS COPYING docs/Changelog 
+%doc LICENSE docs/HOWTO* docs/MANUAL-2_4.* docs/README*
+%{_localstatedir}/lib/%{name}
+%{_sbindir}/%{name}
+%attr(644,root,root) %{_mandir}/man5/samhain*
+%attr(644,root,root) %{_mandir}/man8/samhain*
+%attr(644,root,root) /etc/logrotate.d/@install_name@
+%config(noreplace) %{_sysconfdir}/samhainrc
+
+%changelog
+* Sat Jun 19 2004 Rainer Wichmann
+- replace ./test.sh $i with make test$i
+
+* Sat Jan 03 2004 Rainer Wichmann
+- Use /sbin/chkconfig as in ../samhain.spec.in 
+
+* Thu Dec 11 2003 Christian Vanguers <cva at molis dot be>
+- Fixed typo in samhain.spec
+
+* Tue Dec 24 2002 Rainer Wichmann
+- warn user that database must be initialized
+- fix version of MANUAL in '%files'
+- test for chkconfig, use only if found
+
+* Sun Dec 22 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.7.0
+- fixed typo with _usr macro on ./configure
+- stops running samhain before uninstall
+- implemented conditionals to allow proper uninstalls/upgrades
+- 'BuildPreReq: gpg' is considered only if '--with gpg' is provided
+- run 'chkconfig' to activate samhain after installation
+- warn user that samhain must be manually started after
+  install/upgrade
+
+* Fri Dec 20 2002 Rainer Wichmann
+- use 'configure' to set version string
+- use standard macros for paths
+
+* Thu Dec 19 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.6.6
+- optional parameters '--with gpg' and '--with tests'
+- use of pre-defined macros whenever possible
+
+* Wed Dec 18 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.6.6
+- Fixed installation process, avoiding hardcoded paths on the binaries
+  (thks to samhain's author Rainer Wichmann)
+
+* Mon Dec 16 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.6.6
+- First attempt to build from sources

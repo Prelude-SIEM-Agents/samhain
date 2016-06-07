@@ -1,0 +1,253 @@
+#########################################################################
+#
+# Subroutine for the 'build' command
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+commandBUILD() {
+    printINFO "About to run \"$action\""
+
+    if test -d "${basedir}/archpkg/${arch}"
+    then
+	:
+    else
+	if test -d "${basedir}/archpkg"
+	then
+	    if test x"$simulate" = x0
+	    then
+	        mkdir "${basedir}/archpkg/${arch}"
+	    else
+		printINFO "mkdir ${basedir}/archpkg/${arch}"
+            fi
+	else
+	    if test x"$simulate" = x0
+	    then
+	        mkdir "${basedir}/archpkg" && mkdir "${basedir}/archpkg/${arch}"
+	    else
+		printINFO "mkdir ${basedir}/archpkg && mkdir ${basedir}/archpkg/${arch}"
+	    fi
+        fi
+    fi
+
+    if test -f "${basedir}/configs/${arch}.configure"
+    then
+	:
+    else
+	printFATAL "Configure options file ${basedir}/configs/${arch}.configure not found."
+    fi
+
+    local_test=`cat "${basedir}/configs/${arch}.configure" | tr -d '\n' | egrep "^ *'?--with-logserver=FQDN_MISSING"`
+    if test x"${local_test}" = x
+    then
+	:
+    else
+	printFATAL "Your configuration file has a bad --with-logserver option."
+    fi
+
+    if test x"$bd_packed" = x
+    then
+	printINFO "Building version: ${src_version}, host: ${host}, os: ${arch}, format: ${format}"
+    else
+	printINFO "Building version: ${src_version}, host: ${host}, os: ${arch}, format: ${format}, packed: password=${bd_packed}"
+    fi
+
+    tmpdir=`eval echo "${temp_dir}/sh_${src_version}_${arch}_${format}_$$"`
+
+    #---------------------------------------------------------------------
+    # Create temporary build directory on build host.
+    #---------------------------------------------------------------------
+    if test x"$simulate" = x0
+    then
+        ssh -x -l "${bd_user}" "${host}" '(umask 0077; mkdir "'${tmpdir}'")'
+    else
+	printINFO "ssh -x -l ${bd_user} ${host} (umask 0077; mkdir ${tmpdir})"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not create temporary build directory on host ${host}."
+    else
+	printLOG "Build directory ${tmpdir} created on host ${host}"
+    fi
+
+    #---------------------------------------------------------------------
+    # Copy source tarball to build host.
+    #---------------------------------------------------------------------
+    if test x"$simulate" = x0
+    then
+        rm -f "${basedir}/tmp/samhain-${src_version}.tar"
+        gunzip -c "${basedir}/source/samhain-${src_version}.tar.gz" > "${basedir}/tmp/samhain-${src_version}.tar"
+    else
+        printINFO "rm -f ${basedir}/tmp/samhain-${src_version}.tar"
+        printINFO "gunzip -c ${basedir}/source/samhain-${src_version}.tar.gz > ${basedir}/tmp/samhain-${src_version}.tar"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not gunzip source to ${basedir}/tmp/samhain-${src_version}.tar."
+    fi
+
+    if test x"$simulate" = x0
+    then
+        if test x"$silent" = x0
+        then
+	    scp "${basedir}/tmp/samhain-${src_version}.tar" "${bd_user}@${host}:${tmpdir}/"
+        else
+	    scp -q "${basedir}/tmp/samhain-${src_version}.tar" "${bd_user}@${host}:${tmpdir}/"
+        fi
+    else
+        if test x"$silent" = x0
+        then
+	    printINFO "scp ${basedir}/tmp/samhain-${src_version}.tar ${bd_user}@${host}:${tmpdir}/"
+        else
+	    printINFO "scp -q ${basedir}/tmp/samhain-${src_version}.tar ${bd_user}@${host}:${tmpdir}/"
+        fi
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not copy source to host ${host}."
+    else
+	printINFO "Source copied to host ${host}."
+    fi
+
+    #---------------------------------------------------------------------
+    # Build the package.
+    #---------------------------------------------------------------------
+    if test x"$silent" = x0
+    then
+        config_com='./configure'
+    else
+        config_com='./configure --silent'
+    fi
+
+    if test -f "${basedir}/configs/${arch}.configure"
+    then
+	while read line
+	do 
+	    if test -z "`echo $line | awk '/^#/'`"
+	    then
+		nline=`echo ${line} | tr -d '\n'`
+		config_com="${config_com} ${nline}"
+	    fi
+	done <"${basedir}/configs/${arch}.configure"
+    else
+	printFATAL "Configure options file ${basedir}/configs/${arch}.configure not found."
+    fi
+
+    printINFO "configure command is ${config_com}"
+    if test x"$bd_packed" = x
+    then
+	command="make clean"
+    else
+	command="make CLIENTPASSWD=${bd_packed} samhain-packed"
+    fi
+
+
+    command=`eval echo $command`;
+
+    if test x"$simulate" = x0
+    then
+        if test $silent -lt 2
+        then
+	    ssh -x -l "${bd_user}" "${host}" /bin/sh -c \''(PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}:${bd_addpath}'" && export PATH && cd "'${tmpdir}'" && tar -xf "'samhain-${src_version}.tar'" && cd "'samhain-${src_version}'" && eval "'${config_com}'" && eval "'${command}'" && make "'${format}-light'")'\'
+        else
+	    ssh -x -l "${bd_user}" "${host}" /bin/sh -c \''(PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:${PATH}:${bd_addpath}'" && export PATH && cd "'${tmpdir}'" && tar -xf "'samhain-${src_version}.tar'" && cd "'samhain-${src_version}'" && eval "'${config_com}'" && eval "'${command}'" && make "'${format}-light'") >/dev/null'\'
+        fi
+    else
+        if test $silent -lt 2
+        then
+	    printINFO "ssh -x -l ${bd_user} ${host} /bin/sh -c '(PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\${PATH}:${bd_addpath} && export PATH && cd ${tmpdir} && tar -xf samhain-${src_version}.tar && cd samhain-${src_version} && eval ${config_com} && eval ${command} && make ${format}-light)'"
+        else
+	    printINFO "ssh -x -l ${bd_user} ${host} /bin/sh -c '(PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\${PATH}:${bd_addpath} && export PATH && cd ${tmpdir} && tar -xf samhain-${src_version}.tar && cd samhain-${src_version} && eval ${config_com} && eval ${command} && make ${format}-light) >/dev/null'"
+        fi
+    fi
+
+    if test x"$?" != x0
+    then
+	printFATAL "Could not build package on host ${host}."
+    else
+	printINFO "Source compiled."
+    fi
+
+    #---------------------------------------------------------------------
+    # Fetch package and remove temporary build directory on build host.
+    #---------------------------------------------------------------------
+    realformat=`echo $format | sed s,solaris-,,`
+
+    if test x"$simulate" = x0
+    then
+        ssh -x -l "${bd_user}" "${host}" '(cat "'${tmpdir}/samhain-${src_version}/samhain-install.sh'")' >"${basedir}/archpkg/${arch}/install-${src_version}.${realformat}"
+    else
+        printINFO "ssh -x -l ${bd_user} ${host} (cat ${tmpdir}/samhain-${src_version}/samhain-install.sh) >${basedir}/archpkg/${arch}/install-${src_version}.${realformat}"
+    fi
+
+    if test x"$?" != x0
+    then
+	printFATAL "Could not fetch samhain-install.sh script from host ${host}."
+    fi
+    chmod +x "${basedir}/archpkg/${arch}/install-${src_version}.${realformat}"
+
+    if test x"$simulate" = x0
+    then
+        ssh -x -l "${bd_user}" "${host}" '(cat "'${tmpdir}/samhain-${src_version}/samhain-${src_version}.${realformat}'" && rm -rf "'${tmpdir}'")' >"${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}"
+    else
+        printINFO "ssh -x -l ${bd_user} ${host} (cat ${tmpdir}/samhain-${src_version}/samhain-${src_version}.${realformat} && rm -rf ${tmpdir}) >${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not fetch package samhain-${src_version}.${realformat} from host ${host}."
+    else
+	printLOG "Build directory ${tmpdir} deleted on host ${host}."
+    fi
+    chmod +x "${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}"
+
+    if test x"$simulate" = x0
+    then
+        pkgsize=`ls -l "${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}" | awk '{print $5}'`
+        if test "x$pkgsize" = "x0"; then
+	    printFATAL "Returned package file is empty."
+        fi
+    else
+	printINFO "ls -l ${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat} | awk '{print $5}'"
+    fi
+
+    # >> Save password
+    #
+    if test x"$bd_packed" = x
+    then
+	:
+    else
+        if test x"$simulate" = x0
+        then
+	    echo "$bd_packed" >"${basedir}/archpkg/${arch}/PASSWD-${src_version}.${realformat}"
+	fi
+    fi
+
+    # >> Save configure options
+    #
+    if test x"$simulate" = x0
+    then
+        cp "${basedir}/configs/${arch}.configure" "${basedir}/archpkg/${arch}/configure-${src_version}.${realformat}"
+    else
+        printINFO "cp ${basedir}/configs/${arch}.configure ${basedir}/archpkg/${arch}/configure-${src_version}.${realformat}"
+    fi
+
+    printLOG "New package: ${arch}/samhain-${src_version}.${realformat}."
+}
+

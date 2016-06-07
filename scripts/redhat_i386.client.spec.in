@@ -1,0 +1,184 @@
+#
+# Accepted parameters for 'rpmbuild':
+#
+# --with tests		- make tests before building
+
+Summary: File integrity and host-based IDS
+Name: samhain-client
+Version: @VERSION@
+Release: 5
+License: GPL
+Group: System Environment/Base
+Source: %{name}-%{version}.tar.gz
+BuildRoot: %{_tmppath}/samhain-client-%{version}-root
+Packager: Andre Oliveira da Costa <brblueser@uol.com.br>
+Provides: %{name}
+
+
+%description
+samhain is an open source file integrity and host-based intrusion
+detection system for Linux and Unix. It can run as a daemon process, and
+and thus can remember file changes -- contrary to a tool that runs from
+cron, if a file is modified you will get only one report, while
+subsequent checks of that file will ignore the modification as it is
+already reported (unless the file is modified again). 
+
+samhain can optionally be used as client/server system to provide
+centralized monitoring for multiple host. Logging to a (MySQL or
+PostgreSQL) database is supported.
+
+NOTE: for security reasons, if you distribute binary executables to
+third parties you should point out the use of the --add-key option to
+modify the key material within the executable.
+This spec file is intended to facilitate installation on YOUR system.
+If you use this spec file to build a SRPM for distribution to third parties,
+make sure to remove the --enable-base configure option below.
+
+%prep
+%setup -q
+
+%build
+%if %{?_with_tests:1}%{!?_with_tests:0}
+# test installation (test #7 is only included if --with gpg has been
+# specified)
+for i in `seq 6` %{?_with_gpg:7}; do ./test/test.sh $i; done
+%endif
+#
+#./configure --prefix=%{_usr} \
+#            --sysconfdir=%{_sysconfdir} \
+#            --localstatedir=%{_localstatedir} \
+#            --mandir=%{_mandir} 
+#
+./configure 	'--enable-network=client' \
+		'--with-port=@myport@' \
+		'--with-logserver=@mylogsrv@' \
+		'--with-data-file=REQ_FROM_SERVER/etc/samclient.data' \
+		'--with-config-file=REQ_FROM_SERVER/etc/samclient.conf' \
+		'--with-kcheck=/boot/System.map' \
+		'--enable-khide=/boot/System.map' \
+		'--enable-suidcheck' \
+		'--enable-static' \
+		'--enable-login-watch' \
+		'--enable-ptrace' \
+		'--enable-db-reload' \
+		'--enable-base=@my_key_A@,@my_key_B@' \
+		'--enable-xml-log' 
+
+make
+
+%install
+rm -rf ${RPM_BUILD_ROOT}
+# sstrip shouldn't be used since binaries will be stripped later
+cat << EOF > sstrip
+#!/bin/sh
+echo "*** SSTRIP DISABLED ***"
+EOF
+make DESTDIR=${RPM_BUILD_ROOT} install
+# copy script files to /var/lib/samhain so that we can use them right
+# after the package is installed
+install -m 700 samhain-install.sh init/samhain.startLinux init/samhain.startLSB ${RPM_BUILD_ROOT}/etc
+install -m 640 -o 0 -g 0 samhain_kmem.ko	${RPM_BUILD_ROOT}/lib/modules/`uname -r`/samhain_kmem.ko
+install -m 640 -o 0 -g 0 samhain_hide.ko        ${RPM_BUILD_ROOT}/lib/modules/`uname -r`/samhain_hide.ko
+install -m 700 -o 0 -g 0 samhain_setpwd		${RPM_BUILD_ROOT}/usr/local/sbin/samhain_setpwd
+
+%clean
+rm -rf ${RPM_BUILD_ROOT}
+
+%post
+if [ "$1" = 1 ]; then
+        # Activate boot-time start up
+        cd /etc
+        ./samhain-install.sh --verbose install-boot
+        if test -f /sbin/chkconfig; then
+		/sbin/chkconfig --add samhain
+	fi
+fi
+rm -rf /etc/samclient.conf
+rm -rf /etc/samhain.startLinux
+rm -rf /etc/samhain.startLSB
+
+cat << EOF
+
+Samhain is installed but is NOT running yet, and the database of
+file signatures is NOT initialized yet. Read the documentation,
+review configuration files, and then (i) initialize it
+(/usr/local/sbin/samhain -t init) 
+and (ii) start it manually
+(/usr/local/sbin/samhain start).
+
+It is configured to start automatically on the next boot for runlevels
+[2-5].
+
+EOF
+
+%preun
+# stop running instance of samhain, if any
+if [ -f /var/run/%{name}.pid ]; then
+        /usr/local/sbin/samhain stop
+fi
+if [ "$1" = 0 ]; then
+        # remove boot-time scripts and links
+        cd /etc
+        ./samhain-install.sh --verbose uninstall-boot
+fi
+
+
+
+%files
+%defattr(-,root,root)
+%dir /var/run
+%dir /var/log
+#%doc docs/BUGS COPYING docs/Changelog 
+#%doc LICENSE docs/HOWTO* docs/MANUAL-2_4.* docs/README*
+/etc
+/usr/local/sbin/samhain
+/usr/local/sbin/samhain_setpwd
+/lib/modules
+%attr(644,root,root) /etc/logrotate.d/@install_name@
+#%attr(644,root,root) /usr/local/man/man5/samhain*
+#%attr(644,root,root) /usr/local/man/man8/samhain*
+#%config(noreplace) REQ_FROM_SERVER/etc/samclient.conf
+
+%changelog
+* Thu Apr  3 2003 Rainer Wichmann <support at la-samhna dot de>
+- adapt for configure
+
+* Wed Mar 26 2003 Philipp Stadler <philipp@stadler.priv.at>
+- add samhain modules installation
+- stops installation of documentation to server
+- replace %config entry for /etc/samclient.conf
+- remove samhain.startLinux and samhain.startLSB after installation
+
+* Sun Jan 12 2003 Rainer Wichmann <support at la-samhna dot de>
+- replace %configure with ./configure
+
+* Tue Dec 24 2002 Rainer Wichmann <support at la-samhna dot de>
+- backported applicable changes to samhain.spec.in
+- warn user that database must be initialized
+- fix version of MANUAL in '%files'
+- test for chkconfig, use only if found
+
+* Sun Dec 22 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.7.0
+- fixed typo with _usr macro on ./configure
+- stops running samhain before uninstall
+- implemented conditionals to allow proper uninstalls/upgrades
+- 'BuildPreReq: gpg' is considered only if '--with gpg' is provided
+- run 'chkconfig' to activate samhain after installation
+- warn user that samhain must be manually started after
+  install/upgrade
+
+* Fri Dec 20 2002 Rainer Wichmann <support at la-samhna dot de>
+- backported to samhain.spec.in (take over user's choices from configure)
+- also save samhain.startLSB and samhain.startSuSE for install-boot 
+
+* Thu Dec 19 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.6.6
+- optional parameters '--with gpg' and '--with tests'
+- use of pre-defined macros whenever possible
+
+* Wed Dec 18 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.6.6
+- Fixed installation process, avoiding hardcoded paths on the binaries
+  (thks to samhain's author Rainer Wichmann)
+
+* Mon Dec 16 2002 Andre Oliveira da Costa <brblueser@uol.com.br> 1.6.6
+- First attempt to build from sources
+

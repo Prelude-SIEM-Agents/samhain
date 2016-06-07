@@ -1,0 +1,33 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <unistd.h>
+#include <fcntl.h>
+
+int main ()
+{
+  char line[256];
+  int  flags;
+  FILE * foo = fopen ("MYPWDIR", "a");
+
+  flags = fcntl(STDIN_FILENO, F_GETFL);
+  fcntl(STDIN_FILENO, F_SETFL, flags|O_NONBLOCK);
+
+ xagain:	
+  errno = 0;
+  while (NULL != fgets(line, 255, stdin))
+    {
+      fprintf (foo, "RECV: %s", line);
+      fflush  (foo);
+    } 
+  if (ferror(stdin) && errno == EAGAIN) 
+    {
+      clearerr(stdin);
+      goto xagain;
+    }
+  fclose(foo);
+  return 0;
+}
+
+	

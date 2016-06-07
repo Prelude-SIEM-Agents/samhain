@@ -1,0 +1,166 @@
+#! /bin/sh
+
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+startup=no
+
+# arg1: the --enable-nocl=password password (use 'start' for none)
+# arg2(optional): if 'startup', start the client and exit
+#
+#
+# 'nocl' is used to handle the --enable-nocl=password option. 'start' is a
+# reserved word, hence cannot be the password.
+# We are called with one argument, which may be 'start' to indicate that
+# the --enable-nocl=password option is not used.
+#
+if test "x$1" = x
+then
+    nocl=start
+else
+    nocl="$1"
+fi
+
+if test "x$2" = x
+then
+    command="data"
+else
+    command="$2"
+fi
+
+name=`./samhain-install.sh --print-config name`
+sbin=`./samhain-install.sh --print-config sbin_dir`
+
+# execute and exit for start|stop|restart|reload|status, else fallthrough
+case $command in
+    start | stop)
+    MONIT=""
+    test -f /usr/local/bin/monit && MONIT="/usr/local/bin/monit"
+    if test x"$MONIT" = x
+    then
+	test -f /usr/bin/monit && MONIT="/usr/bin/monit"
+        if test x"$MONIT" = x
+        then
+	    :
+	else
+	    zz=`/usr/bin/monit status | grep ${name}`
+	    if test x"$zz" = x
+	    then
+		:
+	    else
+	        ${MONIT} "${command}" "${name}"
+		exit 0
+	    fi
+	fi
+    fi
+
+    retval=0
+
+    if test -f /etc/init.d/${name}
+    then
+        /etc/init.d/${name} ${command}
+	retval=$?
+    elif test -f /etc/rc.d/init.d/${name}
+    then
+        /etc/rc.d/init.d/${name} ${command}
+	retval=$?
+    elif test -f "$sbin/$name"
+    then
+    	$sbin/$name ${command}
+	retval=$?
+    else
+        exit 1
+    fi
+    if test x"$command" = xstop
+    then
+        exit 0
+    fi
+    exit $retval
+    ;;
+
+    reload | restart | status )
+    if test -f /etc/init.d/${name}
+    then
+        /etc/init.d/${name} ${command}
+    elif test -f /etc/rc.d/init.d/${name}
+    then
+        /etc/rc.d/init.d/${name} ${command}
+    elif test -f "$sbin/$name"
+    then
+    	$sbin/$name ${command}
+    else
+        exit 1
+    fi
+    exit $?
+    ;;
+
+    *)
+    ;;
+esac
+
+data=`./samhain-install.sh --print-config data_file`
+ddir=`./samhain-install.sh --print-config data_dir`
+
+remfile=no
+remdir=no
+
+if test -d "$ddir"
+then
+    test -f "$data" || remfile=yes
+else
+    ./samhain-install.sh --mkinstalldirs "$ddir"
+    remdir=yes
+fi
+
+if test -f "$sbin/$name"
+then
+	if test -f "$data"
+	then
+	    rm "$data" || exit 1
+        fi
+
+	if test x"$nocl" = xstart
+	then
+		$sbin/$name -t init -p err
+	else
+		echo '-t init -p err' | $sbin/$name "$nocl"
+	fi
+else
+	echo "$sbin/$name not found" >&2
+	exit 1
+fi
+
+if test -f "$data"
+then
+	cp "$data" ./data
+else
+	echo "$data not found" >&2
+	exit 1
+fi
+
+if test x"$remdir" = xyes
+then
+    rm -rf "$ddir"
+elif test x"$remfile" = xyes
+then
+    rm -f "$data"
+fi
+
+exit 0
+

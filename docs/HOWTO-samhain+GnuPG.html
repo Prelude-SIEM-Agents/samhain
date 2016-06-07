@@ -1,0 +1,415 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>HOWTO samhain+GnuPG</title>
+<style type="text/css">
+<!--
+
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2d4488;
+}
+
+div.warnblock {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #FF9900;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #285577; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #2d5588; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style></head>
+
+<body>
+<div class="body">
+<p style="text-align: center; background: #ccc; border: 1px solid #2d5588;"><a 
+   style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/">samhain file integrity 
+   scanner</a>&nbsp;|&nbsp;<a style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/s_documentation.html">online 
+   documentation</a></p>
+<br><center>
+<h1>Using samhain with GnuPG</h1>
+</center>
+<br>
+<hr>
+<p>
+This document aims to explain how to use samhain with <b>signed configuration
+and database files</b> which are checked by invoking GnuPG.
+</p>
+<h2>Introduction</h2>
+<p>
+Samhain can be compiled to recognize PGP signatures on configuration and
+database files and to invoke GnuPG in order to check such signatures.
+(<b>Note:</b> while the application usually is referred to as <i>GnuPG</i>,
+the executable itself is called <i>gpg</i>).
+</p>
+<p>
+If samhain is compiled with this option, then 
+</p>
+
+<ol>
+<li>
+both the <i>configuration file</i>
+and the <i>file signature database</i> must be signed, and
+</li>
+<li>
+for both files the signatures must verify correctly, 
+</li>
+<li>
+otherwise samhain will abort.
+</li>
+</ol>
+
+
+<h2>Prerequisites</h2>
+<ul>
+<li>
+<p>
+Obviously you need <i>gpg</i> (GnuPG), and you must 
+have created a key pair with:
+</p><p>
+<tt>&nbsp; &nbsp;gpg --gen-key</tt>
+</p><p>
+(it does not really matter which type of key, the defaults are ok).
+</p><p>
+GnuPG uses a public-key algorithm: the key pair consists of
+</p>
+<ul>
+<li> 
+a <i>secret key</i> that is
+used for signing and stored in <b>&#126;user/.gnupg/secring.gpg</b>, and
+</li><li>
+a <i>public key</i> used for verifying the signature, and stored in
+<b>&#126;user/.gnupg/pubring.gpg</b>. 
+</li>
+</ul>
+<p>
+The secret key obviously should be
+kept secret, while the public key can be published.
+</p>
+</li>
+<li>
+<p>
+You need to compile samhain with support for GnuPG:
+</p><p>
+<tt>&nbsp; &nbsp;./configure --with-gpg=/path/to/gpg [more options]</tt>
+</p><p>
+</li>
+</ul>
+
+<p>
+<b>Note 1:</b> If compiled with support for GnuPG, 
+the TIGER192 checksum of the gpg
+executable will be compiled into samhain, and the gpg executable will
+be checksummed (to verify its integrity) before invoking it. If you
+don't like this, you should add the <i>configure</i> option:
+</p><p>
+<tt>&nbsp; &nbsp;--with-checksum=no</tt>
+</p>
+<div class="warnblock">
+<p>
+Compiling in the GnuPG checksum will tie the samhain executable to
+the gpg executable. If you upgrade GnuPG, you will need to re-compile
+samhain. If you don't like this, use <tt>'--with-checksum=no'</tt>.
+</p>
+</div>
+<p>
+<b>Note 2:</b> The mere fact that the signature
+is correct does not prove that it has been signed by <i>you</i> with
+<i>your</i> key - it just proves that it has been signed by <i>somebody</i>.
+Samhain can optionally check the <i>fingerprint</i> of the key that has been
+used to sign the files, to verify that <i>your</i> key has been used
+to sign the file(s). To enable this, use the <i>configure</i> option
+</p><p>
+<tt>&nbsp; &nbsp;--with-fingerprint=FINGERPRINT</tt>
+</p><p>
+where FINGERPRINT is the hexadecimal fingerprint of the key as listed
+with
+</p><p>
+<tt>&nbsp; &nbsp;gpg --fingerprint</tt>
+</p>
+
+<h3>Example</h3>
+
+<pre style="background-color:#DDDDDD; color:#000000">
+
+rainer$ gpg --fingerprint rainer
+pub  1024D/0F571F6C 1999-10-31 Rainer Wichmann
+     Key fingerprint = EF6C EF54 701A 0AFD B86A  F4C3 1AAD 26C8 0F57 1F6C
+uid                            Rainer Wichmann
+sub  1024g/9DACAC30 1999-10-31
+
+rainer$ which gpg
+/usr/bin/gpg
+
+rainer$ ./configure --with-gpg=/usr/bin/gpg --with-fingerprint=EF6CEF54701A0AFDB86AF4C31AAD26C80F571F6C
+
+</pre>
+
+<h2>Signing the files</h2>
+<p>
+The <i>configuration file</i> and the 
+<i>file signature database</i> 
+(created by running <tt>samhain -t init</tt>) must be signed manually
+using the command:
+</p><p>
+<tt>&nbsp; &nbsp;gpg -a --clearsign --not-dash-escaped /etc/samhainrc</tt><br/>
+<tt>&nbsp; &nbsp;mv /etc/samhainrc.asc /etc/samhainrc</tt>
+</p><p>
+<i>Gpg</i> will create a <i>signed copy</i> of the file, 
+named <i>file.asc</i>.
+You need to <b>rename</b> (<tt>cp/mv</tt>) this signed copy 
+to the original filename.
+After signing the configuration file, you can initialize the database
+and sign it likewise.
+</p>
+<p>
+<b>Note 1:</b> The installation script will ask you to 
+sign the <i>configuration file</i> upon installation. 
+</p><p>
+<b>Note 2:</b> The <i>gpg</i> option  <tt>--not-dash-escaped</tt> 
+does not harm if used with the
+<i>configuration file</i>, but is only required for the 
+<i>file signature database</i>.
+</p>
+
+<h3>TIP</h3>
+<p>
+   In the subdirectory <tt>scripts/</tt> of the source directory you will find
+   a Perl script <b>samhainadmin.pl</b> to facilitate some
+   tasks related to the administration of signed configuration and
+   database files (e.g. examine/create/remove signatures). 
+   Use with <i>--help</i> to get usage 
+   information.
+</p>
+
+<h3>CAVEAT</h3>
+<p>
+   When signing, the option <i>--not-dash-escaped</i> is
+   recommended, because otherwise the database might get corrupted. 
+   However, this implies that after a database update, 
+   you <i>must</i> remove the old signature first, before
+   re-signing the database. Without 'dash escaping', 
+   gpg will not properly handle the old signature.
+   See the tip just above.
+</p>
+
+<h3>Example</h3>
+
+<pre style="background-color:#DDDDDD; color:#000000">
+
+root# gpg -a --clearsign --not-dash-escaped /etc/samhainrc
+
+You need a passphrase to unlock the secret key for
+user: "Rainer Wichmann"
+1024-bit DSA key, ID 0F571F6C, created 1999-10-31
+
+root# mv  /etc/samhainrc.asc /etc/samhainrc
+root# samhain -t init
+root# gpg -a --clearsign --not-dash-escaped /var/lib/samhain/samhain_file
+
+You need a passphrase to unlock the secret key for
+user: "Rainer Wichmann"
+1024-bit DSA key, ID 0F571F6C, created 1999-10-31
+
+root# mv /var/lib/samhain/samhain_file.asc /var/lib/samhain/samhain_file
+root# samhain -D -t check
+
+</pre>
+
+<h2>Make samhain verify the signature</h2>
+<p>
+This is the part where some people run into problems. The point is,
+when <i>gpg</i> is invoked by samhain, it must <i>find the public key</i>
+needed for verification. <i>Gpg</i> expects public keys in a file
+located at <b>&#126;user/.gnupg/pubring.gpg</b> where <b>&#126;user</b>
+is the home directory of the user as that <i>gpg</i> is running.
+</p><p>
+It is therefore <i>crucial</i> to include the public key corresponding
+to te secret key used for signing into the correct <b>pubring.gpg</b>
+file (this file can hold many public keys, e.g. of people sending you
+emails signed by them).
+</p><p>
+So which is the correct file? Here we have to consider two seperate
+cases:
+</p>
+<ol>
+<li>The client (or standalone) samhain daemon runs with UID 0 (i.e. root),
+thus the public key must be in <b>&#126;root/.gnupg/pubring.gpg</b>
+</li>
+<li>
+The server (yule) <i>always</i> drops root privileges (if started with), and
+runs as a <i>non-root user</i>. The username to use is compiled in,
+either with the <i>configure</i> option <tt>--enable-identity=USER</tt>,
+or by default as determined by <i>configure</i> (the first existing user
+out of the list <i>yule, daemon, nobody</i>). Thus, the public key
+must be in <b>&#126;root/.gnupg/pubring.gpg</b> (for startup) <i>and</i>
+in <b>&#126;non_root_user/.gnupg/pubring.gpg</b> (for reload with SIGHUP).
+</li>  
+</ol>
+<p>
+To import a public key into the public 
+keyring (pubring.gpg) of another user, you can do:
+</p><p>
+<tt>&nbsp; &nbsp;gpg --export KEY-ID > filename</tt><br>
+<tt>&nbsp; &nbsp;su another_user</tt><br>
+<tt>&nbsp; &nbsp;gpg --import filename</tt>
+</p>
+<p>
+<b>Note:</b> samhain will invoke <i>gpg</i> with the options:
+</p><p>
+<tt>&nbsp; &nbsp;--status-fd 1 --verify --homedir /homedir/.gnupg --no-tty -</tt>
+</p><p>
+and pipe the configuration/database file into <i>gpg</i>, similar to:
+</p><p> 
+<tt>cat filename | /usr/bin/gpg --status-fd 1 --verify --homedir /root/.gnupg --no-tty -</tt>
+</p><p>
+(of course samhain does not invoke cat, or the shell; the example above
+just shows how to do the same from the shell command prompt).
+</p>
+
+<h3>Example for signature check</h3>
+<p>
+If you want to check the signature the same way samhain does, it should look
+like (note the GOODSIG and VALIDSIG keywords in the output):
+</p>
+<pre style="background-color:#DDDDDD; color:#000000">
+
+root# cat /etc/samhainrc | gpg --status-fd 1 --verify --homedir /root/.gnupg --no-tty -
+gpg: Signature made Sat Mar 15 16:08:21 2003 CET using DSA key ID 0F571F6C
+[GNUPG:] SIG_ID 9hQvRhgjWLqyFzVOHi2b0uDmBFo 2003-03-15 1047740901
+[GNUPG:] GOODSIG 1AAD26C80F571F6C Rainer Wichmann
+gpg: Good signature from "Rainer Wichmann"
+gpg:                 aka "Rainer Wichmann"
+[GNUPG:] VALIDSIG EF6CEF54701A0AFDB86AF4C31AAD26C80F571F6C 2003-03-15 1047740901
+[GNUPG:] TRUST_ULTIMATE
+
+</pre>
+
+<h2>Troubleshooting</h2>
+<p>
+First and foremost, run samhain (or yule) from the command line, in non-daemon
+mode, and with the command-line option <tt>-p debug</tt> for debug-level
+output. This will print
+descriptive information on setup errors and/or relevant output from
+the GnuPG subprocess.
+</p>
+<p>
+Output from the GnuPG subprocess is marked by <b>[GNUPG:]</b>, and
+may show the following errors:
+</p>
+
+<ul>
+<li><b>ERRSIG</b> and/or <b>NO_PUBKEY</b> indicates that gpg did not find
+    the public key to verify the signature. You should import that key
+    into the keyrings of root and (for yule additionaly) the yule user.
+</li>
+<li><b>BADSIG</b> indicates that the public key was found by gpg, but
+    the signature is invalid. Either the file has been modified after
+    signing, or a previous signature has not been removed.
+</li>
+<li><b>NODATA</b> indicates that there is no signed data, i.e. the 
+    configuration or database file is not signed at all. 
+</li>
+</ul>
+</div>
+</body>
+</html>

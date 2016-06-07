@@ -1,0 +1,113 @@
+to 4.0.0 and higher: if you use "ReportCheckflags = yes" (off by default),
+  you need to change the database scheme:
+
+  -- mysql:
+	  ALTER TABLE samhain.log ADD COLUMN checkflags_old BIGINT UNSIGNED;
+	  ALTER TABLE samhain.log ADD COLUMN checkflags_new BIGINT UNSIGNED;
+
+  -- postgres:
+	  ALTER TABLE samhain.log ADD COLUMN checkflags_old NUMERIC(20); 
+	  ALTER TABLE samhain.log ADD COLUMN checkflags_new NUMERIC(20);
+
+  --oracle:
+	  ALTER TABLE samhain.log ADD checkflags_old NUMBER(20); 
+	  ALTER TABLE samhain.log ADD checkflags_new NUMBER(20); 
+
+to 2.8.0 and higher: samhain supports IPv6 now, which means that the
+  size of the 'ip' column in the database must be increased from
+  VARCHAR(16) to VARCHAR(46).
+
+  BE SURE TO MAKE A BACKUP BEFORE THIS!
+
+  -- mysql: alter table samhain.log modify ip VARCHAR(46);
+
+  -- postgresql: alter table samhain.log alter column ip type varchar(46);
+
+  -- oracle: alter table samhain.log modify ip VARCHAR2(46);
+
+  
+to 2.4.4 and higher: it is possible now to store the full content of
+  small files in the baseline database. To support this feature with
+  logging to an RDBMS, the DB schema for Oracle needs to be adjusted
+  by converting the link_old, link_new columns from VARCHAR2 to CLOB:
+
+  -- Oracle:
+      ALTER TABLE samhain.log ADD tmp_name CLOB;
+      UPDATE samhain.log SET tmp_name=link_old;
+      ALTER TABLE samhain.log DROP COLUMN link_old;
+      ALTER TABLE samhain.log RENAME COLUMN tmp_name to link_old;
+
+      ALTER TABLE samhain.log ADD tmp_name CLOB;
+      UPDATE samhain.log SET tmp_name=link_new;
+      ALTER TABLE samhain.log DROP COLUMN link_new;
+      ALTER TABLE samhain.log RENAME COLUMN tmp_name to link_new;
+
+  -- Samhain server (yule): if you are logging to the RDBMS via
+     the server (yule), as recommended, you need to also upgrade the 
+     server, because earlier versions had a too restrictive limit on 
+     the maximum length of an SQL query.
+
+    
+to 2.3.3 and higher: a bug has been fixed that resulted in an additional
+  slash at the beginning of the linked path of symlinks in the root
+  directory (symlinks in other directories were not affected)
+
+  -- this may cause spurious warnings about modified links, if you check
+     against a database created with an earlier version of samhain 
+
+from lower to 2.3.x: the database scheme has changed slightly. 
+  To upgrade, use the following SQL commands in the command-line
+  client of your database:
+
+  -- MySQL:
+	ALTER TABLE samhain.log ADD COLUMN acl_old BLOB;
+	ALTER TABLE samhain.log ADD COLUMN acl_new BLOB;
+
+  -- PostgreSQL:
+	ALTER TABLE samhain.log ADD COLUMN acl_old TEXT;
+	ALTER TABLE samhain.log ADD COLUMN acl_new TEXT;
+
+  -- Oracle:
+	ALTER TABLE samhain.log ADD acl_old VARCHAR2(4000);
+	ALTER TABLE samhain.log ADD acl_new VARCHAR2(4000);
+	DROP TRIGGER trigger_on_log;
+ 
+
+
+since 2.2.0: server-to-server relay is possible
+
+  -- this implies that problems will arise if your server is misconfigured
+     to connect to itself (SetExportSeverity is explicitely set
+     to a threshold different from 'none', and the logserver is set to 
+     localhost). The server may deadlock in this case.
+
+
+
+since 2.1.0: update and daemon mode can be combined
+
+  -- this implies that '-t update' will start a daemon process if running as
+     daemon is the default specified in the config file. use '--foreground'
+     to avoid starting a daemon process
+
+
+
+from 1.7.x to 1.8.x: client/server encryption protocol has been enhanced
+
+  -- 1.7.x clients can connect to a 1.8.x server
+
+  -- 1.8.x clients can only connect to a 1.7.x server, if they
+     are built with --enable-encrypt=1
+
+
+
+from 1.6.x to 1.7.x: things to watch out for
+
+  -- the log server drops root privileges after startup; it needs a logfile
+     directory with write access for the unprivileged user now
+
+  -- the PID file does not double as lock for the log file anymore; the
+     log file has its own lock now (same path, with .lock appended)
+
+  -- by default, the HTML status page of the server is in the log directory 
+     now; this allows to make the data directory read-only for the server
+

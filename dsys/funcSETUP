@@ -1,0 +1,63 @@
+#########################################################################
+#
+# Setup test Subroutines
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+# test setup
+#
+testSETUP1() {
+    test -d "$basedir" || printFATAL "Basedir $basedir does not exist"
+    test -d "$basedir/tmp" || printFATAL "Tmpdir $basedir/tmp does not exist"
+    tmpdir="$basedir/tmp"; export tmpdir
+    return 0
+}
+
+# test setup
+#
+testSETUP2() {
+    test -z "$action" && 
+	{ 
+	  promptMENU "Which action do you want to perform" "install" "build" "download" "checksrc" "clean" "info" "uninstall"; 
+	  action="$MENU"; export action; 
+        }
+    if (test x"$action" = xbuild || test x"$action" = xinstall || test x"$action" = xuninstall)
+    then
+	test -z "$host"   && 
+	    { 
+		promptINPUT "On which host do you want to $action"; 
+		host="$INPUT"; export host; 
+	    }
+    fi
+    return 0
+}
+
+setupFORMAT() {
+
+    tmp_format=`echo "${1}" | sed '/^\(.*\)\.\([0-9a-zA-Z]*\)$/{ s//\2/; q; }'`
+    echo "${tmp_format}"
+}
+
+setupVERSION() {
+    tmp_version=`echo ${DB_version} | sed s%\.run%% | sed s%\.rpm%% | sed s%\.depot%% | sed s%\.deb%% | sed s%\.tbz2%% | sed s%\.pkg%%`
+    echo "${tmp_version}"
+
+}

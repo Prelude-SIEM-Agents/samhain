@@ -1,0 +1,36 @@
+
+Using SAMHAIN on Win2K
+----------------------
+
+samhain builds and runs on Win2K (and maybe other M$ products) with
+the (free, GPL) Cygwin environment. 
+Fabio Paracchini <fparacchini at alteanet dot it> writes:
+
+(UPDATE: note that some configure options have changed since this has been 
+         written. Check the manual and/or run './configure --help' for
+	 available options.)
+	 
+  The configuration I'm testing now is a server on OpenBSD 2.8 and a client on
+  W2K, using the latest Cygwin. I was able to compile the client on a W2K
+  Cygwin development machine using those configuration flags:
+
+  --enable-static
+  --enable-network
+  --with-tmp-dir=/tmp
+  --with-data-file=REQ_FROM_SERVER/samhain.db
+  --with-config-file=REQ_FROM_SERVER/etc/samhainrc
+  --with-logserver=x.x.x.x
+  --with-lock-file=/cygdrive/c/samhain.lck
+  --with-log-file=/cygdrive/c/samhain.log
+
+  I was able to successfully compile and sign the executable, upload to the
+  production server with the cygwin1.dll in the same directory and run both
+  samhain -t init and samhain -t check.
+
+  If you need a stealthy configuration you could change lock & log file to
+  something more obscure, only pay attention that in Cygwin if you need to
+  access drive C: you have to prefix your path with /cygdrive/c.
+
+  The configuration is kept on the server where Yule runs; I registered the
+  client and I'm in the process of tuning the exceptions for the files
+  modified by Windows.

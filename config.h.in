@@ -1,0 +1,1162 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+
+
+/* ---- compile options        ------------   */
+
+/* Define if you want database support        */
+#undef WITH_DATABASE
+
+/* Define if the database is unixODBC         */
+#undef WITH_ODBC
+
+/* Define if the database is oracle           */
+#undef WITH_ORACLE
+
+/* Define if the database is mysql            */
+#undef WITH_MYSQL
+
+/* Define if the database is postgresql       */
+#undef WITH_POSTGRES
+
+/* Define if the server may listen on 514/udp */
+#undef INET_SYSLOG
+
+/* Define if you want logfile in XML format   */
+#undef SH_USE_XML
+
+/* Define if you want external programs.      */
+#undef WITH_EXTERNAL
+
+/* Define if you want to reload the database  */
+/* on SIGHUP.                                 */
+#undef RELOAD_DATABASE
+
+/* Define if you want SysV message queue.     */
+#undef WITH_MESSAGE_QUEUE
+
+/* Define the mode of the message queue.      */
+#undef MESSAGE_QUEUE_MODE
+
+/* Define which users are always trusted.     */
+/* default = 0 ( = root)                      */
+#undef SL_ALWAYS_TRUSTED
+
+/* Define if you want network time.           */
+/* default = no                               */
+#undef HAVE_NTIME
+
+/* The time server host address.              */
+/* default = "NULL"                           */
+#undef DEFAULT_TIMESERVER
+#undef ALT_TIMESERVER
+
+/* Define if you want to use the mail code.   */
+/* default = yes                              */
+#undef  SH_WITH_MAIL
+
+/* Define if you want client/server encryption*/
+#undef  SH_ENCRYPT
+
+/* Define if you want version 2 encryption    */
+#undef  SH_ENCRYPT_2
+
+/* Define if you want to watch for login/-out.*/
+/* default = no                               */
+#undef  SH_USE_UTMP
+
+/* Define if you want to check mount options on filesystems */
+/* default = no                               */
+#undef SH_USE_MOUNTS
+
+/* Define if you want to keep an eye on       */
+/* sensitive files that your users own        */
+#undef SH_USE_USERFILES
+
+/* Define if you want to watch for suid/sgid  */
+/* files                                      */
+#undef  SH_USE_SUIDCHK
+
+/* Define if you want to check kernel syscall */
+/* table to detect LKM rootkits.              */
+/* default = no                               */
+#undef  SH_USE_KERN
+
+/* Define if you want to use the Kernel       */
+/* module to hide samhain.                    */
+#undef  SH_USE_LKM
+
+/* Define if you have a vanilla  Kernel       */
+/* (2.4 or 2.2)                               */
+#undef  SH_VANILLA_KERNEL
+
+/* Define to the name of the MAGIC_HIDE       */
+/* string if you use the Kernel module to     */
+/* hide samhain.                              */
+#undef  SH_MAGIC_HIDE
+
+/* Define if you want 'micro' stealth mode.   */
+/* default = no                               */
+#undef SH_STEALTH_MICRO
+
+/* Define if you want to use stealth mode.    */
+/* default = no                               */
+#undef SH_STEALTH
+
+/* Define if you want stealth w/o CL parsing. */
+/* default = no                               */
+#undef SH_STEALTH_NOCL
+
+/* The magic argv[1] to re-enable CL parsing. */
+/* default = "yes"                            */
+#undef NOCL_CODE
+
+/* XOR value to hide literal strings.         */
+/* default = 0                                */
+#undef XOR_CODE
+
+/* The port number for TCP/IP connection.     */
+/* default = 49777                            */
+#undef SH_DEFAULT_PORT
+
+/* The identity to assume when dropping root  */
+/* default = "nobody"                         */
+#undef DEFAULT_IDENT
+
+/* Directory for tmp files                    */
+#undef SH_TMPDIR
+
+/* The data root directory.                   */
+/* default="/var/lib/samhain"                 */
+#undef DEFAULT_DATAROOT
+
+/* The quarantine directory.                  */
+/* default="/var/lib/samhain/.quarantine      */
+#undef DEFAULT_QDIR
+
+/* The location of the log file.              */
+/* default="/var/log/samhain_log"             */
+#undef DEFAULT_ERRFILE
+
+/* The directory of the log file.             */
+/* default="/var/log"                         */
+#undef DEFAULT_LOGDIR
+
+/* The location of the pid file.              */
+/* default="/var/run/samhain.pid"             */
+#undef DEFAULT_ERRLOCK
+
+/* The location of the pid file directory.    */
+/* default="/var/run            "             */
+#undef DEFAULT_PIDDIR
+
+/* The location of the configuration file.    */ 
+/* default="/etc/samhainrc"                   */
+#undef DEFAULT_CONFIGFILE
+
+/* The location of the checksum data.         */
+/* default="/var/lib/samhain/samhain_file"    */
+#undef DEFAULT_DATA_FILE
+
+/* The location of the html report.           */
+/* default="/var/log/.samhain.html"           */
+#undef DEFAULT_HTML_FILE
+
+/* The install directory.                     */
+/* default="/usr/local/sbin"                  */
+#undef SH_INSTALL_DIR
+
+/* The install path.                          */
+/* default="/usr/local/sbin/samhain"          */
+#undef SH_INSTALL_PATH
+#undef SH_INSTALL_YULE_PATH
+
+/* The install name.                          */
+/* default="samhain"                          */
+#undef SH_INSTALL_NAME
+
+/* The sender name to use.                    */
+/* default = "daemon"                         */
+#undef  DEFAULT_SENDER 
+
+/* The address to send mail to.               */ 
+/* default = "NULL"                           */
+#undef  DEFAULT_MAILADDRESS 
+#undef  ALT_MAILADDRESS 
+
+/* The log server.                            */ 
+/* default = "NULL"                           */
+#undef  DEFAULT_LOGSERVER 
+#undef  ALT_LOGSERVER 
+
+/* The console.                               */ 
+/* default = "NULL"                           */
+#undef  DEFAULT_CONSOLE 
+#undef  ALT_CONSOLE 
+
+/* The default base for one-time pads.        */ 
+/* default = compile_time,compile_time        */
+#undef  DEFKEY
+
+/* Define if you want more debug options.     */
+/* default = no                               */
+#undef MEM_DEBUG
+
+/* Define if you want more debug output.      */
+/* default = no                               */
+#undef WITH_TPT
+
+/* Define if you want tracing.                */
+/* default = no                               */
+#undef WITH_TRACE
+
+/* Define if you want slib debug.             */
+/* default = no                               */
+#undef SL_DEBUG
+
+/* Define if you want slib to abort on errors.*/
+/* default = no                               */
+#undef SL_FAIL_ON_ERROR
+
+/* Define if you want to use SRP authenticaton*/
+#undef USE_SRP_PROTOCOL
+
+/* Define if you want to use GnuPG to         */
+/* verify database and configuation file.     */
+#undef WITH_GPG
+
+/* The full path to GnuPG                     */
+#undef DEFAULT_GPG_PATH
+
+/* Define if using the gpg/pgp checksum.      */
+#undef HAVE_GPG_CHECKSUM
+
+/* The tiger checksum of the gpg/pgp binary.  */
+#undef GPG_HASH
+
+/* Define if you want to compile in the       */
+/* public key fingerprint.                    */
+#undef USE_FINGERPRINT
+
+/* The public key fingerprint.                */
+#undef SH_GPG_FP
+
+/* Use ptrace - screw up signal handling.     */
+#undef SCREW_IT_UP
+
+/* ---- misc                   ------------   */
+
+/* Define the package name.                   */
+#undef PACKAGE
+
+/* Define the package version.                */
+#undef VERSION
+
+/* Define to the position of the key (1...8). */
+#undef POS_TF
+
+/* Init key for exepack.                      */
+#undef EXEPACK_STATE_0
+#undef EXEPACK_STATE_1
+#undef EXEPACK_STATE_2
+
+/* ---- system-specific options ------------  */
+
+/* Define to the address of sys_call_table */
+#undef SH_SYSCALLTABLE
+
+/* Define to use SVR4 statvfs to get filesystem type.  */
+#undef FSTYPE_STATVFS
+
+/* Define to use SVR3.2 statfs to get filesystem type.  */
+#undef FSTYPE_USG_STATFS
+
+/* Define to use AIX3 statfs to get filesystem type.  */
+#undef FSTYPE_AIX_STATFS
+
+/* Define to use 4.3BSD getmntent to get filesystem type.  */
+#undef FSTYPE_MNTENT
+
+/* Define to use 4.4BSD and OSF1 statfs to get filesystem type.  */
+#undef FSTYPE_STATFS
+
+/* Define to use Ultrix getmnt to get filesystem type.  */
+#undef FSTYPE_GETMNT
+
+/* the basic type to which we can cast a uid
+ */
+#undef UID_CAST
+
+/* for ext2fs flags                           */
+#undef HAVE_EXT2_IOCTLS
+#undef HAVE_STAT_FLAGS
+
+/* obvious                                    */
+#undef HOST_IS_LINUX
+#undef HOST_IS_I86LINUX
+
+/* obvious                                    */
+#undef HOST_IS_CYGWIN
+
+/* obvious                                    */
+#undef HOST_IS_DARWIN
+
+/* obvious                                    */
+#undef HOST_IS_FREEBSD
+
+/* obvious                                    */
+#undef HOST_IS_AIX
+
+/* obvious                                    */
+#undef HOST_IS_SOLARIS
+
+/* obvious                                    */
+#undef HOST_IS_I86SOLARIS
+
+/* obvious                                    */
+#undef HOST_IS_HPUX
+
+/* Define to the name of the random devices.  */
+#undef NAME_OF_DEV_RANDOM
+
+#undef NAME_OF_DEV_URANDOM
+
+/* Define if you have long long.              */
+#undef HAVE_LONG_LONG
+
+/* Define if short is 32 bits.                */
+#undef HAVE_SHORT_32
+
+/* Define if int is 32 bits.                  */
+#undef HAVE_INT_32
+
+/* Define if long is 32 bits.                 */
+#undef HAVE_LONG_32
+
+/* Define if long is 64 bits.                 */
+#undef HAVE_LONG_64
+
+/* Define if UINT64 is 32 bits.                 */
+#undef UINT64_IS_32
+
+/* Define if you have uint64_t.               */
+#undef HAVE_UINT16_T
+
+/* Define if you have uint64_t.               */
+#undef HAVE_UINT64_T
+
+/* Define if you have utmpx.h.                */
+#undef HAVE_UTMPX_H
+
+/* Define if your struct utmpx has ut_xtime.  */
+#undef HAVE_UTXTIME
+
+/* Define if your struct utmp has ut_type.    */
+#undef HAVE_UTTYPE
+
+/* Define if your struct utmp has ut_host.    */
+#undef HAVE_UTHOST
+
+/* Define if your struct utmp has ut_addr.    */
+#undef HAVE_UTADDR
+
+/* Define if your struct utmp has ut_addr_v6  */
+#undef HAVE_UTADDR_V6
+
+/* Define if your includes are broken.        */
+#undef HAVE_BROKEN_INCLUDES
+
+/* Define if your getcwd uses 'popen'.        */
+#undef HAVE_BROKEN_GETCWD
+
+/* Define if your vsnprintf is broken.        */
+#undef HAVE_BROKEN_VSNPRINTF
+
+/* Define if you have va_copy.                */
+#undef VA_COPY
+
+/* Define if va_list may be copied as array.  */
+#undef VA_COPY_AS_ARRAY
+
+/* Define if you need unix entropy gatherer.  */
+#undef HAVE_UNIX_RANDOM
+
+/* Define if you have EGD.                    */
+#undef HAVE_EGD_RANDOM
+
+/* Define if you have /dev/random.            */
+#undef HAVE_URANDOM
+
+/* Soket name for EGD.                        */
+#undef EGD_SOCKET_NAME
+
+/* Define if your mlock() is broken.          */
+#undef HAVE_BROKEN_MLOCK
+
+/* Define the proc f_type.                    */
+#undef SH_PROC_MAGIC
+
+/* Define if you have statfs.                 */
+#undef HAVE_STATFS
+
+/* Define if statfs works.                    */
+#undef STATFS_WORKS
+
+/* Define to long if not defined.             */
+#undef ptrdiff_t
+
+
+/* type of arg3 of accept */
+#undef ACCEPT_TYPE_ARG3
+
+/* Define if <sys/acct.h>'s AC_ETIME field is a COMP_T. */
+#undef ACETIME_COMPT
+
+/* Define if <sys/acct.h>'s AC_IO field is a COMP_T. */
+#undef ACIO_COMPT
+
+/* Define if <sys/acct.h>'s AC_MAJFLT field is a COMP_T. */
+#undef ACMAJFLT_COMPT
+
+/* Define if <sys/acct.h>'s AC_MEM field is a COMP_T. */
+#undef ACMEM_COMPT
+
+/* Define if <sys/acct.h>'s AC_MINFLT field is a COMP_T. */
+#undef ACMINFLT_COMPT
+
+/* Define if <sys/acct.h>'s AC_STIME field is a COMP_T. */
+#undef ACSTIME_COMPT
+
+/* Define if <sys/acct.h>'s AC_SWAPS field is a COMP_T. */
+#undef ACSWAPS_COMPT
+
+/* Define if <sys/acct.h>'s AC_UTIME field is a COMP_T. */
+#undef ACUTIME_COMPT
+
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
+/* Debug dnmalloc */
+#undef DNMALLOC_CHECKS
+
+/* Define if SSP C support is enabled. */
+#undef ENABLE_SSP_CC
+
+/* gcc version major */
+#undef GCC_VERSION_MAJOR
+
+/* gcc version minor */
+#undef GCC_VERSION_MINOR
+
+/* Define if <sys/acct.h> has struct acctv2. */
+#undef HAVE_ACCTV2
+
+/* Define if <sys/acct.h> has struct acct_v3. */
+#undef HAVE_ACCT_V3
+
+/* Define if <sys/acct.h> has the AC_ETIME field. */
+#undef HAVE_ACETIME
+
+/* Define if <sys/acct.h> has the AC_IO field. */
+#undef HAVE_ACIO
+
+/* Define to 1 if you have the `acl_free' function. */
+#undef HAVE_ACL_FREE
+
+/* Define to 1 if you have the `acl_get_fd' function. */
+#undef HAVE_ACL_GET_FD
+
+/* Define to 1 if you have the `acl_get_file' function. */
+#undef HAVE_ACL_GET_FILE
+
+/* Define if <sys/acct.h> has the AC_MEM field. */
+#undef HAVE_ACMEM
+
+/* Define if <sys/acct.h> has the AC_STIME field. */
+#undef HAVE_ACSTIME
+
+/* Define if <sys/acct.h> has the AC_UTIME field. */
+#undef HAVE_ACUTIME
+
+/* Define to 1 if you have the <arpa/nameser_compat.h> header file. */
+#undef HAVE_ARPA_NAMESER_COMPAT_H
+
+/* Define to 1 if you have the <arpa/nameser.h> header file. */
+#undef HAVE_ARPA_NAMESER_H
+
+/* Define to 1 if you have the <asm/segment.h> header file. */
+#undef HAVE_ASM_SEGMENT_H
+
+/* Define to 1 if you have the <attr/xattr.h> header file. */
+#undef HAVE_ATTR_XATTR_H
+
+/* Define to 1 if you have the <auparse.h> header file. */
+#undef HAVE_AUPARSE_H
+
+/* Define if you have the auparse lib */
+#undef HAVE_AUPARSE_LIB
+
+/* Define to 1 if you have the `basename' function. */
+#undef HAVE_BASENAME
+
+/* Define if you have a broken version of the `vsnprintf' function. */
+#undef HAVE_BROKEN_VSNPRINTF
+
+/* Define to 1 if you have the `compressBound' function. */
+#undef HAVE_COMPRESSBOUND
+
+/* Define if <sys/acct.h> uses the COMP_T type. */
+#undef HAVE_COMP_T
+
+/* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SYS_SIGLIST
+
+/* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <elf.h> header file. */
+#undef HAVE_ELF_H
+
+/* Define to 1 if you have the `endpwent' function. */
+#undef HAVE_ENDPWENT
+
+/* Define to 1 if you have the <ext2fs/ext2_fs.h> header file. */
+#undef HAVE_EXT2FS_EXT2_FS_H
+
+/* Define to 1 if you have the `fchmod' function. */
+#undef HAVE_FCHMOD
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `fgetxattr' function. */
+#undef HAVE_FGETXATTR
+
+/* Define to 1 if you have the <fnmatch.h> header file. */
+#undef HAVE_FNMATCH_H
+
+/* Define to 1 if you have the `fpurge' function. */
+#undef HAVE_FPURGE
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
+
+/* Define to 1 if you have the `getcwd' function. */
+#undef HAVE_GETCWD
+
+/* Define to 1 if you have the `getgrgid_r' function. */
+#undef HAVE_GETGRGID_R
+
+/* Define to 1 if you have the `gethostbyname' function. */
+#undef HAVE_GETHOSTBYNAME
+
+/* Define to 1 if you have the `gethostname' function. */
+#undef HAVE_GETHOSTNAME
+
+/* Define to 1 if you have the `getnameinfo' function. */
+#undef HAVE_GETNAMEINFO
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `getpeereid' function. */
+#undef HAVE_GETPEEREID
+
+/* Define to 1 if you have the `getpgid' function. */
+#undef HAVE_GETPGID
+
+/* Define to 1 if you have the `getpriority' function. */
+#undef HAVE_GETPRIORITY
+
+/* Define to 1 if you have the `getpwent' function. */
+#undef HAVE_GETPWENT
+
+/* Define to 1 if you have the `getpwnam_r' function. */
+#undef HAVE_GETPWNAM_R
+
+/* Define to 1 if you have the `getpwuid_r' function. */
+#undef HAVE_GETPWUID_R
+
+/* Define to 1 if you have the `getsid' function. */
+#undef HAVE_GETSID
+
+/* Define to 1 if you have the `gettimeofday' function. */
+#undef HAVE_GETTIMEOFDAY
+
+/* Define to 1 if you have the `getwd' function. */
+#undef HAVE_GETWD
+
+/* Define to 1 if you have the `getxattr' function. */
+#undef HAVE_GETXATTR
+
+/* Define to 1 if you have the <glob.h> header file. */
+#undef HAVE_GLOB_H
+
+/* Define to 1 if you have the <gmp.h> header file. */
+#undef HAVE_GMP_H
+
+/* Define to 1 if you have the `gmtime_r' function. */
+#undef HAVE_GMTIME_R
+
+/* Define to 1 if you have the `hasmntopt' function. */
+#undef HAVE_HASMNTOPT
+
+/* Define to 1 if you have the `inet_aton' function. */
+#undef HAVE_INET_ATON
+
+/* Define to 1 if you have the `initgroups' function. */
+#undef HAVE_INITGROUPS
+
+/* Define to 1 if you have the `inotify_init1' function. */
+#undef HAVE_INOTIFY_INIT1
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `lgetxattr' function. */
+#undef HAVE_LGETXATTR
+
+/* Define to 1 if you have the <libgen.h> header file. */
+#undef HAVE_LIBGEN_H
+
+/* Have GNU gmp library */
+#undef HAVE_LIBGMP
+
+/* Define to 1 if you have the `nsl' library (-lnsl). */
+#undef HAVE_LIBNSL
+
+/* Have libprelude */
+#undef HAVE_LIBPRELUDE
+
+/* Define to 1 if you have the `resolv' library (-lresolv). */
+#undef HAVE_LIBRESOLV
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
+/* Define to 1 if you have the <linux/elf.h> header file. */
+#undef HAVE_LINUX_ELF_H
+
+/* Define to 1 if you have the <linux/ext2_fs.h> header file. */
+#undef HAVE_LINUX_EXT2_FS_H
+
+/* Define to 1 if you have the <linux/fs.h> header file. */
+#undef HAVE_LINUX_FS_H
+
+/* Define to 1 if you have the `localtime_r' function. */
+#undef HAVE_LOCALTIME_R
+
+/* Define to 1 if the type `long double' works and has more range or precision
+   than `double'. */
+#undef HAVE_LONG_DOUBLE
+
+/* Define to 1 if the type `long double' works and has more range or precision
+   than `double'. */
+#undef HAVE_LONG_DOUBLE_WIDER
+
+/* Define if type is defined in stdint.h or inttypes.h */
+#undef HAVE_LONG_LONG
+
+/* Define if you have 64bit long long */
+#undef HAVE_LONG_LONG_64
+
+/* Define to 1 if you have the `lstat' function. */
+#undef HAVE_LSTAT
+
+/* Define to 1 if you have the <malloc.h> header file. */
+#undef HAVE_MALLOC_H
+
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memcpy' function. */
+#undef HAVE_MEMCPY
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
+
+/* Define to 1 if you have the `mincore' function. */
+#undef HAVE_MINCORE
+
+/* Define to 1 if you have the `mlock' function. */
+#undef HAVE_MLOCK
+
+/* Define to 1 if you have the `mmap' function. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the <mntent.h> header file. */
+#undef HAVE_MNTENT_H
+
+/* Define to 1 if you have the <mysql/mysql.h> header file. */
+#undef HAVE_MYSQL_MYSQL_H
+
+/* Define to 1 if you have the `nanosleep' function. */
+#undef HAVE_NANOSLEEP
+
+/* Define to 1 if you have the <ndir.h> header file, and it defines `DIR'. */
+#undef HAVE_NDIR_H
+
+/* Define to 1 if you have the <netinet/in.h> header file. */
+#undef HAVE_NETINET_IN_H
+
+/* Define if <sys/acct.h> has the AC_MINFLT, AC_MAJFLT and AC_SWAPS fields. */
+#undef HAVE_PAGING
+
+/* Define to 1 if you have the <paths.h> header file. */
+#undef HAVE_PATHS_H
+
+/* Define if you have pcre_dfa_exec */
+#undef HAVE_PCRE_DFA_EXEC
+
+/* Define if you have pcre/pcre.h. */
+#undef HAVE_PCRE_PCRE_H
+
+/* Define to 1 if you have the <pgsql/libpq-fe.h> header file. */
+#undef HAVE_PGSQL_LIBPQ_FE_H
+
+/* Define if pmap_getmaps available */
+#undef HAVE_PMAP_GETMAPS
+
+/* Define to 1 if you have the `posix_fadvise' function. */
+#undef HAVE_POSIX_FADVISE
+
+/* Define to 1 if you have the <postgresql/libpq-fe.h> header file. */
+#undef HAVE_POSTGRESQL_LIBPQ_FE_H
+
+/* Define if you have a proc fs */
+#undef HAVE_PROCFS
+
+/* Define if you have POSIX threads libraries and header files. */
+#undef HAVE_PTHREAD
+
+/* Define if you have recursive mutexes. */
+#undef HAVE_PTHREAD_MUTEX_RECURSIVE
+
+/* Define to 1 if you have the `ptrace' function. */
+#undef HAVE_PTRACE
+
+/* Define to 1 if you have the `rand_r' function. */
+#undef HAVE_RAND_R
+
+/* Define to 1 if you have the `readdir_r' function. */
+#undef HAVE_READDIR_R
+
+/* Define to 1 if you have the <regex.h> header file. */
+#undef HAVE_REGEX_H
+
+/* Define to 1 if you have the <rpc/rpcent.h> header file. */
+#undef HAVE_RPC_RPCENT_H
+
+/* Define to 1 if you have the <rpc/rpc.h> header file. */
+#undef HAVE_RPC_RPC_H
+
+/* Define if you have SA_SIGINFO */
+#undef HAVE_SA_SIGINFO
+
+/* Define to 1 if you have the <sched.h> header file. */
+#undef HAVE_SCHED_H
+
+/* Define to 1 if you have the `sched_yield' function. */
+#undef HAVE_SCHED_YIELD
+
+/* Define to 1 if you have the `seteuid' function. */
+#undef HAVE_SETEUID
+
+/* Define to 1 if you have the `setpriority' function. */
+#undef HAVE_SETPRIORITY
+
+/* Define to 1 if you have the `setresuid' function. */
+#undef HAVE_SETRESUID
+
+/* Define to 1 if you have the `setreuid' function. */
+#undef HAVE_SETREUID
+
+/* Define to 1 if you have the `setrlimit' function. */
+#undef HAVE_SETRLIMIT
+
+/* Define to 1 if you have the `setutent' function. */
+#undef HAVE_SETUTENT
+
+/* Define if you have SI_USER */
+#undef HAVE_SI_USER
+
+/* Define if you have socklen_t */
+#undef HAVE_SOCKLEN_T
+
+/* Have SO_PEERCRED define */
+#undef HAVE_SO_PEERCRED
+
+/* Define to 1 if you have the `statvfs' function. */
+#undef HAVE_STATVFS
+
+/* Define to 1 if you have the <stddef.h> header file. */
+#undef HAVE_STDDEF_H
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strchr' function. */
+#undef HAVE_STRCHR
+
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
+/* Define to 1 if you have the `strerror_r' function. */
+#undef HAVE_STRERROR_R
+
+/* Define to 1 if you have the `strftime' function. */
+#undef HAVE_STRFTIME
+
+/* strftime supports %z */
+#undef HAVE_STRFTIME_Z
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strlcat' function. */
+#undef HAVE_STRLCAT
+
+/* Define to 1 if you have the `strlcpy' function. */
+#undef HAVE_STRLCPY
+
+/* Define to 1 if you have the `strptime' function. */
+#undef HAVE_STRPTIME
+
+/* Define to 1 if you have the `strsignal' function. */
+#undef HAVE_STRSIGNAL
+
+/* Define to 1 if you have the `strstr' function. */
+#undef HAVE_STRSTR
+
+/* Define to 1 if you have the `strtok_r' function. */
+#undef HAVE_STRTOK_R
+
+/* Have cmsgcred structure */
+#undef HAVE_STRUCT_CMSGCRED
+
+/* Have fcred structure */
+#undef HAVE_STRUCT_FCRED
+
+/* Have sockcred structure */
+#undef HAVE_STRUCT_SOCKCRED
+
+/* Define to 1 if `f_flags' is a member of `struct statfs'. */
+#undef HAVE_STRUCT_STATFS_F_FLAGS
+
+/* Define if you have the <sys/acct.h> header file. */
+#undef HAVE_SYS_ACCT_H
+
+/* Define to 1 if you have the <sys/acl.h> header file. */
+#undef HAVE_SYS_ACL_H
+
+/* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/inotify.h> header file. */
+#undef HAVE_SYS_INOTIFY_H
+
+/* Define to 1 if you have the <sys/ipc.h> header file. */
+#undef HAVE_SYS_IPC_H
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/msg.h> header file. */
+#undef HAVE_SYS_MSG_H
+
+/* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
+   */
+#undef HAVE_SYS_NDIR_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/select.h> header file. */
+#undef HAVE_SYS_SELECT_H
+
+/* Define to 1 if you have the <sys/sem.h> header file. */
+#undef HAVE_SYS_SEM_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/statvfs.h> header file. */
+#undef HAVE_SYS_STATVFS_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <sys/uio.h> header file. */
+#undef HAVE_SYS_UIO_H
+
+/* Define to 1 if you have the <sys/vfs.h> header file. */
+#undef HAVE_SYS_VFS_H
+
+/* Define to 1 if you have the `ttyname' function. */
+#undef HAVE_TTYNAME
+
+/* Define to 1 if you have the `tzset' function. */
+#undef HAVE_TZSET
+
+/* Define if type is defined in stdint.h or inttypes.h */
+#undef HAVE_UINT16_T
+
+/* Define if type is defined in stdint.h or inttypes.h */
+#undef HAVE_UINT32_T
+
+/* Define if type is defined in stdint.h or inttypes.h */
+#undef HAVE_UINT64_T
+
+/* Define to 1 if you have the `uname' function. */
+#undef HAVE_UNAME
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
+/* Define to 1 if you have the `vsnprintf' function. */
+#undef HAVE_VSNPRINTF
+
+/* Define to 1 if you have the `writev' function. */
+#undef HAVE_WRITEV
+
+/* Define if host OS is 64bit Linux */
+#undef HOST_IS_64LINUX
+
+/* Define if host OS is OPENBSD */
+#undef HOST_IS_OPENBSD
+
+/* Define if host OS is OSF */
+#undef HOST_IS_OSF
+
+/* Define to 1 if `major', `minor', and `makedev' are declared in <mkdev.h>.
+   */
+#undef MAJOR_IN_MKDEV
+
+/* Define to 1 if `major', `minor', and `makedev' are declared in
+   <sysmacros.h>. */
+#undef MAJOR_IN_SYSMACROS
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Paranoia level for dnmalloc */
+#undef PARANOIA
+
+/* Argument for ps */
+#undef PSARG
+
+/* Path to ps */
+#undef PSPATH
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+#undef PTHREAD_CREATE_JOINABLE
+
+/* Application is samhain */
+#undef SAMHAIN
+
+/* Define if sa_sigaction works */
+#undef SA_SIGACTION_WORKS
+
+/* Use abort */
+#undef SH_ABORT_ON_ERROR
+
+/* Define if you want to allow suid execution for samhain */
+#undef SH_ALLOW_SUID
+
+/* Define if compiling static */
+#undef SH_COMPILE_STATIC
+
+/* Define if you want shell expansion in configuration file */
+#undef SH_EVAL_SHELL
+
+/* Build with tcp wrapper support */
+#undef SH_USE_LIBWRAP
+
+/* Define if you want to check ports */
+#undef SH_USE_PORTCHECK
+
+/* Define if you want to check processes */
+#undef SH_USE_PROCESSCHECK
+
+/* The size of `char *', as computed by sizeof. */
+#undef SIZEOF_CHAR_P
+
+/* The size of `size_t', as computed by sizeof. */
+#undef SIZEOF_SIZE_T
+
+/* The size of `unsigned int', as computed by sizeof. */
+#undef SIZEOF_UNSIGNED_INT
+
+/* The size of `unsigned long', as computed by sizeof. */
+#undef SIZEOF_UNSIGNED_LONG
+
+/* The size of `unsigned long long', as computed by sizeof. */
+#undef SIZEOF_UNSIGNED_LONG_LONG
+
+/* The size of `unsigned short', as computed by sizeof. */
+#undef SIZEOF_UNSIGNED_SHORT
+
+/* Define to 1 if the `S_IS*' macros in <sys/stat.h> do not work properly. */
+#undef STAT_MACROS_BROKEN
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to use tiger 32 bit i386 assembler */
+#undef TIGER_32_BIT_S
+
+/* Define to use tiger 64 bit implementation */
+#undef TIGER_64_BIT
+
+/* Define to use tiger x86_64 optimized assembly */
+#undef TIGER_OPT_ASM
+
+/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
+#undef TIME_WITH_SYS_TIME
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* Define if you want ACL support. */
+#undef USE_ACL
+
+/* Define if you do not want IPv6 */
+#undef USE_IPV4
+
+/* Define if you want the logfile monitor module. */
+#undef USE_LOGFILE_MONITOR
+
+/* Define for registry check */
+#undef USE_REGISTRY_CHECK
+
+/* Define if you want to use the system malloc */
+#undef USE_SYSTEM_MALLOC
+
+/* Define if you want extended attributes support. */
+#undef USE_XATTR
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define if POSIX functions are required */
+#undef _POSIX_SOURCE
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#undef const
+
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
+#undef inline
+#endif
+
+/* Define to `long' if <sys/types.h> does not define. */
+#undef ptrdiff_t
+
+/* Define to the equivalent of the C99 'restrict' keyword, or to
+   nothing if this is not supported.  Do not define if restrict is
+   supported directly.  */
+#undef restrict
+/* Work around a bug in Sun C++: it does not support _Restrict or
+   __restrict__, even though the corresponding Sun C compiler ends up with
+   "#define restrict _Restrict" or "#define restrict __restrict__" in the
+   previous line.  Perhaps some future version of Sun C++ will work with
+   restrict; if so, hopefully it defines __RESTRICT like Sun C does.  */
+#if defined __SUNPRO_CC && !defined __RESTRICT
+# define _Restrict
+# define __restrict__
+#endif
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
+/* dont modify this, unless you know what you do
+ */
+#define SRP_GENERATOR_1024      "2"
+#define SRP_MODULUS_1024_1        \
+_("f488fd584e49dbcd20b49de49107366b336c380d451d0f7c88b31c7c5b2d8ef6") 
+#define SRP_MODULUS_1024_2        \
+_("f3c923c043f0a55b188d8ebb558cb85d38d334fd7c175743a31d186cde33212c") 
+#define SRP_MODULUS_1024_3        \
+_("b52aff3ce1b1294018118d7c84a70a72d686c40319c807297aca950cd9969fab")
+#define SRP_MODULUS_1024_4        \
+_("d00a509b0246d3083d66a45d419f9c7cbd894b221926baaba25ec355e92f78c7")
+
+#define SDG_0RETU _("return.\n")
+#define SDG_TERRO _("ERROR: file=<%s>, line=<%d>, reason=<%s>\n")
+#define SDG_AERRO _("ERROR: file=<%s>, line=<%d>, failed_assertion=<%s>\n")
+#define SDG_AFAIL _("FAILED: file=<%s>, line=<%d>, assertion=<%s>\n")
+#define SDG_ENTER _("enter=<%s>\n")
+#define SDG_RETUR _("return=<%s>.\n")
+#define SDG_ERROR _("error=<%ld>.\n")
+
+#ifdef SH_STEALTH
+char * globber(const char * string);
+#define _(string) globber(string) 
+#define N_(string) string
+#else
+#define _(string)  string 
+#define N_(string) string
+#endif
+
+#endif

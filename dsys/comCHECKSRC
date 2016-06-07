@@ -1,0 +1,120 @@
+#########################################################################
+#
+# Subroutine for the 'checksrc' command
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+commandCHECKSRC() {
+    printINFO "About to run \"$action\""
+
+    needEXE ls gpg
+
+
+    cd "${basedir}/source" || printFATAL "could not cd to ${basedir}/source"
+
+    LIST=`ls samhain*.tar.gz 2>/dev/null`
+    if test x$? != x0
+    then
+	printINFO "No sources available."
+    fi
+
+    for ff in $LIST
+    do
+	sh_version=`echo "$ff" | sed 's/.*samhain\-//g' | sed 's/\.tar\.gz//g'`
+	if test x"${sh_version}" = x
+	then
+	    printFATAL "Cannot determine version for $ff"
+	fi
+
+	if test "$ff" != "samhain-${sh_version}.tar.gz"
+	then
+	    printFATAL "Version number not correctly extracted from $ff"
+        fi
+
+	if test -f "samhain-${sh_version}.tar.gz.asc"
+	then
+	    :
+	else
+	    printWARNING "No detached signature for $ff found"
+	    if test x"$cs_delete" = x1
+	    then
+	        if test x"$simulate" = x0
+	        then
+		    printLOG  "REMOVE $ff: No detached signature found."
+		    rm -f "$ff"
+	        else
+		    printLOG  "REMOVE $ff: No detached signature found."
+		    printINFO "rm -f $ff"
+	        fi
+	    else
+		printLOG "BAD: $ff (no signature)"
+	    fi 
+	    continue
+        fi
+
+	sig_lines=`(LANG="C"; gpg --status-fd 1 --verify "samhain-${sh_version}.tar.gz.asc" "samhain-${sh_version}.tar.gz" 2>/dev/null)`
+        sig_ok=`echo ${sig_lines} | grep 'GOODSIG'`
+        sig_nokey=`echo ${sig_lines} | grep 'NO_PUBKEY'`
+
+	if test x"${sig_nokey}" != x
+	then
+	    printWARNING "Public key (ID 0F571F6C) not found, trying to import it."
+	    gpg --import ${basedir}/private/0F571F6C.asc 2>&5
+	    sig_lines=`(LANG="C"; gpg --status-fd 1 --verify "samhain-${sh_version}.tar.gz.asc" "samhain-${sh_version}.tar.gz" 2>/dev/null)`
+            sig_ok=`echo ${sig_lines} | grep 'GOODSIG'`
+            sig_nokey=`echo ${sig_lines} | grep 'NO_PUBKEY'`
+        fi
+
+	if test x"${sig_nokey}" != x
+	then
+	    printFATAL "Importing public key failed."
+        fi
+
+        if test x"${sig_ok}" = x
+        then
+	    printWARNING "File $ff has no good signature"
+	    if test x"$cs_delete" = x1
+	    then
+	        if test x"$simulate" = x0
+	        then
+		    printLOG  "REMOVE $ff: No good signature found."
+		    rm -f "$ff"
+	        else
+		    printLOG  "REMOVE $ff: No good signature found."
+		    printINFO "rm -f $ff"
+	        fi
+	    else
+		printLOG "BAD: $ff (invalid signature)"
+	    fi 
+	    continue
+        fi
+	printLOG "OK:  $ff" 
+
+    done
+	      
+    if test x"$cs_delete" = x1
+    then
+	printLOG "Checked sources in ${basedir}/source/ (delete=on)"
+    else
+	printLOG "Checked sources in ${basedir}/source/ (delete=off)"
+    fi
+    return 0
+}

@@ -1,0 +1,496 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>HOWTO Samhain on Windows</title>
+<style type="text/css">
+<!--
+
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2d4488;
+}
+
+div.warnblock {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #FF9900;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #285577; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #2d5588; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style></head>
+<body>
+<div class="body">
+<p style="text-align: center; background: #ccc; border: 1px solid #2d5588;"><a 
+   style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/">samhain file integrity 
+   scanner</a>&nbsp;|&nbsp;<a style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/s_documentation.html">online 
+   documentation</a></p>
+<br><center>
+<h1>Using Samhain on Windows</h1>
+</center>
+<br>
+<hr>
+<p>
+This document aims to explain how to compile and run 
+samhain on Windows with the
+<b>Cygwin</b> POSIX emulation layer, and how to install it as a service. 
+These instructions have been written by Kris Dom,
+who has tested this on WinXP Professional, with additions by Geries Handal
+and Jorge Morgado.
+</p>
+<div class="block">
+<h3>Interix / Services For UNIX</h3>
+<p>
+Samhain can also be used with Interix/SFU 3.5. Note that in Interix, 
+the Windows
+filesystem is referred as <tt>/dev/fs/C</tt>, while in Cygwin it 
+is <tt>/cygdrive/c</tt> (both refers to the <tt>C:</tt> drive; other drives
+are analogous). 
+</p><p>
+Older versions of samhain would need to be built with
+<tt>./configure&nbsp;--disable-mail</tt> (i.e. without support for email 
+logging) because Interix does not provide some of the required functionality 
+to build the email module. This issue should be fixed as of samhain 
+version 2.0.7 (not tested).<br />
+[Based on information kindly provided by Geries Handal].
+</p>
+</div>
+
+<h2>Cygwin installation procedure to compile samhain</h2>
+
+<h3>Cygwin download</h3>
+
+<ul>
+<li>
+Make a temporary directory to store cygwin installer (e.g. c:\temp\cygwin)
+</li>
+<li>
+Surf to <a href="http://www.cygwin.com">http://www.cygwin.com</a> 
+to download cygwin
+</li>
+<li>
+Use the &quot;install or update now (using setup.exe)&quot; to
+download the installer in c:\temp\cygwin
+</li>
+<li>
+Execute &quot;setup.exe&quot; in c:\temp\cygwin
+</li>
+<li>
+Choose the &quot;download from the Internet&quot; option
+</li>
+<li>
+Choose &quot;c:\temp\cygwin&quot; as 'Local Package Directory'
+</li>
+<li>
+Choose an FTP site
+</li>
+<li>
+Click on 'Default' just after 'All' to change the installation type
+from 'Default' to 'Install'. This will most likely install way too much
+stuff but I am not familiar with Cygwin, so this way I know that all libs and
+compilers are installed.
+</li>
+<li>
+Let it download the stuff (there is a lot to download so be patient).
+</li>
+</ul>
+<div class="block">
+<p>
+You don't need to download and install All packages. It is enough to keep
+the Default and then add the following additional packages:
+</p>
+<p>
+  Category Devel -> gcc: C compiler upgrade helper<br/>
+  Category Devel -> make: The GNU version of the 'make' utility<br/>
+  Category Libs  -> minires: A simple synchronous non caching stub resolver<br/>
+</p>
+<p>
+When selecting these packages, Cygwin installer will automatically add
+other packages based on their dependencies.
+The package minires is only necessary for a minimal Cygwin installation
+(below). [Kindly pointed out by Jorge Morgado].
+</p>
+</div>
+
+<h3>Cygwin installation</h3>
+
+<ul>
+<li>
+When the download is complete you have the Cygwin software in the
+temporary directory, however, it still needs to be installed.
+</li>
+<li>
+To install, execute the &quot;setup.exe&quot; in &quot;c:\temp\cygwin&quot;
+</li>
+<li>
+Choose the &quot;Install from local directory&quot; option.
+</li>
+<li>
+Choose &quot;C:\Cygwin&quot; as root directory (this will be the Unix '/')
+</li>
+<li>
+Choose the Local Package Directory: &quot;c:\temp\cygwin&quot;
+</li>
+<li>
+Click on 'Default' just after 'All' to change the installation type
+from 'Default' to 'Install'.
+</li>
+<li>
+Let it install Cygwin (this will take some time so be patient).
+</li>
+</ul>
+
+<h3>Samhain install procedure (used 'samhain 1.8.7a' in this procedure)</h3>
+<p>
+(in the following procedure I use my personal preferences)
+</p>
+
+<ul>
+<li>
+Start up Cygwin using the &quot;Cygwin&quot; icon on the desktop (a classic
+Unix environment will be started).
+</li>
+<li>
+Download the 'samhain' gzip/tar (I always put in my home directory)
+</li>
+<li>
+Make directories to install samhain (taking into account the configure
+options):<br />
+&nbsp; &nbsp;<tt>$ mkdir /usr/local/sbin</tt><br />
+&nbsp; &nbsp;<tt>$ mkdir /usr/local/var</tt><br />
+&nbsp; &nbsp;<tt>$ mkdir /usr/local/log</tt><br />
+&nbsp; &nbsp;<tt>$ mkdir /usr/local/tmp</tt><br />
+</li>
+<li>Go to the home directory:<br />
+&nbsp; &nbsp;<tt>$ cd $HOME</tt>
+</li>
+<li>Un-gzip and untar the samhain package:<br />
+&nbsp; &nbsp;<tt>$ gunzip samhain-1.8.7a.tar.gz</tt><br />
+&nbsp; &nbsp;<tt>$ tar xvf samhain-1.8.7a.tar</tt><br />
+</li>
+<li>Go to the samhain directory:<br />
+&nbsp; &nbsp;<tt>$ cd samhain-1.8.7a</tt><br />
+</li>
+<li>Configure:<br />
+&nbsp; &nbsp;<tt>$ ./configure --enable-xml-log=yes --with-tmp-dir=/usr/local/tmp --with-config-file=/usr/local/etc/samhainrc --with-log-file=/usr/local/log/samhain.log --with-pid-file=/usr/local/var/samhain.pid --with-state-dir=/usr/local/var</tt><br />
+<div class="block">
+<p>
+In my experience, the paths given in the 'configure' command should refer to
+the Cygwin filesystem view, i.e. <tt>/cygdrive/c/...</tt>, otherwise
+samhain may not work from a pure DOS shell, and may not run as a Windows 
+service [Rainer Wichmann].
+</p>
+</div>
+</li>
+<li>Make the binary:<br />
+&nbsp; &nbsp;<tt>$ make</tt><br />
+</li>
+<li>Install samhain:<br />
+&nbsp; &nbsp;<tt>$ make install</tt><br />
+</li>
+<li>Now configure the &quot;/usr/local/etc/samhainrc&quot; file.<br />
+Remember: &quot;C:\&quot; -&gt; &quot;/cygdrive/c/&quot;
+</li>
+<li>Initialize the samhain local baseline database:<br />
+&nbsp; &nbsp;<tt>$ /usr/local/sbin/samhain -t init</tt><br />
+</li>
+<li>Start it up:<br />
+&nbsp; &nbsp;<tt>$ /usr/local/sbin/samhain -t check</tt><br />
+</li>
+</ul>
+
+
+<h2>Cygwin minimal installation procedure to run samhain</h2>
+
+<ul>
+<li>
+Files needed to create a service (from NT/W2K Resource Kit):
+ <ul>
+ <li>
+ instsrv.exe
+ </li>
+ <li>
+ srvany.exe
+ </li>
+ </ul>
+</li>
+<li>
+First copy these files to the &quot;%winnt%\system32&quot; directory.
+</li>
+<li>
+Files needed to run the 'samhain.exe'. Copy the following .dll from the
+Cygwin setup (c:\Cygwin\bin) to the &quot;%winnt%\system32&quot; directory:
+ <ul>
+ <li>
+ cygwin1.dll
+ </li>
+ <li>
+ cygminires.dll
+ </li>
+ </ul>
+</li>
+<li>
+Files needed from c:\Cygwin\bin to create the /etc/passwd and /etc/group files:
+ <ul>
+ <li>
+ mkpasswd.exe
+ </li>
+ <li>
+ mkgroup.exe
+ </li>
+ </ul>
+<p>
+To generate these files on a minimal Cygwin installation execute - on a
+Windows Command Prompt:
+</p><p>
+&nbsp; &nbsp;<tt>mkdir c:\etc</tt><br />
+&nbsp; &nbsp;<tt>path\to\mkpasswd.exe -l > c:\etc\passwd</tt><br />
+&nbsp; &nbsp;<tt>path\to\mkgroup.exe -l > c:\etc\group</tt>
+</p><p>
+IMPORTANT NOTE: You should re-create these two files, each time the
+Windows users and groups accounts database changes. Failing to do this
+might generate critical log messages (depending on your configuration
+file).
+</p>
+</li>
+<li>
+Create a directory structure for samhain (following the compilation options
+you used)<br />
+&nbsp; &nbsp;- in a DOS box (or via Windows Explorer)<br />
+&nbsp; &nbsp;<tt>mkdir c:\usr</tt><br />
+&nbsp; &nbsp;<tt>mkdir c:\usr\local</tt><br />
+&nbsp; &nbsp;<tt>mkdir c:\usr\local\sbin</tt><br />
+&nbsp; &nbsp;<tt>mkdir c:\usr\local\var</tt><br />
+&nbsp; &nbsp;<tt>mkdir c:\usr\local\tmp</tt><br />
+&nbsp; &nbsp;<tt>mkdir c:\usr\local\log</tt><br />
+&nbsp; &nbsp;<tt>mkdir c:\usr\local\etc</tt><br />
+</li>
+<li>
+Use the &quot;instsrv.exe&quot; binary to create a new service:<br />
+&nbsp; &nbsp;<tt>instsrv.exe samhain c:\windows\system32\srvany.exe</tt><br />
+&nbsp; &nbsp;(this will create a service called &quot;Samhain&quot; that will
+start the &quot;srvany.exe&quot; process).
+</li>
+<li>Now edit the registry to change the startup parameters for the newly
+created service:
+  <ul>
+  <li>regedit</li>
+  <li>HKEY_LOCAL_MACHINE-&gt;SYSTEM-&gt;CurrentControlSet-&gt;Services-&gt;Samhain</li>
+  <li>Add a String value (type: REG_SZ called: &quot;Description&quot;) under the 'Samhain' key</li>
+  <li>Open the newly created &quot;Description&quot; value and fill in a description for the 'Samhain' service</li>
+  <li>Add a key to specify what file the &quot;srvany.exe&quot; process must start:<br />
+  &nbsp; &nbsp;Edit-&gt;New-&gt;Key called &quot;Parameters&quot;
+  </li>
+  <li>Under the newly created &quot;Parameters&quot; key, add a new String 
+  value called &quot;Application&quot;.<br />
+  &nbsp; &nbsp;The value for &quot;Application&quot;
+  should be &quot;c:\usr\local\sbin\samhain.exe&quot;.</li>
+  </ul>
+</li>
+<li>
+Make sure that in the &quot;samhainrc&quot; file, you have used
+&quot;/cygdrive/c&quot; to refer to &quot;c:&quot;
+</li>
+<li>
+Initialize the samhain baseline database first:<br />
+&nbsp; &nbsp;<tt>c:\usr\local\sbin\samhain -t init</tt><br />
+</li>
+<li>
+Reboot (it is Windows so ...)
+</li>
+</ul>
+<div class="block">
+<p>
+It seems that start/stop/restart the service does not work if samhain 
+is configured to run as a daemon, because the Windows service manager
+cannot track the forked daemon process.
+</p>
+<p>Therefore, if you run Samhain as a Windows service, it might be better
+to configure it as a 'normal' process which does not fork a daemon:
+<ul>
+  <li>
+    Set 'Daemon = no' in the samhainrc configuration file.
+  </li>
+  <li>
+    Edit the key HKEY_LOCAL_MACHINE-&gt;SYSTEM-&gt;CurrentControlSet-&gt;Services-&gt;Samhain->Parameters to add a string value named 'AppParameters', with
+    the value '--forever'.
+  </li>
+</ul>
+[Rainer Wichmann].
+</p>
+</div>
+<p>
+Also see <a href="http://support.microsoft.com/kb/q137890/">http://support.microsoft.com/kb/q137890/</a> for information regarding the creation of a 
+user-defined service.
+</p>
+<p>
+Note: the first time I tried to install samhain as an NT service, I first
+installed a default Cygwin on the system. This however made things much more
+complex. I think when there is no Cygwin installed, it is more easy to install
+Samhain as a service.
+</p>
+
+
+<h2>Troubleshooting samhain</h2>
+
+<p>
+[Rainer Wichmann] I had some problems at first getting it to run as a 
+Windows service. Some tips:
+<ul>
+  <li>
+    Running samhain from a pure DOS shell (outside the Cygwin environment) 
+    helps to identify problems, in particular if it refuses to start
+    as a Windows service.
+  </li>
+  <li>
+    I found it neccessary to put the <tt>cygwin1.dll</tt> DLL into the
+    same directory as the <tt>samhain.exe</tt> executable. Also, you
+    can use the command <tt>ldd ./samhain.exe</tt> to identify further
+    Cygwin-specific DLL that may be required (if any).
+  </li>
+  <li>
+    Also, I found it neccessary to use Cygwin-style paths 
+    (<tt>/cygdrive/c/...</tt>) in the './configure ..' command when
+    compiling samhain.
+  </li>
+</ul>
+</p>
+    
+<p>
+[Tip from Jorge Morgado] If you, like me, have a Windows server not part of any domain and (for
+security reasons) you even turn off DNS resolution, you might probably get
+the following error when initializing the baseline database:
+</p>
+<pre>
+  ---------   sh_unix.c  ---   1487 ---------
+  According to uname, your nodename is yourcomputername, but your resolver
+  library cannot resolve this nodename to a FQDN.
+  Rather, it resolves this to yourcomputername.
+  For more information, see the entry about self-resolving under
+  'Most frequently' in the FAQ that you will find in the docs/ subdirectory
+  ----------------------------------------------
+</pre>
+<p>
+To fix this problem open the Registry Editor and create the following
+entries under the key
+HKLM\System\CurrentControlSet\Services\Tcpip\Parameters
+</p>
+<p>
+<tt>
+Name: Domain<br/>
+Type: REG_SZ<br/>
+Data: your.domain.name
+</tt>
+</p><p>
+<tt>
+Name: NV Domain<br/>
+Type: REG_SZ<br/>
+Data: your.domain.name
+</tt>
+</p><p>
+The NV Domain registry value contains the computer's primary DNS suffix
+while the Domain registry value contains the computer's primary DNS
+domain. This will make the warning message go away.
+</p>
+</div>
+</body>
+</html>

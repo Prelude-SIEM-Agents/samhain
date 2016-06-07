@@ -1,0 +1,95 @@
+CREATE SEQUENCE log_log_index_seq START WITH 1;
+CREATE TABLE log (
+        log_index INTEGER NOT NULL,
+        log_ref   NUMBER(20) NULL,
+        log_host  VARCHAR2(64)   DEFAULT 'localhost' NOT NULL,
+        log_time  DATE          NOT NULL,
+        log_sev   VARCHAR2(4)    NOT NULL,
+        log_msg   VARCHAR2(4000),
+        log_hash  VARCHAR2(32),
+        entry_status  VARCHAR2(16) DEFAULT 'NEW' NOT NULL,
+        path          CLOB,         
+        userid        VARCHAR2(8),
+        grp           VARCHAR2(8),
+        program       VARCHAR2(8),
+        subroutine    VARCHAR2(16),
+        status        VARCHAR2(12),
+        hash          VARCHAR2(50),
+        path_data     VARCHAR2(4000),
+        hash_data     VARCHAR2(50),
+        key_uid       VARCHAR2(64),
+        key_uid_data  VARCHAR2(64),
+        key_id        VARCHAR2(16),
+        module        VARCHAR2(8),
+        return_code   INTEGER,
+        syscall       VARCHAR2(16),
+        ip            VARCHAR2(46),
+        tty           VARCHAR2(16),
+        peer          VARCHAR2(64),
+        fromhost      VARCHAR2(64),
+        obj           VARCHAR2(4000),
+        interface     VARCHAR2(64),
+        time          VARCHAR2(64),
+        dir           CLOB,
+        linked_path   CLOB,
+        port          INTEGER,
+        service       VARCHAR2(64),
+        facility      VARCHAR2(32),
+        priority      VARCHAR2(32),
+        syslog_msg    VARCHAR2(4000),
+        mode_old      VARCHAR2(16),
+        mode_new      VARCHAR2(16),
+        attr_old      VARCHAR2(16),
+        attr_new      VARCHAR2(16),
+        device_old    VARCHAR2(16),
+        device_new    VARCHAR2(16),
+        owner_old     VARCHAR2(9),
+        owner_new     VARCHAR2(9),
+        group_old     VARCHAR2(9),
+        group_new     VARCHAR2(9),
+        ctime_old     VARCHAR2(25),
+        ctime_new     VARCHAR2(25),
+        atime_old     VARCHAR2(25),
+        atime_new     VARCHAR2(25),
+        mtime_old     VARCHAR2(25),
+        mtime_new     VARCHAR2(25),
+        chksum_old    VARCHAR2(50),
+        chksum_new    VARCHAR2(50),
+        link_old      CLOB,
+        link_new      CLOB,
+        size_old      NUMBER(20),
+        size_new      NUMBER(20),
+        hardlinks_old NUMBER(20),
+        hardlinks_new NUMBER(20),
+        inode_old     NUMBER(20),
+        inode_new     NUMBER(20),
+        imode_old     NUMBER(20),
+        imode_new     NUMBER(20),
+        iattr_old     NUMBER(20),
+        iattr_new     NUMBER(20),
+        idevice_old   NUMBER(20),
+        idevice_new   NUMBER(20),
+        iowner_old    NUMBER(20),
+        iowner_new    NUMBER(20),
+        igroup_old    NUMBER(20),
+        igroup_new    NUMBER(20),
+        checkflags_old    NUMBER(20),
+        checkflags_new    NUMBER(20),
+        acl_old       VARCHAR2(4000),
+        acl_new       VARCHAR2(4000)
+        );
+
+CREATE UNIQUE INDEX log_log_index_key on log (log_index);
+
+CREATE INDEX ix_hash ON log (log_hash);
+
+CREATE INDEX ix_log_host  ON log (log_host);
+CREATE INDEX ix_log_ref   ON log (log_ref);
+CREATE INDEX ix_entry_status ON log (entry_status);
+
+GRANT INSERT ON log TO samhain;
+GRANT ALTER ON log_log_index_seq TO samhain;
+GRANT SELECT ON log_log_index_seq TO samhain;
+
+
+

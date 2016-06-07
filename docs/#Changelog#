@@ -1,0 +1,2552 @@
+4.1.4:
+	* fix problems with wildcard pattern re-evaluation:
+	- not stored if no match at startup
+	- only one (the first) stored if same pattern for file and dir
+	* fix problems with directory creation in inotify watched tree
+	- recursive depth not decreased
+	- watched as directory even when recursion depth should drop below zero
+
+4.1.3:
+	* on Cygwin, the AvoidBlock function is now off by default
+	(problem reported by Fred C)
+	* tighter sanity checks in sh_static.c
+	* fix regression with '--enable-static' in sh_static.c
+	(reported by amaiket).
+
+4.1.2:
+	* add options --enable-selinux and --enable-posix-acl for "hard fail"
+	if libraries aren't found (requested feature)
+	* fix wrong policy assignment when inotify is active and change occurs
+	during a reload (reported by Bond)
+	* fix failure to detect open UDP port for some daemons
+	(reported by James)
+	* fix broken 'rpm' and 'rpm-light' makefile targets
+	(reported by Bond)
+	* fix message for self-check
+
+4.1.1:
+	* fix problem with timezone calculation on month rollover for
+	negative timezones (west of GMT; reported by Bond)
+	* fix problem with rotated logfiles when content is always constant,
+	i.e. checksum does not change (reported by Bond).
+	* fix problem with baseline update on FreeBSD and probably other
+	non-GNU/Linux systems (reported by L.Vasiliev)
+	* fix bad check_libwrap() call in sh_xfer_server.c
+	(reported by L.Vasiliev)
+
+4.1.0:
+	* fix quirks with Linux audit support
+	* implement 'silent check' (requested feature)
+	* fix call of self_check for exit on sigterm
+	* fix safe_logger() - uses the logger utility with a non-posix option
+	* fix missing reporting on shell expansion capability in --version
+	* fix missing error message on invalid list for skipchecksum
+	(reported by Bond)
+	* fix missing definition for a sh_dummy_ var on BSD et al.
+	(reported by Andrew)
+
+4.0.0:
+	* fix and document default settings for mounts check
+	* new -w CL option to wait on scan completion
+	* new option ReportCheckflags
+	* enhance testsuite to cover new functionality
+	* implement draft for change control integration:
+	  * new database format to store change flags
+	  * refactoring of db I/O and client/server code
+	  * option StartupLoadDelay
+	  * --create-database CL option
+	  * --outfile CL option
+	  * --binary, --list-filter CL options
+	  * --verify-database CL option
+	  * yulectl -c DELTA:<uuid> command
+	  * option SetDeltaRetryCount
+	  * option SetDeltaRetryInterval
+	  * update documentation
+	* remove old/unused code
+	* fix compiler warnings with gcc 5.1.0
+	* update config.sub, config.guess
+
+3.1.6 (08-06-2015):
+	* Modify testcompile.sh to remove 'smatch' and use 'clang'
+	  instead.
+	* Fix compile problems with clang.
+	* Modify testcompile.sh to remove 'uno' and use 'cppcheck'
+	  for static checking
+	* Move AC_CHECK_FUNCS( getnameinfo getaddrinfo ) behind
+	  the check for libsocket to have them found on Solaris
+	* Fix IPv4-only bug in bind_addr use in retry_connect()
+	* Add more debug code in connect_port()
+
+3.1.5 (26-03-2015):
+	* Fix IPv6 issue with portcheck (need to be able to specify
+	  IPv6 interfaces).
+	* Fix minor issues with bugs in testing code
+	* Add command line option '--server-host' to set the log server
+	* In samhain.startLinux.in start script template, add code to read
+	  options from /etc/sysconfig/${NAME} for RedHat
+
+3.1.4 (17-02-2015):
+	* Add non-existent file to the regression test config
+	* Fix erroneous call to sh_hash_init when a missing file
+	  is specified in the configuration
+	* Fix buffer allocation for getgrnam_r for large groups
+	  (problem reported by Sergio B)
+	* Search RPM in $HOME/rpmbuild if test -d _topdir fails (CentOS
+	  recommends '%(echo $HOME)/topdir', reported by E. Taft)
+
+3.1.3 (01-11-2014):
+	* Remove initgroups() from the popen call in unix entropy gatherer
+	* Add error message for update mode if local baseline cannot be found
+
+3.1.2 (07-08-2014):
+	* Fixed incorrect memset in sh_checksum.c (sha256)
+	* Circumvent a gcc compiler bug with inline asm (gcc 4.8)
+	* Allow multiple exclusions for SUID check
+	* Use calloc instead of malloc
+	* Add overflow check in minilzo.c (but the potential integer
+	  overflow [CVE-2014-4607,LMS-2014-06-16-1] is irrelevant anyway
+	  because the function is never used on external data).
+	* Fixed a minor bug in exepack_fill.c that was unearthed by the minilzo
+	  overflow check (the required buffer length information for the check
+	  wasn't provided)
+	* Fixed incorrect logic in setting the ALLIGNORE flag (more specific
+	  directory / file directives were ignored)
+	* Fix for tickets #358 (repetitive lstat warning about deleted
+	  directory) and #359 (reporting of deleted/added top level directory)
+	* Fix a free() on NULL (harmless but avoids spurious warning)
+
+3.1.1 (01-05-2014):
+	* Disable inline asm on Cygwin (issue reported by Erik)
+	* Fix sh_ipvx_is_ipv4 such that numeric hostnames are not
+	  incorrectly recognised as IP address (reported by A. Hofland)
+	* Fix sh_ipvx_is_ipv6
+
+3.1.0 (31-10-2013):
+	* Add support for SHA2-256 checksum function
+	* Drop support for --enable-khide on kernel version 3.x and above
+	* Fix IgnoreAdded to anchor regex at beginning of path (reported by
+	  R.Lindner)
+	* Add check to detect availability of pmap_getmaps() (missing in
+	  static library on recent Linux systems as reported by Ian Baldwin)
+	* Fixes for Ubuntu 13.4:
+	  - no error msg for failing stat on /run/user/Username/gvfs in
+	    suidcheck
+	  - no error message for failing hardlink check on /run/user/Username
+	  - eliminate compiler warnings
+	* Add option '--disable-asm' to work around a gcc issue in Debian
+	  unstable (reported by micah)
+	* Remove option '-i' from mkitab in samhain-install.sh.in (reported
+	  by N. Kerski)
+
+3.0.13 (11-06-2013):
+	* Fix detection of nonfunctional /dev/kmem
+	* Fix race condition in GrowingLogfiles policy that
+	  causes spurious reports (problem noticed by J. Daubert)
+
+3.0.12 (16-05-2013):
+	* Fix compiler warning in bignum.c (unused parameter)
+	* Detect if /var/run is a symlink and /run exists
+	* Fix for broken support for audit subsystem (reported
+	  by isquish)
+	* Fix for incorrect use of sh_inotify_add_watch_later
+	  which causes a steady increase in memory usage
+	  (issue reported by Maxime V)
+	* Fix for potential minor memory leak
+	* Fix for bug in negated conditionals for config file
+	  (reported by M. Ward)
+
+3.0.11 (08-04-2013):
+	* Fix for compile error on HP-UX (reported by P. Alves)
+	* Propagate ERANGE error from getgrxxx_r (issue raised by C. Feikes)
+	* Fix reconnecting to database for Oracle
+	* Add better logrotate handling for the GrowingLogs policy (search
+	  rotated log and verify it, don't report if this succeeds)
+	* Add ability to create debian packages with preset password (use
+	  env var PASSWORD)
+	* Add option KernelCheckProc (bool) to suppress kernel /proc test
+	* Add option IgnoreModified to cover transient files that
+	  not only get added/deleted but also modified
+
+3.0.10 (13-01-2013):
+	* Revert to previous logic in samhain.c because it will block
+	  otherwise (reported by Alexandr Sabitov)
+
+3.0.9 (21-12-2012):
+	* Fixed a Cygwin compile warning
+	* Change logic in samhain.c to make sure inotify doesn't cause
+	  excessive full scans
+	* Add option IgnoreTimestampsOnly in Windows registry check (ignore
+	  changes if only timestamp has changed)
+	* Fix the probe command (misses clients if their startup message
+	  has been missed)
+	* Fix the RPM spec file for --enable-network=client and no password
+	  (reported by Mitch St Martin)
+	* Fix build error with Linux audit (reported by Andy Jack)
+	* Fix detection of utmpx.h (reported by D. Thiel)
+
+3.0.8 (01-11-2012):
+	* rename to 3.0.8 for release
+	* useful exit status for samhainadmin.pl --examine
+
+3.0.7a (25-12-2012):
+	* add ability to create RPM with preset password (use
+	  env var PASSWORD)
+	* fix the rpm-light makefile target
+	* fix minor bug in samhain_setpwd.c (incorrect error message)
+
+3.0.7 (25-10-2012):
+	* update documentation for prelude
+	* fix configure to properly search for Oracle Instantclient SDK
+	* pass through TNS_ADMIN environment variable for Oracle
+	* optimize audit rules automatically
+	* zero out the html status file at server exit
+	* don't check for assembly optimization unless linux or *BSD
+
+3.0.6 (01-09-2012):
+	* install logrotate script if /etc/logrotate.d is detected
+	* new option --enable-suid for nagios
+	* fix for --enable-ptrace: make the save_tv variable thread specific
+	* fix bug in inotify code which made it follow symlinks (by [anonymous])
+	* fix two missing SH_MUTEX_LOCK(mutex_thread_nolog) (by [anonymous])
+	* fix for 'no such process' message from sh_fInotify_init_internal()
+	  (by [anonymous])
+	* fix for --enable-ptrace with threads (by [anonymous])
+	* option SetReportFile for writing out summary after file check
+
+3.0.5 (11-07-2012):
+	* fix xml format templates for registry check
+	* fix database download on registry check init (reported by ldieu)
+
+3.0.4 (01-05-2012):
+	* fix verbosity of message for alerts on already deleted watches
+	  (set it to debug - suggested by xrx)
+	* fix extraneous error messages about file not found from
+	  sh_fInotify_init_internal() (bug reports by xrx and aj)
+
+3.0.3 (28-03-2012):
+	* fix potential deadlock in sh_ext_popen()
+	* make sure sh_processes_readps cannot hang forever
+	* fix for deadlock if sh_processes_readps hangs
+	* fix for deadlock if suid check and inotify are used together
+	  (reported by A. Jack)
+	* fixed problem with samhain_stealth.c (handle input config
+	  files that don't end with a newline)
+	* fixed compiler warnings for yulectl.c with stealth
+	* fixed lacking support for O_NOATIME on 64bit linux
+
+3.0.2a (23-02-2012):
+	* Fix compile error on Solaris 10
+
+3.0.2 (16-02-2012):
+	* change sql init scripts to make bigint fields unsigned (problem
+	  reported by A. Sabitov)
+	* patch by Andy Jack for issue with the --with-gpg option (hangs with
+          high cpu load at startup)
+	* call ./samhain-install.sh as /bin/sh ./samhain-install.sh in the
+	  RPM spec file, because /var might be mounted noexec (reported by GC)
+	* fixed configure.ac for the case that --with-gpg and --enable-nocl are
+	  used (./samhain for gpg checksum; problem report by Andy Jack)
+	* fixed a potential NULL pointer dereference in sh_inotify.c on
+	  systems where inotify is not available (reported by <anonymous>)
+	* fixed: the config file template mentions (in a comment) the
+	  non-existent directive SetLockPath instead of the correct
+	  SetLockfilePath (reported by Curtis).
+	* fixed: the definition of O_NOATIME isn't seen in sh_files.c.
+
+3.0.1 (07-12-2011):
+	* fix a memory leak (reported by C. Westlake)
+	* fix an uninitialized variable in the suidcheck code (problem
+	  reports by T- Luettgert and Kai)
+	* fix a bug in the port check with --disable-ipv6 (reported
+	  by C. Westlake)
+	* fix potential deadlock in sh_files.c (reported by S. Mirolo)
+	* change Makefile.in to stop on compile error rather than at link stage
+	  (suggested by S. Mirolo)
+	* fix compile errors caused by missing #define (pthread disabled) and
+	  wrong function call (OSX specific code), reported by S. Mirolo
+	* fix warning by the llvm/clang static checker
+	* fix compile issues on freebsd
+	* handle (ignore) SIGPIPE more thoroughly
+	* update config.guess, config.sub
+
+3.0.0a (06-10-2011):
+	* Fix compile-time issues on RHEL5 (reported by Thomas)
+
+3.0.0 (01-11-2011):
+	* Add support for the inotify API
+	* If --disable-shellexpand is used, also disable setting
+	  the prelink/ps paths
+	* Fix missing check_mask storage for glob pattern
+	* Add support for integer keys in zAVL
+	* Fix compiler warnings with gcc 4.6.1 (variables that get set
+	  but then remain unused)
+	* Add more server-side debugging for IPv6
+	* Make kern_head compile with 3.x kernels
+
+2.8.6 (20-09-2011):
+	* Manual updated.
+	* Added an option LogmonDeadtime to avoid repetitive reporting
+	  on correlated events.
+	* Fix problems with timestamp handling in logfile correlation
+	  (problem reported by D. Dearmore)
+	* List the policy under which a directory/file is checked
+	* Option to use a textfile with a list of files for update
+	* Fix --enable-db-reload option (reported by David L.)
+	* Fix samhain_kmem compilation, need to compile under chosen
+	  name if --enable-install-name is used (reported by David L.)
+	* Fix uninitialized string in error message (reported by mimox)
+
+2.8.5a (16-06-2011):
+	* Fix autolocal.m4 for new configure option
+
+2.8.5 (15-06-2011):
+	* Detect non-working /dev/kmem in configure script, and fix
+	  a bug in the samhain_kmem kernel module.
+	* Fix wrong handler for LogmonMarkSeverity (reported by S. Chittenden)
+	* Better protection against the 'intruder on server' scenario
+	  pointed out by xrx. Add option to disable shell expansion in
+	  configuration files, and check gpg signature earlier.
+	* Support /opt/local/bin in the Unix entropy gatherer (suggestion
+	  by Sean Chittenden)
+	* Cache timeserver response for one second (suggestion by
+	  Sean Chittenden)
+
+2.8.4a (11-05-2011):
+	* Fix for compile error with --with-prelude 
+	  (reported by Sean Chittenden), missing regression test added
+	* Fix for compile error with --enable-udp (reported by Sean Chittenden),
+	  missing regression test added
+
+2.8.4 (30-04-2011):
+	* Fix another reload bug in the log monitoring module
+	* Add unit tests for IgnoreAdded/IgnoreDeleted configuration directives
+	* Fix deadlock after reload when compiled with --enable-login-watch
+	  (reported by M. Teege and O. Cobanoglu)
+	* Fix compile error for samhain_hide.ko with recent kernel
+	* Include patch by J. Graumann to specify the location of the 
+	  secret keyring with samhainadmin.pl
+	* Fix potential timeout problem in sh_sub_stat_int() and propagate the
+	  error (issue reported by mtg)
+	* Add support for X-Forwarded-For in apache logfile parser, add
+	  option 'RE{regex}' to insert arbitrary regex
+	* New options PortcheckMinPort, PortcheckMaxPort for the open ports
+	  check
+
+2.8.3a (23-03-2011):
+	* Fix two 'label at end of compound statement' errors on FreeBSD
+	  (reported by David E. Thiel)
+
+2.8.3 (22-03-2011):
+	* init scripts: load samhain_kmem.ko before samhain starts
+	* slib.c: eliminate mutex from sl_create_ticket()
+	* sh_entropy.c: move pthread usage out of child
+	* sh_hash.c, sh_pthread.c, sh_pthread.h: sh_hash_hashdelete()
+	  needs deadlock detection, may be called from within sh_hash_init()
+	  via atexit handler on error condition
+	* sh_suidchk.c, sh_calls.c, sh_calls.h: need a nosub version of lstat()
+	  to use with relative path after chdir()
+	* samhain.c, sh_calls.c, sh_calls.h: only run (l)stat() in subprocess
+	  after reading config file (to allow disabling)
+	* sh_unix.c: run sh_sub_kill() in parent after forking the daemon
+	* fix zeroing of result from getnameinfo() (problem reported by Richard)
+	* fix spurious warnings about unsupported address family (reported
+	  by N Silverman)
+	* option to run lstat/stat in subprocess to avoid hanging on NFS mounts
+	  (off by default)
+	* fix Windows/Cygwin compile error (reported by A. Schmidt)
+
+2.8.2 (16-02-2011):
+	* add function to skip checksumming
+	* Fix missing check for recursion depth >= 0 if not IgnoreAll
+	* Fix hardcoded path for temp directory in deployment scripts
+	* Fix bad compile on CentOS 4.8 with gcc 4.1.2
+	* Fix minor bug in check_samhain.pl (pointed out by J.-S. Eon long ago)
+
+2.8.1 (17-11-2010):
+	* Document handling of missing files with secondary schedule
+	* Fix incorrect handling of missing files when secondary schedule
+	  is used (reported by Sergey)
+	* Fix null pointer dereference in config parse handler for SetMailAlias
+	  (reported by Sergey)
+	* Fix incorrect memset() in sh_kern.c (passed struct by value...),
+	  reported by Roman and Stefan
+	* Fix 'make install' to create user-defined directory
+	* fix minor issues noticed by T. Luettgert (test code assumes port 
+	  0/tcp is unused, wrong ifdef order (without impact on compilation))
+	* fix compile error on AIX 5.3 with --enable-login-watch,
+	  reported by M. El Nahass (time.h missing in src/sh_login_track.c)
+
+2.8.0 (01-11-2010):
+	* Support IPv6
+	* Add registry checking
+	* Use auditd records to find out who did it
+
+2.7.2c (23-09-2010):
+        * Fix uppercase hostname problem in client/server communication
+
+
+2.7.2b (05-09-2010):
+	* Fix compile errors on Solaris 10 (reported by A. Saheba)
+
+2.7.2a (23-08-2010):
+	* rewrote rijndaelKeySched() in a more conservative way to fix
+	  compile problem on SLES 11.
+
+2.7.2 (16-08-2010):
+	* sh_utils.c: fixed an endianess issue that prevented cross-verification
+	  of email signatures (reported by A. Zangerl)
+	* sh_login_track.c: fix compiler warning (ignored return value 
+	  of fwrite)
+	* sh_readconf.c: fix comparison of SeverityUserX string 
+	  (reported by max__)
+	* sh_processcheck.c: sh_prochk_set_maxpid: set retval on success
+	  (reported by max__)
+	* fixed some compiler warnings on cygwin
+	* sh_extern.c: As reported by T. Luettgert, gcc 4.4.4 on Fedora 13 
+	  will throw a warning if execve is called with a NULL argv pointer. 
+	  Need to provide a dummy argp[].
+
+2.7.1 (07-06-2010):
+	* samhain_kmem.c: fix compile problems
+	* fix problems with config file parser: increase max. line length,
+	  support quoting/escaping of filenames (as in 'ls --quoting-style=c')
+	* check for pcre_dfa_exec (not available in old versions
+	  of libpcre, reported by Shinoj)
+	* patch to allow server to log client reports to prelude
+	  (by J. Ventura)
+
+2.7.0a (09-05-2010):
+	* fix /dev/kmem detection (reported by S. Clormann)
+	
+2.7.0 (01-05-2010):
+	* sh_utmp.c, sh_login_track.c: additional login checks
+	* sh_unix.c: use SIGTTIN as alternative for SIGABRT
+	  (SIGABRT seems not to work on AIX, reported by Peter)
+	* sh_utmp.c: fix compile error without pthreads (inotify_watch used)
+	* sh_kern.c, kern_head.c: fix some 64bit issues
+	* dnmalloc.c: fix compiler warning (ignored ret value)
+	* Fix LSB init script for kernel module
+	* samhain_kmem kernel module for /proc/kmem added
+
+2.6.4 (22-03-2010):
+        * Don't read proc_root_iops in sh_kern.c (Problem report
+          by H. R.)
+        * Logfile check can check output of shell commands
+        * Use data directory as default for logfile checkpoints
+        * Fix broken checkpoint save/restore for logfiles
+
+2.6.3 (10-03-2010):
+	* Fix bug in mail module, recipients incorrectly flagged
+	  as aliases, which breaks immediate mail for 'alert'
+	  (reported by Jesse)
+	
+2.6.2 (28-01-2010):
+	* Makefile.in: fix problem in deploy system caused
+	  by adding build number for debs in 2.5.9 (reported
+	  by roman)
+	* add option for per-rule email alias in log monitoring 
+	  module
+	* sh_readconf.c: make keywords case-independent
+	* sh_mail.c: on error, report full reply of mail server
+	* sh_mail.c: report smtp transcript at debug level
+	* make sure mail aliases are not emailed twice, and
+	  recipients cannot be defined after aliasing them
+	* handle named pipes in log monitoring module
+	  (open in nonblocking mode, ignore read error if empty)
+	* fix bug in the server function to probe for necessity
+	  of configuration reload for client
+
+2.6.1b (23-12-2009):
+	* fix missing include for sh_inotify.h in sh_inotify.c
+	  (reported by Ack)
+	
+2.6.1a (22-12-2009):
+	* fix typo in code for older inotify versions without
+	  inotify_init1(), reported by Forll
+
+2.6.1 (21-12-2009):
+	* add a routine to log monitoring module to guess the proper year 
+	  for timestamps without year (standard syslog)
+	* add feature to automatically detect and report bursts of
+	  similar messages in log monitoring module
+	* add feature to check for missing heartbeat messages in
+	  log monitoring module
+	* cache UIDs/GIDs to reduce the number of lookups
+	* use inotify to track login/logout (sh_inotify.c, sh_utmp.c)
+	* support event correlation in log monitoring module
+	* make sure host matching is done in a case insensitive way
+	  (reported by Tracy)
+	* fix invalid use of mutex_mlock in src/sh_unix.c, function 
+	  sh_unix_count_mlock() (reported by Remco Landegge).
+	
+2.6.0 (01-11-2009):
+	* don't use statvfs() for process checking on FreeBSD
+	* fix bug with parallel compilation of cutest in Makefile 
+	* sh_mem.c: fix deadlock in debug-only code
+	* Evaluate glob patterns for each run of file check
+	* Add compile option to disable compiling with SSP
+	* Run SUID check in seperate thread
+	* By default disable scanning ..namedfork/rsrc (deprecated by Apple)
+
+2.5.10 (12-10-2009):
+	* sh_suidchk.c: handle $HOME/.gvfs mount gracefully
+	* slib.c: fix race condition caused by closing a stream and the fd
+
+2.5.9c (01-10-2009):
+	* move stale file record error message closer to problem zone
+	* sh_port2proc.c: fix flawed logic for interpreting /proc/net/udp,tcp
+	
+2.5.9b (22-09-2009):
+	* remove stale file record when creating handle, and raise diagnostic
+	  error to find origin of stale record
+	* sh_port2proc.c: check /proc/net/upd6 for IPv6-only UDP sockets
+
+2.5.9a (17-09-2009):
+	* fixed a race condition in closing of file handles
+
+2.5.9 (11-09-2009):
+	* added code to generate directory for pid file, since it
+	  would get cleaned if /var/run is a tmpfs mount (problem
+	  reported by M. Athanasiou)
+	* fixed a bug that prevented reporting of user/executable path
+	  for open UDP ports (issue reported by N. Rath)
+	* added more debugging code
+
+2.5.8a (18-08-2009):
+	* fixed a bug in sh_files.c that would prevent samhain from
+	  running on MacOS X (reported by David)
+
+2.5.8 (06-08-2009):
+	* fixed a bug in the MX resolver routine which causes it to fail 
+	  sometimes (issue reported by N. Rath).
+	* fixed deadlock with mutex_listall in sh_nmail_test_recipients() if 
+	  error occurs within sh_nmail_flush (problem reported by N. Rath)
+	
+2.5.7 (21-07-2009):
+	* sh_userfiles.c: set userUids = NULL at reconfiguration (issue
+	  reported by U. Melzer)
+	* if available, use %z to print timezone as hour offset from GMT
+	  in email date headers (problem reported by NP, solution suggested
+	  by TimB).
+	* eliminate C99-style comments (problem reported by
+	  venkat)
+	* fix bad variable name for AC_CACHE_CHECK
+	* fix potential deadlock when external programm is called
+	  (problem reported by A. Dunkel)
+	
+2.5.6 (09-06-2009):
+	* recognize fdesc filesystem on MacOS X for suid check (Problem
+	  reported by David)
+
+2.5.5 (01-05-2009):
+	* fix some warnings from gcc 4.4 (strict aliasing)
+	* fix minor memory leak in process check
+	* t-test1.c: change function names because of clashes with an 
+	  AIX system header file
+	* fix warnings with -fstack-check (too large stack frames)
+	* fix for incorrect handling of hostnames in database insertion
+	  (reported by byron)
+	
+2.5.4 (04-03-2009):
+	* fix for incorrect input check in SRP implementation (discovered
+	  by Thomas Ptacek)
+	* option KernelCheckPCI to switch off check of PCI expansion ROMs
+	
+2.5.3 (25-02-2009):
+	* disable dnmalloc on MacOS X, doesn't work properly
+	* stat -> lstat in sh_unix_file_exists (OS X nameforks, report
+	  by David)
+	* Fix problem in standalone trustfile, does not work correctly on
+	  group-writeable files (reported by David).
+	* Option SetThrottle to throttle throughput for db download
+	* Option SetConnectionTimeout to configure the client connection 
+	  timeout configurable
+	* Provide getrpcbynumber, getservbyname implementations
+	  to avoid dependencies with static linkage
+	* Fix missing sh.host.(system|release|machine) on FreeBSD,
+	  reported by D.Lowry
+	* New option SetMailPort to allow setting of SMTP port (patch
+	  by lucas sizzo org)
+	* allow POSIX regexes for filters
+	* consolidate filtering code from sh_extern.c, sh_(n)mail.c
+	* rewrite mail subsystem to allow individual filtering
+	  for recipients
+	* allow shell expansion for values of config file options
+	* allow list as value for option PortCheckInterface
+	* fix bug in trustfile.c (with slapping on "/../" for symlinks)
+	* lock baseline database upon writing
+	
+2.5.2b (29-01-2009):
+	* turn warnings into errors in the compile test suite
+	* fix missing define in sh_portcheck.c to eliminate compiler warning
+	  (reported by joerg)
+
+2.5.2a (26-01-2009):
+	* fix problem building deb package (bit rot; reported by joerg)
+
+2.5.2 (22-01-2009):
+	* samhain.c: report module failure with positive offset
+	* sh_database.c: parse numerical fields into ulong
+	* fix regression test script for postgresql
+	* fix regression test script for SELinux/ACL test
+	* fix reporting of user for open ports to prelude
+	* report process pid for open ports
+	* replace _exit() by raise(SIGKILL) b/o pthread problem
+	* new option LooseDirCheck ([false]/true), request by 
+	  Alexander
+	* improved help output of samhain_stealth (as suggested
+	  by Michael Athanasiou)
+	* new option ProcessCheckIsOpenVZ ([false]/true)
+	
+2.5.1 (07-12-2008):
+	* workaround for freebsd7 amd64 lossage (compiler toolchain, 
+	  no mmap to 32bit address space)
+	* samhain-install.sh: check for presence of stealth_template.ps 
+	  before trying to create it
+	* use -Wno-empty-body if supported to suppress warnings about
+	  glibc pthread_cleanup_pop implementation
+	* fix text relocations for i386 in src/sh_tiger1.s
+	* implement server->client SCAN command to initiate file check
+	* implement @if / @else conditionals with more tests in config file
+	* new option SetDropCache to drop checksummed files from cache
+	* report process/user for open ports on FreeBSD (code
+	  lifted from FreeBSD sockstat.c)
+	* fix for config reload issue with stealth mode (reported by
+	  siim)
+	* add -fstack-protector flags to LDFLAGS
+	* cygwin fix: don't use dnmalloc, doesn't work with pthreads
+	* cygwin fix: make trust check in samhain-install.sh return zero
+	* improved diagnostics for file read errors
+	* fixed script permissions (754 -> 755), reported by Christoph
+	* constness patch by Joe MacDonald
+	* GnuPG key ID patch by Jim Dutton
+	* sh_kern.c: more error checking for reads from kernel
+	
+2.5.0 (01-11-2008):
+	* dnmalloc.c: fix inconsistent chunksize on 64bit systems
+	* fix improved error reporting for failed fstat in checksumming
+	* report process/user for open ports (Linux only currently)
+	* fix deadlock on exit in sh_hash_init()
+	* fix --enable-mounts-check for FreeBSD 7.0 (no MNT_NODEV anymore)
+	* log monitoring support
+	* fixed constness in trustfile interface
+	* remove libprelude 0.8 support (obsolete)
+	* sh_forward.c: increase TIME_OUT_DEF to 900 secs
+	* dnmalloc.c: initialize rc in dnmalloc_fork_child(),
+	  reported by B. Podlipnik
+	
+2.4.6a (09-10-2008):
+	* fix compile problem on Fedora 9 (reported by pierpaolo),
+	  'struct ucred' in sh_socket.c requires _GNU_SOURCE 
+	
+2.4.6 (27-08-2008):
+	* fix compile failure on win2k/cygwin (sh_unix_mlock prototype),
+	  reported by jhamilton
+	* fix potential deadlock with dnmalloc upon fork()
+	* fix non-portable use of 'hostname -f' in regression test suite
+	  (reported by Borut Podlipnik)
+
+2.4.5a (18-08-2008):
+	* fix compile problem in dnmalloc.c (remove prototypes for
+	  memset/memcpy), problem reported by Juergen Daubert
+	
+2.4.5 (07-08-2008):
+	* testscripts: 'chmod -R' -> 'chmod -f -R', since Solaris 10
+	  bails out on a chmod on a dangling link
+	* fix bug in check_samhain.pl nagios script (J.-S. Eon)
+	* use the UNO static checker
+	* compile as position independent executable (PIE)
+	* handle EINPROGRESS error (Windows/cygwin issue)
+	* make sure every function uses less than one page of stack
+	  (proactive security against gap jumping, Gael Delalleau) 
+	* use dnmalloc instead of system malloc
+	  (proactive security against heap buffer overflows)
+	* fix dnmalloc bugs and portability problems
+	* check for compressBound, since older zlibs don't have it
+ 
+2.4.4 (30-04-2008):
+	* sh_database.c: fix maximum size of sql query string, maximum 
+	  size of strings in struct dbins_
+	* sh_hash.c: fix maximum size of message string
+	* fix typo in the base64 decoder
+	* fix 'make cutest' for parallel compiling
+	* fix compile warnings with -Wstrict-prototypes
+	* sh_static.c: override getgrgid, getpwuid for libacl
+	* fix more warnings about variables clobbered by 'longjmp'
+	  or 'vfork' (due to library internal handling of mutexes)
+	* fix configure warning about unused datarootdir
+	* configure.ac: warn, but accept nonexistent tmp dir
+          (Problem reported by Brian)
+	* sh_unix.c: undef P_ALL, P_PID, P_PGID before including 
+          sys/wait.h (compile problem reported by Reputation)
+	* syslog function tested ok with Syslog Fuzzer v0.1 
+          by Jaime Blasco (c) 2008
+	* slib.c: call fflush when writing trace to file
+	* sh_readconf.c: don't set OnlyStderr to false if gpg (problem
+	  reported by Irene Reed)
+	* fix unconditional removal of pid file in atexit handler (bug
+	  reported by Brian)
+	* fix invalid free() in sh_unix_checksum_size()
+	* sh_processcheck.c: workaround for stupid OpenBSD bug (returns
+	  ENODEV instead of EAGAIN, because fgetc does 
+          fcntl(0,F_SETFL,O_NONBLOCK) [ENODEV] internally), problem
+	  reported by Roman R.
+	* fix buf that cause incomplete reporting of modified symlink if
+	  symlink has changed and both old and new paths are >48 bytes
+	* fix bug that prevented mount check from running in one-shot mode
+	* enable mount check for openbsd
+	* fix processcheck default options and test script for openbsd
+	* option --list-file to list content of file (if saved)
+	* sh_tools.c: use strcasecmp in reverse lookup since DNS is case
+	  insensitive (bug reported by Phil)
+	* fill content if MODI_TXT, zlib compress, base64 encode and add 
+	  as link_path in sh_unix.c; add to report in sh_hash.c
+	* testsuite: add test for gpg fingerprint option
+	* sh_extern.c: add 'CloseCommand' for syntactic sugar, 
+	  add in testsuite
+
+2.4.3a (12-02-2008):
+	* fix compile error caused by open() with O_CREAT and no third argument
+	  (reported by J.-S. Eon)
+
+2.4.3 (31-01-2008):
+	* sh_kern.c: don't require asm/segment.h for kernel check module
+	* use global var with pid of initial thread instead of getpid(),
+	  since LinuxThreads returns different value in each thread (problem
+	  reported by Steffen Mueller)
+	* sh_kern.c: no inode check for pci rom (creates spurious messages)
+	* slib.c: eliminate prototype for vsnprintf (compile problem reported
+	  by eddy_cs)
+	* Makefile.in: fix missing dependency on 'encode' for $(OBJECTS)
+	  (reported by Matthias Ehrmann)
+
+2.4.2 (17-01-2008):
+	* fix broken option --with-checksum (reported by halosfan),
+	  regression test added
+	* change HP-UX default optimization to +O2 since +O3 breaks 
+	  cutest unit testing framework
+	* put result vector of rng in skey struct
+	* fix more compiler warnings, and a potential (compiler-dependent)
+	  NULL dereference in the unix entropy collector
+	* fix some compiler warnings
+	* use -D_FORTIFY_SOURCE=1 -fstack-protector-all instead
+	  of -fstack-protector
+	* always add PTHREAD_CFLAGS to LDFLAGS
+	* sh_tiger0.c: checksum functions return length of file hashed,
+	  needed to fix GrowingLogfile bug (researched by 
+	  siim at p6drad dash teel dot net)
+	* sh_static.c: fix more 'label at end of compound statement'
+	  (SH_MUTEX_UNLOCK closing brace; reported anonymously)
+	* make sh_hash.c thread-safe
+	* remove plenty of tiny allocations
+	* improve sh_mem_dump
+	* modify port check to run as thread
+	* new option PortCheckSkip to skip ports
+	* fix unsetting of sh_thread_pause_flag (was too early)
+
+2.4.1a (28-11-2007):
+	* fix overwrite of ErrFlags (functionality bug)
+
+2.4.1 (26-11-2007):
+	* security fix: regression in the seeding routine for the PRNG 
+	  (detected by C. Mueller)
+	* regression test added for PRNG seeding routine
+	* fix problem with PCI ROM check (spurious messages about modified
+	  timestamps, reported by S. Clormann)
+
+2.4.0a (08-11-2007):
+	* fix compile failure with --enable-static (reported by S. Clormann)
+	* fix potential deadlock if SIGHUP is received while suspended
+
+2.4.0 (01-11-2007):
+	* eliminate alarm() for I/O timeout (replaced by select)
+	* use getgrgid_r, getpwnam_r, getpwuid_r, gmtime_r, localtime_r, 
+	  rand_r, strtok_r if available
+	* protect readdir(), getpwent(), gethostname() with mutexes 
+	  (readdir_r considered harmful)
+	* make checksum/hash, entropy, rng functions reentrant
+	* use thread-specific conversion buffer for globber()
+	* fixed compile problems and problems with test suite
+	* modify login watch to run as thread
+	* modify process check to run as thread
+
+2.3.8 (03-10-2007):
+	* new option PortCheckIgnore = interface:portlist
+
+2.3.7 (13-09-2007):
+	* Makefile.in: fix 'make deb' target, wrong name of config file
+	  written to debian/conffiles (reported by marc)
+	* configure.ac: fix incorrect order of with-prelude, enable-static
+	  (libprelude test was always without -static)
+
+2.3.6 (06-09-2007):
+	* added yuleadmin.pl script contributed by Riccardo Murri
+	* fix compile error with -f-stack-protector on some systems (reported
+	  by marc); we now check for libssp
+	* fix local DoS attack on BSD systems lacking getpeereid() (reported
+	  by Rob Holland).
+	* fix yulectl password reading from $HOME/.yulectl_cred, erroneously
+	  rejected passwords with exactly 14 chars (reported by Jerry Brown)
+	* introduce 'fflags' flag for suid files to detect new files already 
+	  found in regular file check (problem reported by J. Crutchfield); 
+	  also add regression test to ascertain that files in baseline 
+	  database are not quarantined erroneously
+	* sh_hash.c: replace check for prefix 'K' with check for not prefix'/'
+	  to allow for arbitrary module-specific store/lookup in db
+	* replace 'visited', 'reported', 'allignore' with generic 'fflags' field
+	* sh_cat.c: reduce priority of MSG_TCP_RESET to avoid spamming if
+	  port checking is used on same host as server (reported by kadafax)
+	* Install.sh: don't use --separate-output with non-checklist
+	  widgets (problem discovered by D. Denton)
+	* sh_gpg.c, sh_userfiles.c: use sh_getpwnam et al. wrappers
+
+2.3.5 (20-06-2007):
+	* sh_portcheck.c: try to tear down connections more gracefully
+	  (request by S. Petersen)
+	* fix incorrect handling of files with zero size in GrowingLogFiles
+	  (problem reported by S. Petersen)
+	* fix incorrect encoding of null checksums in stealth mode
+	* sh_hash.c: fix repeated printing of acl/attributes in database dump
+	* sh_unix.c: fix option useaclcheck ignored if both useaclcheck and 
+	  useselinuxcheck are supported
+
+2.3.4 (01-05-2007):
+	* sh_processcheck.c: fix missing init of sh_prochk_res array before 
+	  check (leads to degrading functionality over time and 'fake pid'
+	  warnings; reported by D. Ossenbrueggen and 
+	  soren dot petersen at musiker dot nu)
+	* sh_processcheck.c: fix memory leak 
+	* sh_kern.c: for 2.6.21+ don't check proc_root_lookup (not possible 
+	  anymore? proc_root_inode.lookup != proc_root_lookup)
+	* sh_extern.c: flush streams before forking (problem if [Prelink]
+	  used together with prelude logging, reported by M. deJong)
+	* fixed compilation of kern_head (regression cause by cross-compiling
+	  fix; problem reported by S. Clormann)
+	* more typos fixed (reported by John Horne)
+
+2.3.3 (27-03-2007):
+	* fixed typos in configure.ac and manual (reported by John Horne)
+	* don't use mysql_options on x86_64, since libmysql is broken
+	* fixed cross-compiling (patch by Joe MacDonald)
+	* refactor sh_kern.c, sh_suidchk.c
+	* fix bug with leading slashes in linked path of symlinks within
+	  the root directory
+	* sh_kern.c: check PCI ROM (Linux), refactor code
+	* move file descriptor closing more towards program startup
+	* kernel check: support OpenBSD 4.0 (wishlist)
+	* fix samhain_hide module (in-)compatibility with recent kernels
+	  (reported by Jonny Halfmoon)
+
+2.3.2 (29-01-2007):
+	* fix regression in full stealth mode (incorrect comparison of
+	  bytes read vs. maximum capacity), reported by B. Fleming
+
+2.3.1a (21-01-2007):
+	* fix incorrect use of sh_gpg_fill_startup if option --with-fp is used
+	  (reported by zeroXten)
+ 
+2.3.1 (21-01-2007):
+	* fix bug that may cause accidental closure of yule TCP socket
+	  (problem reported by B. Masuda)
+	* fix sh_kern.c for kernel 2.6.19 (reported by S. Clormann)
+	* don't use sstrip in 'make deb', since dh_shlibdeps uses objdump
+	  (reported by B. Masuda)
+	* rm report.pl from rules.deb.in (reported by B. Masuda)
+	* samhainctl(): longer timeout (bad status reporting at startup,
+	  reported by Phil and by Dan Track)
+	* sh_portcheck.c: make connect errors more descriptive
+	* sh_portcheck.c: fix ignored setting of PortCheckActive
+	* sh_processcheck.c: add statvfs, and wrap for EINTR
+	* sh_portcheck.c: add wrappers for EINTR
+	* report user and executable for hidden processes
+	* fix update failure if reportonlyonce = false (reported
+	  by D. Strine)
+	* fix compile error in sh_portcheck.c (problem on cygwin
+	  reported by J. D. Fiori)
+	* check filenames ending in space (also for utf8 spaces)
+	* check and escape csv formatted db listing
+	* cache results of sl_trustfile_euid()
+	* trustfile: use 4096 for MAXFILENAME, switch to strncpy
+	* CL option -v|--version for info on version and compiled-in options
+	
+2.3.0a (01-11-2006):
+	* fix compile failure with portcheck + stealth (reported by lucas)
+
+2.3.0 (01-11-2006):
+	* fix concurrency for inserts in oracle db
+	* add acl_(new|old) to database schema
+	* check for selix attributes and/or posix acl
+	* new option UseSelinuxCheck (bool) 
+	* new option UseAclCheck (bool)
+	* regression tests for above
+	* add module to check for open ports
+	* add module to check processes (hidden/fake/missing)
+	* use const char* for argument of module configuration callbacks
+ 
+2.2.6 (31-10-2006):
+        * fix missing support for MacOX X init script (reported
+	  by Daniel Kowalewski)
+	* fix error about non-readable file with no checksum required
+        * fix server warning about 'no server name known'
+        * fix 'make deb' makefile target
+        * fix default export severity for server
+			
+2.2.5 (05-10-2006):
+	* fix broken Install.sh, reported by Alexander Kraemer
+	* workaround for glob(3) sillyness on MacOS X (reported by David)
+	* fix for broken resorce fork check (reported by David)
+	* fix for broken compilation on cygwin (reported by Elias)
+
+2.2.4 (03-09-2006):
+	* add regression test for the GrowingLogFiles issue to test suite
+	* fixed sh_unix.c: bug in database init if GrowingLogFiles used
+	  with signed database (reported by Timothy Stotts)
+	* bug in manual fixed (incorrect documentation of --enable-user,
+	  noticed by M. Brown)
+	* rc.subr compatible init script for FreeBSD/NetBSD
+	* improve routine to find rpm after build
+	* add netbsd rc file from Brian Seklecki (taken from pkgsrc-wip)
+	* fix error in manual (location of lock file)
+	* fix bug with SuidExclude (files in directory were still checked)
+
+2.2.3 (31-07-2006):
+	* fix samhainadmin.pl: check for gpg-agent running if use-agent is set
+	  (ticket #28 by anonymous)
+	* fix stealth mode (regression in parser), problem reported by 
+	  Joschi Kuphal
+	* fix minor typo in sh_database.c (compile problem reported by
+	  Joschi Kuphal)
+
+2.2.2 (17-07-2006)
+	* minor fixes for regression test scripts
+	* minor updates to the manual (suggested by Brian A. Seklecki)
+	* fix sh_kern.c, kern_head.c: kernel rootkit detection for 2.6.17+
+	  (problem reported by Leonhard Maylein)
+	* fix samhain_hide.c for 2.6.17+: use module_param() if MODULE_PARM
+	  is not defined
+
+2.2.1c (11-07-2006)
+	* fix sh_extern.c: sh_ext_add_default() cast to (void) was too early
+	  (Solaris 8 build failure reported by Jesse)
+	* fix sh_unix.c: wrong prototype for sh_unix_mlock() 
+	  if HAVE_BROKEN_MLOCK (AIX 5.2 build failure reported by
+          Jonathan Kaufman) 
+
+2.2.1b (20-06-2006):
+	* fix compile error on SuSE 10.1 (reported by Leonhard Maylein)
+
+2.2.1a (15-06-2006):
+	* fix compile error on i686/MacOS X (reported by Andreas Neth)
+
+2.2.1 (13-06-2006):
+	* fix gcc 4 warnings and build failure on x86_64 (debian bug #370808)
+	* fix compiling with Oracle (noticed by Colapinto Giovanni)
+	* fix configure.ac for most recent autoconf version
+	  (debian bug #369503)
+	* fix a regression that would make impossible local updates w/clients
+	* fix a few missing '\n' in sh_getopt.c
+	* sh_kern.c: fall back on mmap() if read() fails on /dev/kmem
+	* fix Solaris package creation
+	* recognize Solaris doors and event ports
+	* fix the idmef_inode_t patch: provide required info to avoid stat()
+	* fix bug on database update: fill in dev and rdev fields
+	* fix get_file_infos() in sh_prelude.c: avoid premature return	
+	* GCC_STACK_PROTECT_CC: AC_TRY_COMPILE -> AC_TRY_LINK
+	* deploy.sh: allow to set a group for hosts upon installation
+	* patch by Yoann: fix an issue when setting the idmef_inode_t object
+	* fix memory leaks in error paths in sh_prelude.c
+	* fix concurrent inserts with postgres in sh_database.c
+	* code cleanup
+	* fix manual version in spec file, first noticed by Imre Gergely
+	
+2.2.0 (01-05-2006):
+	* patch by Jim Simmons for samhainadmin.pl.in
+	* fix testsuite portability problems
+	* fix md5 endianess problem detected on HP-UX 11i / PA-RISC 8700 
+	* fix potential NULL dereference in sh_utmp_endutent()
+	* patch by Neil Gorsuch for suidchk.c (do not scan lustre, afs, mmfs)
+	* fix sh_ext_popen (OpenBSD needs non-null argv[0] in execve)
+	* fix make_tests.sh portability (echo '"\n"' does not work on OpenBSD)
+	* fix bug in sh_utils_obscurename (check isascii)
+	* scan h_aliases for FQDN if h_name is not
+	* add copyright/license info to test scripts
+	* add copyright/license info to deployment system scripts
+	* support server-to-server relay
+	* new CL option --server-port 
+	* minor improvements in manual
+	* patch by Yoann Vandoorselaere for sh_prelude.c
+	* allow --longopt arg as well as --longopt=arg
+	* verify checksum of growing log files (up to previous size)
+	* rewrite of the test suite
+	* added a bit of unit testing
+	* minor optimizations in various places
+	* optimized implementation of tiger checksum algorithm
+	* read in 64k blocks (faster than 4k)
+	* sh_unix.c, sh_hash.c: support file flags on *BSD, update Linux
+	  file attribute code
+	* kern_head: fix compilation of kernel check module on OpenBSD
+	* updated samhainrc.linux, samhainrc.freebsd
+	* sh_unix.c: fix setrlimit (RLIMIT_NOFILE, ..)
+	* sh_files.c: fix missing use of flag_err_info
+	* sh_tiger0.c: remove repetitive use of mlock
+	* slib.c: remove fcntl's from sl_read_timeout (caller sets O_NONBLOCK),
+	  add function sl_read_timeout_prep
+
+2.1.3 (13-03-2006):
+	* fix compile problem in slib.c (reported by Lawrence Bowie)
+        * fix bug with combination of one-shot update mode and file check 
+	  schedule (reportedby Dan Track)
+	* improved the windows howto according to suggestions by 
+	  Jorge Morgado
+	* fix samhain_hide kernel module for new linux kernel versions
+	* fix minor problem with dead client detection (problem reported
+	  by Michal Kustosik)
+
+2.1.2 (10-01-2006):
+        * fix startup error with combination of gpg+prelude
+
+2.1.1a (22-12-2005):
+	* fixed a stupid bug in sh_files.c (break if file = dir)
+
+2.1.1 (21-12-2005):
+	* sh_calls.c: protect sh_calls_set_bind_addr against overriding
+	* comINSTALL, updateDB: use locking
+	* samhainadmin.pl: use locking
+	* fix typos in samhainrc.solaris (noticed by Robby Cauwerts)
+	* improve zAVLSearch (remove redundant strcmp)
+	* use AVL tree in sh_files.c instead of linked list (better scaling)
+	* fix bug with suidcheck (no update/check in one-shot mode with
+	  schedule instead of check interval; noticed by R. Rati)
+	* fix for problem with '-t update -i' if daemon mode (problem report
+	  by Peter van der Does)
+	* fix for bug in sh_util_ask_update (two returns were required ...)
+
+2.1.0 (31-10-2005):
+	* minor fix for cross-compiling with --with-kcheck
+	* sh_forward.c: handle bad fds in the select() fd sets 
+	  (reported by hmy)
+	* sh_extern.c: fix debugging code
+	* slib.c, sh_calls.c, sh_calls.h: improve handling of O_NOATIME
+	  (reported by Gabor Kiss)
+	* makefile.in: fix for solaris package creation
+	* sh_mail.c, sh_readconf.c: mail filtering options
+	* sh_database.c: Oracle reconnect on connection failure
+	  (bug report by Alexander A. Sobyanin)
+	* sh_unix.c: don't purge MYSQL_UNIX_PORT environment variable
+	  (problem reported by Peter)
+	* sh_calls.c: fix for a HP-UX accept() problem caused by the gcc4 fix 
+	* fixes for gcc 4.0.2 compiler warnings
+	* ability to use daemon mode together with update
+	  (wishlist Yoan Vandoorselaere)
+	* fixes for debugging
+
+2.0.10a (22-08-2005):
+	* fix for overlapping directory check specification (reported by Bub)
+
+2.0.10 (21-08-2005):
+	* fix for segfault (free() on a constant string) with libprelude
+	  (problem reported by Grae Noble)
+	* upgrade FreeBSD kernel check to 5.4, minor fixes
+	* useful script for users of Linux kernel check 
+	  (contributed by marc heisterkamp)
+	* documentation improvements (suggested by Brian Seklecki and Robby)
+
+2.0.9 (25-08-2005):
+	* samhain_erase.c: add #define for NULL
+	* sh_suidchk.c: fix incorrect use of escaped filename
+	* sh_prelude.[ch], sh_readconf.c: configurable mapping from
+	  samhain severity to prelude severity
+	* sh_unix.h: second arg of gettimeofday should be NULL
+	* sh_files.c: fix checking of directory special file (use specified
+	  policy, not that of parent dir, problem found by Brian A. Seklecki)
+	* sh_entropy.c: longer timeout for entropy collector
+	* sh_socket.c, sh_forward.c: allow probing of clients for
+	  necessity of configuration reload
+	* yulectl: minor fixes, option -v (verbose), new command PROBE
+	* fix 'File not found' messages for files flagged with IgnoreMissing
+	* sh_database.c: strip newline from oracle error messages
+	* sh_files.c: fix rsrc fork issue with MacOS X Tiger 
+	  (reported by A. Koren) 
+	* never compute checksum if not checked (problem report by D.Hughes)
+	* sh_prelude.c: cleanup and bugfix by Yoann
+	* sh_hash.c: for prelude, make sure mode is supplied with user/group
+	  and vice versa
+	* sh_prelude.c: provide proper FileAccess objects (bug 
+	  report by Mihai Ilinca) 
+
+2.0.8 (03-07-2005):
+	* configure.ac: use $LIBPRELUDE_PTHREAD_CFLAGS rather than
+	  $LIBPRELUDE_CFLAGS (bugfix by Yoann)
+	* samhain.spec.in: remove support for chkconfig (it's too buggy).
+	  Strangely, if invoked as install_initd it behaves sanely ...
+	* src/sh_err_log.c: fix key input (this time for real)
+	* fix --with-altlogserver (bug from 2.0.7b)
+	* remove server socket in start/stop script
+
+2.0.7e (not released):
+	* Makefile.in: introduce a total of 6 sec delay for 'make' utilities
+	  that use 1 sec resolution, and consider target out-of-date if
+	  timestamp(target) = timestamp(dependency) ...
+	* src/sh_err_log.c: fix key input
+	* another fix for yulectl (use pwent->pw_dir)
+	* dsys/comINSTALL, dsys/comUNINSTALL, dsys/comBUILD: fix PATH
+
+2.0.7d (not released):
+	* one more fix for the spec file (stupid rpm finds tags in comments!!!)
+
+2.0.7c (not released):
+	* test/testrun_1b.sh, test/testrun_2b.sh: use $GPG_PATH
+	* dsys/comINSTALL, dsys/funcDB, dsys/funcINSTALL: some bugfixes
+	* samhain-install.sh.in: fix test -z $verbose
+	* sh_hash.c: speedup database reading
+	* Makefile.in: fix the problem that BSD make would make too much
+	* deploy: yulerc.clients -> yulerc.install.db, provide
+	  $defdatabase for backward compatibility
+	* deploy: allow for comma in client_install_date
+
+2.0.7b (not released):
+	* hp_ux.psf.in: fix psf file
+	* dsys/comINSTALL: fix $yule_date -> $yule_data
+	* Makefile.in: fix 'make depot'
+	* sh_tools.c, sh_unix.c: fix detection of open file limit
+	* sh_readconf.c: reset read_mode after reading conf file
+	* yulectl.c: better error messages, use homedir from getpwuid(geteuid)
+	* init/samhain.startLSB.in: fix misleading message in lsb init script
+	* sh_forward.c: better display for nonce u in debug mode
+	* sh_tiger*.c: fix checksum for HP-UX 64bit
+	* samhain.c: don't fetch database twice
+	* configure.ac: accept nodename for --with-logserver=...
+	* samhain_setpwd.c: return proper exit status for samhain_setpwd 
+	* respond to SIGTERM on initializing
+	* fix problems with samhainadmin.pl
+	* sh_utils.c: fix bug with AddOKChars (found by Karol)
+
+2.0.7a (not released):
+	* remove 'df' from entropy gatherer (NFS may hang)
+	* modify va_copy check (doesn't work with HP-UX PA64 compiler)
+	* fix compile warnings in sh_database.c
+	* samhain-install.sh.in: check for /usr/bin/false in /etc/shells
+	* fix install-boot on HP-UX
+	* aclocal.m4: fix configure CL parsing to recognize VAR=VALUE
+
+2.0.7 (11-06-2005):
+	* yet another fix for the spec file (use internal dependency generator)
+	* sh_error.c, sh_prelude.c: init libprelude after open fds are closed
+	* error message if queue is full
+	* fix two compiler warnings on HP-UX
+	* fix sh_mail.c for Interix (no resolver routines)
+	* fix sh_unix_initgroups2() if no initgroups() function (bug reported
+	  by Geries Handal)
+	* remove references to 'struct timezone' (Interix; problem
+	  reported by Geries Handal)
+	* init/stop for prelude on SIGHUP
+	* sh_cat.h: fix a stupid bug with messages classes
+	* manual: new section on nagios (with help from kiarna),
+	  more on prelude
+	* sh_prelude.c: cleanup and improvements (Yoann Vandorselaere)
+	* default prelude profile name now is 'samhain' (lowercase)
+	* sh_readconf.c: new option PreludeProfile (by Yoann Vandorselaere)
+	* remove obsolete check for linux/module.h, linux/unistd.h
+	* remove dependency on virtual/glibc in gentoo ebuild
+	  (problem reported by Willis Sarka)
+
+2.0.6 (01-03-2005):
+	* sh_prelude.c, configure.ac, aclocal.m4: support for 
+	  libprelude 0.9 (Yoann Vandoorselaere)
+	* sh_html.c: fix bug with entry.html template (reported by
+	  Stephane Sanchez)
+	* Install.sh: fix mandir option (reported by Rodney Smith)
+	* Fixed Linux/64bit bug in definition of EUIDSLOT 
+	* New targets 'make depot', 'make depot-light' (HP-UX, untested)
+	* Use sstrip for RPMs and DEBs (automatic stripping disabled)
+	* Fix aclocal.m4 for autoconf 2.59 (missing $ac_cr_alnum et al.,
+	  problem noticed by Yoann Vandoorselaere)
+	* Modify samhain.spec.in to disable automatic stripping upon install
+	* Fix deploy.sh + '--enable-gpg', and fix 'make rpm' and 'make deb'
+	  for '--with-khide' (problems reported by Mark)
+	* Fix compile error in sh_tools.c on HP-UX 10.20
+	  (problem reported by Dennis Boylan)
+	* Runtime configuration of server listening port (wishlist)
+	* Runtime configuration of server listening interface (wishlist)
+	* Ignore SIGTTIN (consistency)
+	* Use SIGTTOU to force file check (wishlist)
+
+2.0.5b (01-04-2005):
+        * Fix build problem b/o timestamp on stamp file
+
+2.0.5a (16-03-2005):
+        * Fix problem with 'make rpm' (reported by Dirk Brümmer)
+
+2.0.5 (02-03-2005):
+	* Fix bug with partial reads from clients in server 
+	  (bug report by Brian)
+	* Support gpg checksum bootstrap with yule
+	* Support mount option check on HP-UX
+	* For MAIL FROM, use 'example.com' as domain part if 
+	  hostname is numeric (problem reported by Eric Raymond)
+	* The HOWTO-write-modules has been updated.
+	* Convenience functions to insert data in database have been
+	  added.
+	* Use int0x03 only on i386 in sh_derr() (portability problem
+	  reported by John Mandeville)
+
+2.0.4 (09-02-2005):
+	* Fixed broken 'make deb' (problem report by olfi)
+	* Fixed minor bug in test scripts (detection of gmake vs. make)
+	* Fixed Tru64/OSF compile warnings (reported by B. Terp)
+	* Normalize list parsing to allow comma, space, and tab as separators
+	* Some more descriptive error messages in kern_head.c 
+	* Absolute path to utilities in init/samhain.startLinux.in
+	* Fixed is_root variable in deploy.sh
+	* Fixed 'deploy.sh info'
+	* Fixed 'deploy.sh install' client startup
+	* Fixed 'make tbz': don't remove ebuild scripts in 'make dist' 
+	  (issue reported by W. Sarky)
+
+2.0.3 (14-12-2004):
+	* Fix CPPFLAGS with mysql/postgresql (repoted by P. Smith)
+	* Fix missing sys/time.h include in slib.c (reported by Jonas)
+	* Workaround for file closing problem with Prelude+GPG
+	* Fixed memory leak with Prelude.
+	* Fixed bug in samhain_stealth (PGP signature not correctly
+	  retrieved from hidden configuration; report and patch by V. Tuska)
+	* Added Perl script to concatenate file signature database files
+	* Fix compile error with combination of --enable-nocl and 
+	  --enable-stealth (reported by Zdenek Polach)
+	* Fix bug in dsys/initscript with --enable-nocl
+	* Fix declaration of sh_kern_timer()
+	* Fix missing Mounts+Userfiles options in appendix of manual
+	* Updated the README (bug report by H. Franzke)
+	* Fix some compiler warnings
+
+2.0.2a (09-11-2004):
+	* Fixed OoM condition when client rc file not found (reported by Eilko)
+
+2.0.2 (08-11-2004):
+	* Fixed buffer overflow in sh_hash_compdata() (only in 'update' code)
+	* Fixed uninitialized variable in sh_mail_msg() (problem reported
+	  by Michael Milvich)
+	* Fixed potential NULL pointer dereference in sh_hash_compdata()
+
+2.0.1 (01-11-2004):
+        * Fixed compilation bug reported by jue (--with-kcheck broken).
+	* Fixed start option (bug reported by sanek). Behaviour wrt.
+	  environment variables depended on the way the daemon was started.
+
+2.0.0 (31-10-2004):
+        * The deployment system has been rewritten from scratch in
+          a cleaner and more modular and extensible way. Deployment
+	  of native packages is supported now.
+        * The build system has been revised. Building outside the source 
+          directory is supported now.
+        * Support for checksumming of prelinked executables / libraries
+          has been added.
+        * The configure script now checks for the SSP/ProPolice patch in GCC, 
+          and enables it if present.
+        * The install-boot option in samhain-install.sh has been fixed 
+          (use absolute paths for sbin utilities).
+        * A nagios plugin (scripts/check_samhain.pl) has been added.
+        * The LSB (Linux Standard Base) init script has been fixed (the output 
+          was incorrect).
+        * Fetching of built binary packages has been 
+          fixed ($(PACKAGE)->@install_name@).
+        * For files in proc, the timeout has been reduced, and no error 
+          messages are issued upon timeout.
+        * A function has been added to print out full details for missing 
+          files if encountered while in sh_files().
+        * The reporting for SuidCheck has been fixed (incorrect policy
+          noticed by JiM).
+        * On Linux, SuidCheck does not report on files marked as candidates
+          for mandatory locking (group-id bit set, group-execute bit cleared).
+        * Fix for oracle init script (by Matt Warner)
+
+1.8.12b (11-10-2004):
+        * fix bug in MSG_MSTAMP (%ld -> %lu)
+        * fix bugs in sh_suidchk.c (%ld -> %lu), check fopen for NULL,
+          mkdir mode for quarantine directory
+        * fix the fix for modlist_lock search in System.map
+			
+1.8.12a (01-10-2004):
+	* fix bug in samhain-install.sh.in (only occurs on Solaris), reported
+	  by J. Roland
+
+1.8.12 (27-09-2004):
+	* fix compile bug with --enable-static + --with-database=postgresql
+	* fix search for modlist_lock in System.map
+	* password auth for yule command socket (request by D. Kocic)
+	* more info about pending/sent commands to clients
+
+1.8.11 (30-08-2004):
+	* fix static linking on Linux by use of replacement routines from
+	  uClib - however, this means, there is no NIS support anymore
+	* new option AddOKChars=... to modify the set of characters for
+	  filenames considered 'obscure'
+	* new option HardlinkOffset=... to specify an offset from the canonical
+	  hardlink count for a directory
+	* fix some warning with HP 11.23 native compiler
+	* fix minor OpenBSD portability problems (EIDRM, compiler warning)
+	* samhainrc.5, samhain.8: updated the man pages
+	* sh_unix.c, sh_files.c: ignore 'no user/group' and 'obscure name'
+	  for AllIgnore
+	* sh_kern.c: fix 'update' to display modifications
+	* sh_kern.c: fix bug with IDT check (spurious alerts b/o uninitialized
+	  fields) 
+	* stealth kernel modules: fix for linux 2.6, fix 
+	  redefine of KERNEL_VERSION
+	* warn about stealth kernel module problem with 2.6 in manual
+	* sh_unix.c: remove some cruft
+	* fix a typo in the manual (noticed by J. Rubin)
+	* configure.ac: re-order output from libprelude-config (required
+	  for static linking - problem reported by E. Neber)
+	* kern_head.h, kern_head.c: fixes for Linux 2.6 kernel
+
+1.8.10b (13-07-2004):
+	* fix incorrect usage of 'retry_msleep()' in sh_kern.c (reported
+	  by Pat Smith)
+
+1.8.10a (13-07-2004):
+	* depend-gen.c: fix for FreeBSD 'make' which does not understand
+	  the dependencies ... (problem reported by David Thiel)
+
+1.8.10 (13-07-2004):
+	* sh_unix.c/sh_unix.h: fix defaults for 'GrowingLogFiles' policy
+	  (bug report by VZoubkov)
+	* fix some warnings (unreachable statement) with HP-UX native compiler
+	* kern_check.c: silence warning about 'sendfile' for 4.10 
+	  (noticed by Ryan Beasley)
+	* modify depend-gen.c to ignore sh_gpg_chksum.h
+	* add a non-plaintext version of GPG_HASH (sh_gpg_chksum.h)
+	* .. and for fingerprint
+	* sh_suidchk.c: fix some compiler warnings on solaris
+	* allow commas to separate multiple entries in a RedefXXX= directive 
+	* replace sleep/usleep with nanosleep wrapper function
+	* replace alarm() for read timeout with select() in sl_read_timeout
+	  (should fix bug reported by Scott Kelley)
+	* increase lstat/open timeout to 6 sec
+
+1.8.9 (16-06-2004):
+	* made 'no action specified' error message more informative
+	  (suggested by Stephen Gill)
+	* fix memory leak in mysql sh_database_query() (bug report by Dejan)
+	* remove some cruft from the code
+	* sh_files.c: check MacOS X resource forks (idea from Osiris)
+	* sh_files.c: no hardlink check for MacOS X
+	* sh_util_ask_update: fix bug with no terminal in non-interactive mode
+	  (report and debug data by Kris Dom)
+	* manual refactored 
+	* fix redundant messages when updating with suidcheck
+	* allow interactive update for suid files
+	* don't remove the TZ environment variable to guard against
+	  misconfigured hosts
+	* also use gethostname if uname returns possibly truncated name
+	* fix improper file descriptor handling in sh_mail.c (bug report
+	  by Alex Weiss)
+	* cleanup MBLK cruft
+	* use SH_ALLOC/SH_FREE in sh_prelude.c
+	* update sstrip to Version 2.0
+
+1.8.8 (25-05-2004):
+	* fix compilation problem on AIX 5.2 (nameser_compat.h; report by
+	  Tim Evans and Ian McCulloch)
+	* don't check for trusted paths on Cygwin 
+	* add Windows HOWTO written by Kris Dom 
+	* kern_check.h: extend FreeBSD syscall table for 5.x
+ 
+1.8.7a (03-05-2004):
+	* sh_mail.c: fix subject length
+	* sh_mail.c: fix the sh.mailNum.alarm_last fix (report by Kris Dom)
+	* sh_utils.c: sh_util_ask_update(): fix ISO C conformance bug
+	  (compile problem reported by Kris Dom)
+
+1.8.7 (01-05-2004):
+	* sh_mail.c: fix incorrect count of sh.mailNum.alarm_last, causing 
+	  empty mails (introduced with segfault fix in 1.8.6, report 
+	  by Kris Dom)
+	* sh_utils.c: sh_util_ask_update(): check whether stdin is a terminal,
+	  try to reopen on controlling terminal if not
+	* sh_utmp.c: fix order of options (problem report by Uri)
+	* sh_files.c: sh_files_chk(): set tmp = NULL at end of loop
+	  (may cause segfault on null dereference for missing files)
+	* sh_unix.c: patch by Marc Schütz (order of sh_unix_getinfo_type,
+	  sh_unix_getinfo_attr)
+	* don't use dh_installmanpages in 'make deb' (samhain/yule conflict 
+	  reported by xavier)
+	* on HP-UX, define _XOPEN_SOURCE_EXTENDED in sh_mail.c and sh_tools.c
+	  (suggested by Kris)
+	* include nameser_compat.h in sh_mail.c (for MacOS X, 
+          suggestion by jna)
+	* sh_utmp.c: fix time for logout events (reported by Erich 
+	  van der Velde)
+
+1.8.6 (15-04-2004): 
+        * add CL option to set threshold for prelude and RDBMS
+	* sh_mail.c: fix bug with MailSubject option (segfault on NULL pointer
+	  dereference; reported by Micha Silver)
+	* fix compiling with --disable-encrypt (reported by Pat Smith)
+	* fix minor problem in scheduler (don't return before all schedules
+	  are tested, to set last_exec correctly)
+
+1.8.5 (05-04-2004):
+	* fix bugs in sh_utmp.c (unlinking of list head); may fix an OpenBSD
+	  problem (endless loop; report and debugging aid by Joe MacDonald)
+	* fix hardlink check (null dereference in error message, segfaults
+	  on solaris - noticed by Bob Bloom)
+	* sh_suidcheck: don't truncate quarantined file if nlink > 1 
+	* fix Install.sh (no --seperate-output with --radiolist); patch by
+	  Greg Kimberly
+
+1.8.4 (17-03-2004):
+	* add Prelude patch by Patrice Bourgin
+	* add license statement to sh_mounts.c, sh_userfiles.c after
+	  receiving a clarifying e-mail from Cian Synnott 
+	* support UsePersistent = no for Oracle (problem spotted and fix
+	  tested by Michael Somers)
+	* fix bug in samhainadmin.pl
+	* sh_gpg.c: describe type of gpg error (if any) 
+	* fix persistent connections with postgresql (reported by 
+	  Erwin Van de Velde)
+	* prelude: local 'meaning' shadows global in sh_prelude_alert 
+	  (spotted by David Maciejak)
+	* uname: workaround for cases where nodename would be a possibly
+	  truncated FQDN (problem reported by Cian Synnott)
+	* re-write parts of sh_kern.c, store kernel info in baseline database
+	  -> no need to recompile after kernel upgrade
+	* modify timeouts in sh_unix_getinfo, add timeout warning 
+	* change handling of dangling symlinks (store in db)
+	* fix typo with MSG_FI_OBSC2 (double slash)
+	* remove redundant operation in sh_utils_safe_name
+	* fix occasional random start bytes of long messages in
+	  sh_error_string (sl_strlcat -> sl_strlcpy)
+	* provide details for missing files (as for added files)
+	* remove duplicate message for no such group/user
+	* add fixes for samhain.oracle.init (supplied by Michael Somers)
+	* fix date insertion for Oracle (fix by Michael Somers)
+	* manual: fix incorrect statement about RPM (noticed by 
+	  Lars Kellogg-Stedman)
+
+1.8.3 (02-02-2004):
+	* add a HOWTO-client+server-troubleshooting document
+	* fix another bug with SIGUSR2 (suspend mode)
+	* new option SetBindAddress (--bind-address=...) to force 
+	  interface for outgoing connections on multi-interface box
+	* don't link against libgmp if not required (i.e. standalone)
+	* test for ext2fs/ext2_fs.h or linux/ext2_fs.h
+	* new make targets 'emerge' and 'tbz2' for gentoo
+	* update rules.deb.in based on the Debian package 
+	  by Javier Fernandez-Sanguino
+	* updated config.guess, config.sub to version 2002-09-05
+	* external command: report failure only once
+	* console: reset failure status after success
+	* README.UPGRADE: explain 1.7.x <-> 1.8.x client/server compatibility
+	* use persistent connection to database by default
+	* option UsePersistent=no to switch off persistent connection
+ 
+1.8.2 (19-01-2004):
+	* sh_userfiles.c: new option UserfilesCheckUids (requested)
+	* sh_error.c: server: don't log to logfile before dropping root
+	* new script scripts/samhainadmin.pl (administrative tasks for
+	  signed config/database files)
+	* add changes code to log_msg for reports on modified files
+	* change default log threshold to 'mark', as 'none' tends
+	  to confuse new users
+	* faster response time for SIGUSR2
+	* revised (mostly backward-compatible) message classes
+	* fix missing check of mailTime in server select loop
+	* add support for libprelude (version 0.8.10)
+	* fix format for MSG_E_GRNULL (reported by Stefan Hudson)
+	* fix Bourne shell incompatibility (export) in samhain-install.sh
+	  (first reported by David Thiel)
+	* fix typo in spec file (first reported by Christian Vanguers)
+	* remove some cruft (signal handler, memory handling)
+	* return from sigterm handler, rather than exit directly
+	  (re-entrancy problem causes more problems than it's worth)
+
+1.8.1 (03-12-2003):
+	* fix gmp detection (problem pointed out by Nix)
+	* fix/improve the error message if test compiling with mysql fails
+	* new CL option --interactive for interactive db update
+	* fix some compiler warnings from IRIX MIPS compiler 
+	* kern_head.h, kern_head.c: option to disable IDT check
+	* kern_head.h, kern_head.c: update kernel syscall table (2.4.20,2.6)
+	* sh_utmp.c: count number of logins (request by Erwin Van De Velde)
+	* change username -> userid, remove (long) userid (bug noticed
+	  by Erwin Van De Velde)
+	* emit ADDED message for new SUID/SGID files
+	* add trailing slash to excluded directory if there is none
+
+1.8.0a (04-11-2003):
+	* sh_error.c: remove two debug printf's
+
+1.8.0 (31-10-2003):
+	* manual: make ps file fit on both a4 and letter paper
+	* sh_socket.c, sh_socket.h, sh_forward.c: socket interface
+	  to send (quit/reload) commands to clients
+	* sh_forward.c, configure.ac: enable build with libwrap
+	  (Wietse Venema's TCP Wrappers library)
+	* sh_ignore.c, sh_ignore.h, sh_files.c, sh_hash.c, sh_readconf.c:
+	  new option to suppress messages for new and/or deleted files
+	* samhainrc.aix5.2.0: contributed by Christoph Kiefer
+ 	* samhain.c: fix compile warning on solaris (noticed by Ian Hunt)
+	* sh_database.c: undef debug code for oracle
+	* samhain.oracle.init: contributed by Joern Michael Krueger
+	* configure.ac, sh_utils.ac, Makefile.in, sh_modules.c,
+	  sh_cat.c, sh_cat.h, sh_mounts.c/h, sh_userfiles.c/h:
+	  check-mounts and userfiles modules contributed by eircom.net
+	* sh_utils.c: fix off-by-one bug in sh_util_compress()
+	* sh_forward.c, sh_tools.c, configure.ac: 
+	  version 2 client/server protocol
+	* sh_mail.c: add %S to include severity in subject (user request)
+	* sh_suidchk.c, 1093: fix warning about unused var 'flags' on FreeBSD
+	* samhain.h, sh_unix.h, sh_unix.c: extern inline -> static inline
+	  for --enable-ptrace
+	* samhain.c: lower priority for 'uninitialized module' message
+	* sh_entropy.c: lower priority for message if /dev/random blocks and
+	  /dev/urandom is available
+	* improved error messages in sh_readconf.c
+	* print system error message for getpwuid, getgrgid
+	* fix missing module init after SIGHUP (noticed by Cian Synnott)
+
+1.7.12 (13-10-2003):
+	* sh_mail.c: fix buffer overflow in mail handler (introduced in 1.7.10)
+	  thanks to bug reports by Jason Martin and Matthew P. Cox
+
+1.7.11 (01-09-2003):
+	* samhain.c, samhain.h, sh_unix.c, sh_forward.c, sh_html.h:
+	  - change SIG_USR1 to switch between dbg on/off
+	  - change SIG_USR2 to switch between suspend on/off
+	  - fix CLT_ILLEGAL to actually work
+	  - introduce new state CLT_SUSPEND
+	  - force reauthentication after suspend
+	* slib.c: change MAXFD from FOPEN_MAX (16) -> 1024
+	* sh_suidchk.c: better AIX fs detection (Christoph)
+	* sh_entropy.c: increase buffer size for unix entropy gatherer
+	  (problem reported by D. Danielson)
+	* default config files: add lots of comments, list more options
+	* sh_error.c: set default severities to 'crit'
+	* sh_readconf.c, sh_cat.c, sh_cat.h: stricter check on config
+	  file syntax, issue warnings (triggered by C. Kiefer)
+	* Makefile.in: handle depend-gen errors more gracefully
+	* sh_err_console.c: fix bug in enable_msgq (reported by F. Behrens)
+	* configure.ac: workaround for mysql_config weird output
+	  (reported by G. Faron)
+	* sh_unix.c, sh_tiger0.c: check IO limit during read of large files
+	* depend-gen.c: close streams before attempting to rename (Cygwin)
+	* Makefile.in: fail gracefully if depend-gen fails
+	* sh_database.c: sh_database_query(postgresql): fixed missing SL_ENTER
+	
+1.7.10 (27-07-2003):
+	* FreeBSD init script: define $pidfile (reported by D. Thiel)
+	* sh_unix.c, sh_unix.h: fix compile error on AIX 4.2
+	* sh_schedule.c: fix bad array size 
+	* samhain.c: fix pid_t <> int casts 
+	* sh_kern.c: fix repetitive messages
+	* configure.ac: try to bootstrap if TIGER192 not supported by gpg,
+	  provide a detailed error message 
+	* configure.ac: try harder to locate mysql
+	* docs/Changelog: retroactively add release dates, if known
+	* sh_mail.c: fix potential message truncation in mailer
+	* sh_unix.c, samhain.c, samhain.h: make --enable-ptrace more portable
+	* sh_readconf.c: fix segfault (dereference of uninitialized pointer)
+	  if --with-gpg and --enable-stealth are used together (reported
+          by Anthony Caetano)
+	* sh_unix.c, samhain.c, sh_calls.c: fix problems with descriptive
+	  error messages (larger GLOB_LEN, stat fills aud_err_message)
+
+1.7.9 (30-06-2003):
+	* sh_err_log.c: fix segfault on SIGABRT (dereference of freed memory),
+	  problems with SIGABRT noticed by Brian and Alf B Lervåg
+	* deploy.sh.in: fix some bugs (found by Alf B Lervåg)
+	* scripts/chroot.sh: fix typo (found by Alf B Lervåg)
+	* configure.ac (khide): search also for 'd sys_call_table' (noted by
+	  cuek_saja)
+	* strip whitespace before checking gpg checksum (noted by D. Thiel)
+	* manual (faq section): explain how to stop console output
+	* Makefile.in: fix re-naming of yule with --enable-install-name
+	* HOWTO-client+server.html: fix typo  (noted by xavier renaut)
+	* configure.ac: escape '-' in awk regex (required by GNU awk 3.1.1)
+
+1.7.8 (28-05-2003):
+	* sh_unix.c: new mlock implementation with reference count
+	  and page alignment (fix for solaris problem)
+	* kern_head.c: search also for 'xxxxxxxx d sys_call_table'
+	* sh_html.c: write status comment (for Beltane 2)
+	* add CL option --delimited for comma-delimited signature database dump
+	* sh_mail.c: check exit status of push_list to fix counting bug
+	  (bug reported by Alan Moore)
+	* configure.ac: add error message to --with-libs
+	* fix spelling of $DAEMON in init script (noted by C. Grigoriu)
+	* fix missing initgroups()
+
+1.7.7 (06-05-2003):
+	* sh_forward.c: fix bug if compiled with --enable-udp, but disabled
+	  in config file (found by Andy OBrien)
+	* sh_database.c: sh_database_entry(): size -> c_size (two places)
+	  to fix writing of '\0' to arbitrary places :(
+	  (problem pointed out by Stefan Giesen)
+	* profiles/*/configopts: fix --with-base -> --enable-base
+ 
+1.7.6 (24-04-2003):
+	* sh_forward.c, entry.html, head.html: fix/additions by Stefan Giesen
+	* fix samhain_hide for the O(1) scheduler used by RedHat:
+	  configure.ac, acconfig.h: check for next_task in struct task_struct
+	  samhain_hide.c: use find_task_by_pid if no next_task in task_struct
+	* samhain_erase.c: add MODULE_LICENSE("GPL") to fix warning 
+
+1.7.5 (15-04-2003):
+	* sh_cat.c, sh_forward.c, sh_hash.c: fix double 'msg' tag
+	* manual: point out the bmaxdata problem on AIX in faq section
+	* trustfile.c: don't check symlinks (permissions of directory count)
+	* sh_schedule.c: fix problem with daylight saving switchover
+	* sh_samhain.c: close all open fd's >2 before reading the conf file
+	* sh_unix.c: fix dereferenced NULL pointer when exiting on non-existing
+	  user
+	* sh_forward.c: fix dereferenced NULL pointer when exiting on udp error
+	* sh_forward.c: place timestamp code before select() timeout handler
+	* fix incorrect class of timestamp messages (conflict with manual)
+	* sh_readconf.c, sh_forward.c: new config option SetStripDomain
+	* configure.ac: add warning if /lib/modules/`uname -r`/build/include
+	  not found
+	* samhain_hide.c: adapt for RedHat 2.4 kernel (fetch sys_call_table
+	  address from System.map)
+	* sh_err_syslog.c: fix for Solaris
+	* samhain.spec.in: strip REQ_FROM_SERVER from config file install path
+
+1.7.4 (21-03-2003):
+	* configure.ac: fix bug in defargs (--with-base > --enable-base)
+	* aclocal.ac: detect unsupported options
+	* kern_check: add syscalls, skip unused syscalls
+	* fix Manual (--enable.../--with... inconsistency)
+	* add two HOWTOs (signed files, server/client)
+	* moved manual into new subdirectory docs/
+	* add admin scripts by S.Bailey/M.Redinger
+	* option to have a version string in db file
+
+1.7.3 (23-02-2003):
+	* samhain-install.sh: use yule user key for signing on install
+	* fix a bug in sh_err_console.c (attempted write to const char)
+	* sh_gpg.c: if server, always use ~unprivileged_user/.gnupg
+	* Makefile.in: make target 'trustfile' depend on config.h
+	* configure.ac: don't use install_name before it is defined ...	
+	* sh_tiger0.c: fix bug in checksum computation introduced in 1.7.2
+	* samhain.c: make sure daemon cannot be forced into 'update' mode
+	* sh_hash.c: remove AIX workaround (AIX has been fixed meanwhile)
+
+1.7.2 (04-02-2003):
+	* sh_kern.c: use sys_call_table address from System.map
+	* fix for reserved SQL keyword 'group'	
+	* add AC_SYS_LARGEFILE to configure.ac
+	* allow separate client-specific log files for server
+	* sstrip.c: compile sstrip code only for i386
+	* sh_unix.c: closeall: don't close trace file
+	* slib.c: don't trace sl_is_suid (leads to recursion in trace handler)
+	* samhain-install.sh.in: fix detection of LSB compliant systems
+	* sh_tools.c: get_client_*_file: lstat -> stat to allow symlinks
+	* sh_forward.c: sh_forward_do_write: set O_NONBLOCK for fd
+	  (may block otherwise, for no good reason apparently ...)
+	* samhain.spec.in: replace %configure with ./configure 
+	* sh_unix.c: re-write signal handling (use __malloc_hook et al. to 
+	  check whether we are in the middle of a free/malloc/realloc/memalign)
+	* sh_unix.c: use new safe_logger() function to log from signal handler
+	* sh_err_log.c: fix xml
+	*
+	* fix Makefile.in to exit non-zero on compile failure 
+	* database init: create index on log_host, entry_status
+	* sh_suidchk.c: fix path building
+	* sh_tiger0.c: read larger blocks
+	* sh_hash.c: cast inode to UINT32
+	* sh_tools.c: check that config/database files size fits in uint
+	* sh_error.c: export flag_err_debug to avoid unnecessary calls
+	* sh_unix.c: save the open() call in sh_unix_getinfo_attr()
+	* profiles/redhat_i386/bootscript: add # description field
+	* deploy.sh.in: set owner + permissions for files in yule_filedir
+	* profiles/debianlinux_i386: fix bootscript
+	* Makefile.in: fix deploy file lists and targets (include init+scripts)
+	* MLOCK GOOD/BAD -> SL_FALSE/SL_TRUE
+	* sh_mail.c: GOOD/BAD -> SL_FALSE/SL_TRUE (AIX sys/param.h)
+	* sh_err_syslog.c: split long messages rather than truncating
+	* sh_error.c: allocate msg to fix truncation limit
+	* sh_unix.c: closeall fd's >= 3 in non-daemon mode (inherited
+	  filedescriptors may exceed FOPEN_MAX, causing problems in
+	  sl_open_file)
+	* sh_err_console.c: avoid stdio
+	* trustfile: dirz: make swp[] static
+	* slib.c: speed up sl_strlcat
+	* clean up some bad heap allocation (PATH_MAX+(1|2) -> PATH_MAX)
+	* remove some unused code
+	* slib.c: support long long int in the snprintf replacement
+	* configure.ac: new configure macro to check whether sa_sigaction works
+	* Makefile.in: make sstrip, encode dependent on config.h
+ 
+1.7.1a (08-01-2003):
+	* fix a syntax error in samhain-install.sh.in
+
+1.7.1 (07-01-2003):
+	* search runlevel scripts in ./init or ./
+	* handle all distro-specific Linux runlevel script issues 
+	  within a single script 
+	* support install-boot on Yellow Dog Linux and Slackware
+	* samhain-install.sh: fix a bug for unknown Linux 
+	  ('"' not closed, DVER not set)
+	* samhain-install.sh: check for /etc/yellowdog-release
+	* sh_database.c: fix missing entry for 'userid' in attr_tab[]
+	* fix debian.rules.in (disable sstrip)
+	* update make targets: 'srpm', 'srpm-dist', 'rpm'
+	* check for zlib if mysql is used
+	* workaround for NetBSD bug with libresolve
+	* fixed problems with spec files
+
+1.7.0 (22-12-2002):
+	* improved spec files (Andre Oliveira da Costa <brblueser@uol.com.br>)
+	* sh_unix.c: fix a dereferenced static pointer in tf_trust_check
+	* runlevel scripts: remove pid file after stop
+	* make the data directory read-only for the daemon
+	* treat 'localhost' specially in MX resolver
+	* sh_err_log.c: set sh.flag.log_start == TRUE after writing </trail>
+	* deploy.sh.in: fix quoting (fix by Simon Bailey)
+	* slib.c: make sl_get_euid et al. behave well if uids not stored 
+	* trustfile.c: use euid = uid(SH_IDENT) if server
+	* sh_mail.c: include an MX resolver 
+	* Makefile.in: install-user routine for user installation
+	* have yule drop root
+	* sh_tools.c: open_temp use logdir if server
+	* unified options for runlevel script
+	* HP-UX, IRIX runlevel scripts
+	* AIX inittab entry
+
+1.6.6 (13-12-2002):
+	* configure.ac: solaris cc -O2 -> -xO2
+	* sstrip.c: avoid alpha architecture
+	* profiles/solaris/configopts: no --enable-static
+	* sh_forward.c: sh_forward_req_file: copy argument to local array
+
+1.6.5 (04-12-2002):
+	* sh_utmp.c: set userlist = NULL in sh_utmp_end ()
+	* sh_unix.c: do not assume that environ is sane
+	* exit handler: write </trail>
+	* sh_log_file(NULL): test sh.flag.log_start != S_TRUE
+	* FreeBSD rc script does not blindly accept content of pid file
+	* configure.ac: allow 'localhost' for log server
+	* sh_calls.c: retry_connect: ntohs (port)
+	* testrun_2[abc].sh: --with-logserver=localhost for client
+	
+1.6.4 (12-11-2002):
+	* sh_tools.c: fix error when escaping '=<'
+	* fix the 'make srpm' target
+	* deploy.sh.in: avoid that client is named 'yule'
+	* define memset to sl_memset
+	* fix type cast of uid_t, gid_t
+
+1.6.3 (31-10-2002):
+	* fix options for Sun/Solaris native compiler 
+	* sh_unix.c: MSG_FI_LIST (line 2333): cast theFile->size to fix error
+	* test sstrip on freebsd
+	* default config file for freebsd
+	* make target to build .deb packages
+	* sh_readconf.c: fix bug in error message 
+	* samhain.c, sh_suidchk.c: fix initialization of suidchk
+	* samhain-install.sh.in: don't remove config file by default
+	* samhain-install.sh.in: support complete de-installation
+	* samhain-install.sh.in: add support for Gentoo, FreeBSD, and Solaris
+	* samhain-install.sh.in: check more paths
+	* sh_unix.c: fix sys_siglist declaration [NetBSD portability issue]
+	* sh_calls.c: save error message in retry_lstat()
+
+1.6.2 (04-10-2002):
+	* make target to build rpms
+	* update samhain.spec.in, samhain.startRedHat 
+	* support DESTDIR, as in 'make DESTDIR=/what/ever install'
+	* explicitely set -fno-omit-frame-pointer b/o gcc bug
+	* mv configure.in to configure.ac to benefit from autoconf wrapper
+	* sh_modules.c, sh_modules.h: add mod_reconf() to run at SIGHUP 
+	* slib.c: fix debug messages (no msgs for dlogActive <= 1)
+	* sh_schedule.c, samhain.c, sh_suidchk.c: 
+	  scheduler may accept multiple schedules
+
+1.6.1 (04-09-2002):
+	* sh_schedule.c: bugfix (executes only after first day) 
+	* rm obsolete WITH_TRACE stuff
+	* new dlog() function for debug logging
+	* some more descriptive error messages
+
+1.6.0 (27-08-2002):
+	* omit the -fomit-frame-pointer option (bugs in some gcc versions ?)
+	* sh_error.c: fix escape mode when logging to database
+	* sh_forward.c: fix error (twice escape) in recv_syslog_socket
+	* sh_tools.c: change escape mode for server-received data
+	* sh_mem.c: change ulong -> size_t in sh_mem_malloc()
+	* configure.in: fix localstatedir if --prefix=USR
+	* sh_hash.c: snprintf() -> sl_snprintf()
+
+1.5.5 (07-08-2002):
+	* sh_err_log.c: fix incorrect xml syntax for client messages 
+	  logged by server
+	* sh_err_log.c: fix incorrect '</trail>' entries on client EXIT
+	* sh_files.c: introduce file_class_next
+	  this fixes the problem that a policy for the directory
+	  inode erroneously becomes a policy for the directory itself.
+
+1.5.4 (17-07-2002):
+	* sh_hash.c: fix buffer overflow with (micro-)stealth
+	* sh_database.c: set path[] 1024 -> 12288
+	* sh_database.c: set query[] 2048 -> 16383
+	* sh_database.c: set values[] 1024 -> 16383
+	* sh_forward.c: larger limit for message size (16 kB)
+	* trustfile.c: set MAXFILENAME 2048 -> 4096
+	* fixed a bug in the handling of filenames with embedded newlines
+	* sh_files.c: fix missing sh_util_safe_name() in debug output
+	* --with-sender can specify a full address
+	* fix xml log in a backwards compatible way
+
+1.5.3 (03-07-2002):
+	* fix combination of stealth and sql logging
+	* fix some more places where invalid UIDs/GIDs trigger errors
+
+1.5.2 (01-07-2002):
+	* include solaris config file from (sean [at] boran d.o.t com)
+	* test for files/dirz defined twice in the configuration file
+	* option to disable reverse lookup on outbound connections
+	* option to use socket peer as client name (with name resolving)
+	* sh_html.c: fix an HTML bug (twice </head><body>)
+	* sh_suidchk.c: fix warning on AIX b/o dirname()
+	* allow logging server -> syslog if yule is NOT configured to 
+	  receive syslog messages
+	* define PRIi64 to "lld" if undefined
+	* invalid UIDs: use gid/uid as name, error level SeverityNames
+	* minor fixes for connect_port
+	* sh_hash.c: flush output of db listing before _exit()
+	* configure.in: fix incorrect default ${install_name} for server
+	* configure.in: try harder to find mysql.h / libpq-fe.h
+	* sh_files.c: sh_files_checkdir: 
+	  closedir() early to not exhaust OPEN_MAX
+ 
+1.5.1a (30-05-2002):
+	* fix missing LSB init script
+
+1.5.1 (27-05-2002):
+	* fix '-t update' option
+
+1.5.0a (23-05-2002): 
+	* fix configure.in
+
+1.5.0 (22-05-2002):
+	* include solaris nosuid patch from (nathoo [at] co d.o.t ru)
+	* similar fix for bsd nosuid
+	* speed up -t update
+	* convert manual to DocBook, distribute html and ps
+	* fix some more problems with configure.in, Makefile.in
+	* fix testsuite, add tests for udp, mysql
+	* MSG_TCP_MSG: host -> remote_host
+	* convert to autoconf 2.53
+	* make c_bits.sh exit with status 0
+	* sh_database.c #include "mysql.h" --> <mysql.h>, ditto libpq-fe.h
+	  to avoid dependency tracking problems
+	* samhain.c remove *YULE* #ifdefs
+	* acconfig.h remove *YULE* #undefs
+	* samhain.c: procdirSamhain: lstat --> stat (allow symlink)
+	* configure.in: add checks for correct user input
+	* Makefile.in: add automatic dependency tracking
+	* depend-gen: tool to figure out dependencies
+	* chkconfig comments in redhat start scripts
+
+1.4.8:
+	* sh_database.c: fix missing attr_old, attr_new, (from)host columns
+	* configure.in, Makefile.in: fix an error in the configfile
+	  definition with REQ_FROM_SERVER
+	* sh_err_console, sh_err_log: avoid recurrent failure messages
+	* timeout on read from files (/proc)
+	* fix errrors with setjmp/longjmp/alarm
+	* fix memory leak in server (~20 byte/file download in sh_tools, 930)
+	* check gpg signature for files downloaded from server, add a
+	  regression test
+	* fix chown in solaris bootscript
+	* provide second scheduler for file check
+	* provide scheduler for file check
+	* provide scheduler for SUID check
+
+1.4.7 (08-04-2002):
+	* make daemon control LSB-compliant (arguments, exit status)
+	* set log_ref = 0 for server messages
+	* boolean option SetDBServerTstamp to disable entering server
+	  timestamps for received client messages into database
+	* sh_suidcheck: check for "nosuid" mount option if getmntent is used
+	* fix logrotate script in manual (reported by Scott Worthington)
+	* don't strip numerical IP addresses
+	* check item->status_now != CLT_TOOLONG in client_time_check()
+	* set log_host to client in db client message
+
+1.4.6a (20-03-2002):
+	* define prefix in deploy.sh
+
+1.4.6 (19-03-2002):
+	* modify samhain_hide.c to hide processes on new Linux kernels
+	* better error diagnostics in kern_head.c
+	* fix compile error in all_items ()
+	* check length of install-name in enable-khide (max is 15)
+	* define exec_prefix in deploy.sh.in
+	* make configure a bit more cross-compiler friendly	
+ 
+1.4.5 (07-03-2002):
+	* Make sure missing file is reported even if ptr->reported == S_TRUE 
+	  because the file has been added.
+	* propagate 'reported' flag from sh_files_checkdir() into file list
+	* close checkfd in sh_gpg_check_file_sign()
+	* sh_derr(): kill(parent, SIGCONT) after ptrace(PT_DETACH,...)
+	* use sh.srvcons.name in dbg() to get debugging info from daemon
+	* option to log file timestamps with localtime instead of GMT
+	* comment out MSG_FI_ADD in sh_dirs_chk () - obsoleted by mandatory
+	  sh_files_filecheck(directory) that triggers MSG_FI_ADD in sh_hash.c
+	* set ptr->reported = S_FALSE; for reappeared files in sh_files_chk()
+	  to make sure re-disappearing will get reported
+	* new function sh_hash_set_missing() to remove file record
+	  without (duplicate) 'missing' message
+	* make sure all items are reported for added files
+	* fix stealth mode with sh_kern (encode sh_ks.h -> sh_ks_xor.h)
+	* clarify in the documentation which gpg options to use for signing
+
+1.4.4 (11-02-2002):
+	* check that parent process has exited before writing PID file
+	* promote MGG_W_CHDIR to SH_ERR_ERR
+	* add error message to sh_unix_testlock
+	* fix missing _() macro in sh_aud_set_functions
+
+1.4.3 (05-02-2002):
+	* don't check attributes for symlinks (may cause device access)
+	* add USE mysql; USE samhain; to samhain.mysql.init
+	* point out the MessageHeader/mysql problem in manual
+	* add -lz to LIBS for mysql
+	* strip after install, avoid double strip
+
+1.4.2 (27-01-2002):
+	* support for EGD
+	* fix some more problems with install-deploy / deploy.sh
+	* fix a bug in profiles/suselinux_i386/bootscript (INSTALL_NAME_)
+	* fixed the 'external logging' test (init rather than none in rc file)
+
+1.4.1:
+	* SuSE: include run level 4+5
+	* install location of hiding kernel modules changed - some insmod
+	  variants do not test for /lib/modules/$(uname -r)/module_name.o
+	* new make targets 'install-deploy', 'uninstall-deploy'
+	* fixed make targets 'deploydir', 'deploydirfast'
+	* bail on unsupported CL option in deploy.sh
+	* fix various bugs in deploy.sh
+ 
+1.4.0 (16-01-2002):
+	* fixed missing 'dirname' on Mac OS X
+	* fixed && tested for/with postgres
+	* 'user=' -> 'userid=' (reserved word in sql)
+	* fix the endianess + size of file database; this changes db format
+	  for any non-Linux OS
+	* --enable-old-format for old (V1.3) database format
+	* getopt, samhain.c, samhain.h: option -f to loop if not daemon 
+	* sh_hash: list numeric + char data to allow file db update on
+	  server side
+	* sh_database: modify handling of integer (long) data
+	* sh_database: datetime in database
+	* sh_database: hash field in database
+	* sh_database: rewrite database insert string construction
+	  [use INSERT INTO log (fields) VALUES (values);]
+	* makefile suse 7.x runlevel entries
+
+1.3.7 (06-01-2002):
+	* fix incorrect escape in sh_tools_safe_name
+	* fix sh_error_handle (4. argument) in sh_extern.c
+
+1.3.6c:
+	* fix segfault in sh_database (mysql logging) on solaris
+
+1.3.6b (03-01-2002):
+	* fix syntax error ('==')  in Makefile.in
+	* fix configure.in (path for /lib/modules/$(uname -r)/build/include)
+	* fix sh_kern.c (redeclaration of 'j')
+
+1.3.6 (03-01-2002):
+	* sh_kern.c: check integrity of int 80h vector 
+	  (SucKIT rootkit - Phrack 58)
+	* make sure childs in sh_kern are wait()'ed for
+	* provide start/stop/restart/reload/status interface
+	* fix a potential segfault (dereferenced NULL pointer) in the server
+	* use sh_util_flagval for sh_unix_setdaemon
+	* documentation for logging to SQL database
+	* configure.in: check for -I/lib/modules/$(uname -r)/build/include
+	* fix trustfile.c to ignore invalid users
+	* separate 'make install-samhain' and 'make install-yule'
+	* separate default log/pid/config files for server/client
+	  - less problems running server and client on same host
+	* rewrite deploy.sh(.in): 
+	  - don't use (make|install) if deploying
+	  - use command line options
+	  - better integrate into server environment
+	  - write install db
+	* always write a pidfile if daemon
+	* don't use server's config file as fallback for downloading client
+	* don't overwrite config file when doing 'make install'
+
+1.3.5 (28-12-2001):
+	* fix --enable-message-queue for newer glibc versions
+	* log to SQL database: implemented, but undocumented yet,
+	  needs to be tested further
+	* xml: escape received syslog messages
+	* xml: rename 'time' to 'tstamp'
+	* make targets: make [un]install-[boot-]yule 
+	  (for server-only installation)
+	* fix samhain_hide.c for 2.4 kernel
+	* fix sh_kern for updated samhain_hide.c 
+	* new option -j to just list the logfile
+	* sh_getopt.c: recognize -Dt check for -D -t check
+	* sh_tiger0.c: fix compiler warning (memmove) on Solaris
+
+1.3.4 (12-12-2001):
+	* sh_suidchk.c: option to limit files per second
+	* sh_unix.c: option to limit (kilo)bytes per second
+	* sh_hash.c: fix potential problem with '\n' in filename
+	  (not backward compatible if there are filenames with '=')
+
+1.3.3 (03-12-2001):
+	* sh_readconf.c, samhain.h, samhain.c, sh_suidchk.c:
+	  option SetNiceLevel to set scheduling priority
+	* sh_hash.c: bugfix for database listing on Solaris
+	* taus_seed: bugfix for emergency backup rng seed
+	* sh_util_safe_name: fix for XML
+	* sh_utmp_set_login_activate: use sh_util_flagval
+	* sh_utils.c: sh_util_obscurename: rm 'space' from list
+	* more backtrace macros
+	* sh_util_flagval: fix bug to recognize 1/0
+	* fix test scripts testtimesrv.sh, testext.sh (test.sh 6/5)
+	* rm stray debug fprintf in sh_srp.c
+
+1.3.2 (27-11-2001):
+	* sh_hash.c: fix an error introduced in 1.3.1
+	* set RLIMIT_CORE to RLIM_INFINITY if --enable-debug
+
+1.3.1 (25-11-2001):
+	* slib.c: get backtrace with --enable-debug 
+	* sh_unix.c: allow core dumps when --enable-debug
+	* configure.in: fix default message queue permissions
+	* sh_suidchk.c: automatically include suid/sgid files in database
+	* sh_suidchk.c: check all suid/sgid files
+	* sh_hash.c: don't insert duplicates when reading the database
+	* sh_utmp, sh_kern, samhain: fix 1sec offset in timer
+	* sh_unix.c: don't require /dev/random to be non-world-writeable
+	* server: fix segfault in zAVLTree.c if avltree == NULL (no clients)
+	* client: fix segfault on Solaris if path_conf == NULL
+	* testrun_1b.sh: \(^/.*\) -> \(/.*\)  for Solaris sed
+
+1.3.0 (31-10-2001):
+	* support compiling with GNU gmp library
+	* set 3 sec timer on client_time_check to avoid excessive (and
+	  unnecessary) calls under heavy load
+	* replace sl_strlen with a macro
+	* store client_t structure in AVL tree
+	* database format incompatible with previous format, up the magic#
+	* sh_html.c: cache entry template for speedup
+	* slib.c: reset islong(double) in sl_printf_count
+	* sh_hash.c: report on rdev change
+	* sh_hash.c: print size in 64 bit
+	* sh_hash.c: save in absolute size types
+	* sh_unix.c: get values as appropriate type (time_t, dev_t, ...)
+
+1.2.10:
+        * update MANUAL
+        * sh_unix.c: tiger_hash -> tiger_generic_hash
+        * sh_readcon.c: DigestAlgo option
+        * sh_tiger0.c: add MD5 and SHA1
+        * sh_unix.c: fix minor problem with win2k/cygwin
+
+1.2.9 (17-10-2001):
+        * fix problem with entry template/empty hostname
+        * fix MASK_USER_ (MTM -> ATM)
+        * typo fixed in configure.in (${install_name} -> {install_name})
+        * bugfix group_old -> size_old in XML code
+        * skip armor header in signed files
+
+1.2.8 (29-09-2001):
+	* Mac OS X: in sh_getopt.c, rename table[] to op_table[] to avoid
+	  obscure compiler warning
+	* Mac OS X: fix test scripts
+	* Mac OS X: import newest config.guess, config.sub from ftp.gnu.org
+	* implement deadtime in syslog recv code to protect against flooding
+	* sh_err_log: sl_close(fd) if lock|forward fails
+	* compliance with Filesystem Hierarchy Standard -- Version 2.2 final
+	* add policies User0, User1
+	* fix compile problem (FreeBSD) in sh_suidchk.c
+	* macro to check for debugger breakpoints (linux/i386)
+	* check for solaris (does not work) in sh_derr (--enable-ptrace)
+	* option to listen on 514/udp for syslog, drop root
+	  irrevocably if compiled thus
+	* use (check_mask & MODI_ATM) to decide whether to reset utime
+	* reset the policy masks on sighup
+	* option to write XML log messages
+	* cleanup of message catalog
+	* modified error messages for BADCONN
+	* error messages for Rijndael
+	* block recursive error messages within sh_error_handler()
+	  - would hang the machine ... -
+	
+1.2.7:
+	* sh_files, sh_utils: check top level directory
+	* sh_kern, sh_cat, kern_head: check syscall code, fork subprocess
+	  for reading from /dev/kmem
+	* include /boot in default samhainrc
+	* change source distribution signing/packaging system
+	* Makefile, README, MANUAL: adhere to file system standard, 
+	  document new locations
+	* fix a bug in samhain_hide.c
+
+1.2.6:
+	* reset list of trusted users before config file re-read
+	* TrustedUser=... can be a list
+	* fix severity for files missing from IgnoreAll
+
+1.2.5:
+	* include example_pager.pl, example_sms.pl scripts
+	* explain paging/sms setup in docs
+	* allow manual exclusion of a directory in suidcheck
+	* automatically track all file changes
+	* remove missing files from in-memory database
+	* add  $(KERN) to DEPLOYFILES
+
+1.2.4:
+	* log IP address for login/logout events, if supported by the OS
+	* release block in globerr (callback)
+
+-------------
+
+1.2.3:  
+	* fix problem with reading stealth configuration
+        * fix a few formats in sh_cat.c
+	* always use strncmp for file system type check in sh_suidchk.c
+	  (trailing 'fs' may be system specific for some types)
+	* no bare LF in messages (RFC 2822)
+	* no lines longer than 998 chars (RFC 2822)
+	* fix error in testrc_1
+
+1.2.2:
+	* make tmp file directory a compile time option
+	* fix minor bugs in tmp file allocator (potential memory leak,
+	  double slash if root directory)
+	* obsolete testpipe script removed 
+
+1.2.1:
+	* fix memory alignment in rijndael-api-fst.c: blockEncrypt()
+	* fix byte order in HMAC code (compatibility fix for Linux/HP-UX)
+	* removed a debug fprintf()
+
+1.2.0:
+	* fix a bug in the HMAC implementation (thanks to Cesar Tascon
+	  for help in tracking down this one)
+	* module to check the file system for SUID/SGID files
+
+1.1.16 (never released):
+	* fix the recursion depth -1 option as described in the manual
+	* optional database reload on SIGHUP
+	* fix a race condition when checking that /dev/random is a charakter
+	  device
+	* redirect stderr to /dev/null for c_random 
+	  (AIX may segfault in netstat...)
+	* check whether /dev/random is a charakter device in c_random.sh
+	  (we know at least one sysadmin who has set up a fake /dev/random ...)
+	* don't give NULL as 2. and 3. arg to execve if not Linux - some
+	  Unices (notably Solaris) don't like it
+	* init ptr = NULL in my_malloc (compiler warning)
+	* make the bitmask for tests configureable (suggestion by A. Dunkel)
+	* make the bitmask for tests a static variable
+	* make (database/logfile/lockfile) path configurable
+	  (to run multiple instances of samhain from an NFS share - on the
+	  wishlist of J. Patton)
+
+1.1.15 (never released):
+	* fix minor error in testcompile.sh (rm test_log only at start)
+	* return from subroutines on sig_terminate == 1 
+	  (faster exit on SIGTERM)
+	* fix re-configuration of addresses
+	* use sh_util_flagval() in sh_mail_setFlag and sh_kern_set_activate
+	* SysV message queue as compile option
+	* config file option to set console device
+	* removed the pre 1.1.9 code bloat
+	* don't print the LOGKEY to the console
+
+1.1.14:
+	* fix an error in the setup consistency check
+	* make target to uninstall runtime files
+	* trustfile.c: check return code of readlink(), fix off-by-one error
+	* sh_files.c: fix placement of terminator after readlink() call
+	* sh_files.c: fix a missing set_suid()/unset_suid()
+	  - suid should work, but is not recommended -
+	* more debug statements in c/s code
+	* avoid re-entry in sh_unix_sigexit
+	* put a block around free() and malloc() in wrapper functions
+	* ditto for glob()/globfree(), regcomp()/regfree(), fdopen()/fclose()
+	  - i.e. avoid corrupting the heap from a signal handler -
+
+1.1.13:
+	* optimized the size of the configure script somewhat
+	* modify the compile and hash test scripts
+	* read '\0's in sh_unix_getline
+	* exponential schedule for connection attempts
+	* make stealth working properly with signed files
+	  - config file should be signed now before embedding in picture -
+	* fix a race in using signed files
+	* updated err messages for PWNULL, GRNULL
+	* add missing shell script for test 11
+	* add mandatory source file/line info with -p debug 
+	* add mandatory source line info with BADCONN
+	* fix a latex error in the manual
+
+1.1.12:
+	* debug output to console if compiled with --enable-debug and
+	  running as daemon
+	* make reportonlyonce=true the default
+	* make sure state changes of a file are always reported, even
+	  with reportonlyonce=true
+	* Linux kernel modules (samhain_hide, samhain_erase)
+	* fixed incorrect return value of sh_util_flagval
+	* fixed an error in sh_files.c: happens with -t init and first
+	  file that is checked does not exist 
+	* revised install/uninstall targets in the Makefile
+	* module to check for clobbered kernel syscalls (tested on Linux 2.2)
+	* more diagnostic error messages in sh_gpg.c
+	* more diagnostic error messages in sh_mail.c
+	* error in mail.c fixed 
+          (address -> address_list[i] for multiple recipients)
+	* docs updated, better(?) explanation of signed files
+	* skip over path in gpg checksum output
+	* check client name against IP address and FQDN
+	* fix for --disable-* in config file
+	* fixed a server crash (MSG_TCP_OKMSG without arg)
+	  if the server is run with debug level output threshold
+	* catch EAGAIN in sh_gpg.c pipe reader
+	* fix the 'external logging' test to make it work on BSD 
+	* error message if no local path to init DB
+	* check for i86/Solaris in configure (vsnprintf prototype)
+	* make SRP the default
+
+1.1.11:
+	* make log file verification more convenient
+	* fix problem with message classes in stealth mode
+	* linux: do not try to read file attributes for devices
+	* handle the root directory correctly (avoid "//" in listing)
+	* fix problems with blockin on FIFOs/char dev 
+	  pointed out by I. Rogalsky (rog@iis.fhg.de)
+          - open in nonblocking mode for read, then set to blocking
+	  - open file only if regular
+	* fix alignment in memory profiler
+
+1.1.10:
+	* minor code cleanup
+	* fix an error in trustfile.c (handling of empty/incomplete 
+	  group entries in /etc/group, bug report by A. Capriotti )
+
+1.1.9:
+	* compatibility option for old behaviour (plain hash instead
+	  of HMAC, ECB instead of CBC mode)
+	* use CBC rather than ECB mode for encryption
+	* use HMAC-TIGER for message authentication codes
+	* handle NULL data in sh_tiger_hash
+	* option to set syslog facility (default is LOG_AUTHPRIV)
+	* longer timeout (300 sec) on /dev/random if no /dev/urandom
+	* fix minor output error with stealth option
+	* option not to log names of config/database files on startup
+
+1.1.8:
+	* fix error in syslog routine
+	* fix missing 'test' in configure.in
+	* fix error in replace_tab() in sh_html.c
+	* fix minor memory leak in sh_util_regcmp()
+
+1.1.7:
+	* timeout on read_mbytes (from /dev/random; fallback to /dev/urandom)
+	* fix for FreeBSD: ut_user -> ut_name in sh_utmp.c
+	* fix for Alpha: consider $ac_cv_sizeof_unsigned_int_ in configure.in
+	* fix for Alpha: format string in sh_tiger0.sh
+	* on Linux, now compiles cleanly with 
+	  -Wall -W -Wstrict-prototypes -Wcast-align
+	* fix problem with recursion depth
+          (pointed out by Vic <hvicha@mail.ru>)
+	* #include "sh_tools.h" in sh_unix.c and fix the 
+	  --with-timeserver option (reported by Vic <hvicha@mail.ru>)
+	* place read_port(), MSG_TCP_NETRP outside ifdefs
+	* close fd/zero skey before execve
+	* verify client name against socket peer
+	* ... with configureable error priority
+	* use strcmp() rather than strncmp() in search_register()
+	* fix race between lstat() and open() for checksum
+	  (reported by dynamo <dynamo@ime.net>, 
+	  JJohnson <JJohnson@penguincomputing.com>)
+	* enable globbing for filenames
+	* fix Solaris problem: siginfo_t may be NULL
+	* fix missing SL_EBADGID in tf_trust_check
+	* test case for external scripts, fix flushing pipe
+	* fix a typo in sh_ext_type
+	* do an fdexec w/checksum on Linux if calling external program
+	* even safer tmp file creation
+	* allow db update
+	* fix compile options for --enable-debug
+	* fixed a spelling error in the output
+	* test program for full CS support (config/database download)
+	* tell which file is searched for cs download
+
+1.1.6:
+	* fix bug in sh_readconf_line (segfault on erroneous config lines)
+
+1.1.5:
+	* sh_unix.c: sh_unix_getinfo_attr: f -> flags
+	* use gettimeofday as last resort
+1.1.4: 
+	* fix AIX compiler warning in sh_forward (cast arg1 of sh_tiger_hash
+	  to (char *)
+        * configure: add static link flags for some more os (from tar)
+        * don't strip twice (some stupid systems abort)
+        * fix for reading from /dev/random on non-Linux systems (untested)
+        * sh_mail.c: end all message lines with \r\n
+	* stealth: ignore \r, \"
+	* take out tracing from --enable-debug (presently useless anyway)
+	* fix some remaining cleartext with debug && stealth combined
+	* fixed a small memory leak in sh_err_log.c
+
+1.1.3:
+	* fixed circular logic in taus_seed() (fallback method only)
+	* fix for missing _SC_OPEN_MAX (runaway close())
+
+1.1.2:
+	* implement message classes
+	* let server recognize client message severity and class
+	* secondary log server
+	* keep database in memory (allows to close file 
+	  if retrieved from server)
+	* encrypt client/server communication
+	
+1.1.1:
+	* Compilation problems with native Solaris compiler fixed
+	* fill in euid/ruid variable
+	* manual.pdf --> MANUAL.pdf
+	* debug sh_util_formatted()
+	* http refresh 120sec for server stat page
+	* trace/debug options
+	* fixed problem with utmp.c options
+	* fixed problem with sh_mail_setaddress
+	* option for custom message header
+	* fixed problem in compdata
+	* fixed problem in mail verification
+	* remove eventual trailing '/' in file names
+	* fixed problem with report string for modified files
+	* option to report in full detail
+ 
+1.1.0:
+	* Move error messages to catalog
+	* Make error message format more uniform
+	* Wrap sytem calls that could be interrupted by signals
+	* Warn on append to database
+	* Option for full details on mod. files
+	* Option to report only once on mod. files
+	* Generally speaking, major modifications with potential new bugs
+
+0.9.5:
+        * sh_hash.c: fixed erroneous checksum for config file
+        * sh_html.c: fixed erroneous timestamp (last)
+        * sh_tools.c: fixed connect_port (set port for cached address)
+        * sh_srp.c: fix for '00' (='\0') in pw
+          (last two fixes by Andreas Piesk)
+
+0.9.4:
+        * samhain.c: fcntl(1, ..) -> fcntl(2, ..)
+        * sh_hash.c: copy 12 instead of 10 byte for c_attributes
+        * 'empty directory' WARN -> INFO
+
+0.9.3:
+	* FreeBSD fixes:
+	  - c_random.sh: make sure /dev/random provides something 
+            rather than nothing
+	  - check for <netinet/in.h> and include it
+	  - include <sys/types.h> early
+          - sh_utmp.c: fixed an occurence of ut_user
+	  - sh_utmp.c: #ifdef HAVE_UTTYPE static char terminated_line #endif
+	  - sh_forward.c: EBADMSG -> ENOMSG
+	* sh_unix.c: check return value of gethostbyname
+	* sh_entropy.c: fallback on /dev/urandom if /dev/random blocks for
+	  more than 30 sec
+	* ... and fix the timestamp format ...
+
+0.9.2:
+	* ISO 8601 timestamps
+	* Bugfix in sh_utmp (timestring overwrite)
+	* don't use siginfo_t on Linux (garbage as of 2.2.14)
+	* check for Linux capabilities bug when dropping root
+	* include README for gcc compiler bug (pointed out by A. Piesk)
+	* explicitely set -fno-strength-reduce with gcc
+	* fixed ignoring missing files with the IgnoreAll policy
+
+0.9.1:
+	* more ext2flags (breaks backward database compatibility on Linux)
+	* IgnoreAll policy modified - missing/added files reported with
+	  SeverityIgnoreAll (to handle files that may or may not be present)
+	* Check all files, not only regular ones 
+	  (bug in sh_files, originally introduced because checksum of
+	  regular files only is computed)
+
+0.9:
+	* use O_NOATIME if supported
+	* --with-nocl takes argument (PW to re-enable CL parsing)
+	* no daemon mode if initializing database
+	* fixed segfault in yule with 'unknown file type' request
+	* enlarged MAX_GLOBS 24 -> 32 and made the array linear
+	* server uses last registry entry for any given client now
+	* deploy.sh script to deploy clients to remote hosts
+	* enhanced signal handling: SIGUSR1/SIGUSR2/SIGABRT/SIGQUIT/SIGHUP
+	* allow y/Y/n/N for login monitoring (in addition to 0/1)
+	* external logging scripts/programs
+	* trustfile.c: define STICKY on Linux
+	* reset signal mask when initializing
+	* EINTR_RETRY wrapper
+	* slib: sl_read, sl_write EINTR update
+	* use sstrip when installing
+	* more compact database format (breaks backward database compatibility)
+	* larger download packets
+	* TcpFlags unsigned char
+	* cast to (char *) head in write_port
+	* m(un)lock cast to (char *)
+	* (1 << 31) --> (1UL << 31)
+	* support e2fs attributes on Linux
+	* fixes for AIX and Solaris native compilers
+	* fixed Makefile for non-GNU make (pattern rule --> suffix rule)
+
+0.8.1:
+	* fixed 'is_numeric()' return value	
+
+0.8:
+	* added option for static compilation
+	* added option for stealth with non-hidden config file
+	* added option for disabling command line parsing
+	* all options can be set in the configuration file now
+	* stealth: xor strings in database file
+	* fixed bug in mailer code ([] in HELO)
+	* print timestamp when asking for key
+	* 'micro' stealth mode (no hidden configuration file)
+	* simplified slib
+	* int->long for uids/gids in trustfile
+	* moved mailkey from data to code
+	* shell script for entropy (stronger default key)
+	* general code cleanup
+	* better error checking in client/server code
+	* detect out-of-sync messages
+	* check state across protocol passes in server
+	* make sure authentication is mutual
+	* file download to client
+	* reserve six file descriptors in server
+	* mlock queue buffer if LOG_KEY
+	* improved robustness in bignum (don't fail on free())
+	* per-directory recursion depths
+	* RFC821 compliance: empty line at end of header, To field, Date field
+	* RFC821 compliance: make e-mail transfer relieable
+	* fix detection of hardlink changes
+	* checksum verification for calling gpg/pgp 
+	* CL option '-S' not required for server-only binary
+	* eliminate CL options that may leak privileged information
+	  if the program is SUID
+	* skip leading white space in configuration file
+	* allow nested conditionals in configuration file
+	* allow whitespace before and after '=' in configuration file
+	* don't leak file descriptors to child processes
+	* make message transfer relieable
+	* always report error on abnormal termination of connection
+
+0.7:
+	* support for alpha machines
+	* stop TCP logging after exit message
+	* limit connections in server (DoS attacks)
+	* move string handling to slib
+	* move file handling to slib
+	* timestring without space
+	* changed report format
+	* SUID bugfix - use euid when checking logfile ownership
+	* SUID bugfix - get root for lstat()
+	* SUID bugfix - get root for opendir()
+	* store number of hardlinks
+	* send no message if polling empty queue
+	* include tiger 64-bit implementation             (portability)
+	* codes for error conditions
+	* mail check: handle multiple, overlapping audit trails
+	* security fix: no append to database if SUID
+	* fix sh_entropy.c (BUFSIZ -> BUF_ENT)
+	* read command line before config file
+	* PGP signing of config/database files
+	* checksum of config file reported
+	* checking for attributes only
+
+0.6:
+	* more syslogish priority specification 
+	* fixed segfault in sh_mem_check, apparently this was also
+	  the reason for the segfault in atexit()
+	* allow for compilation with SRP authentication
+	* fixed tiger checksum computation
+	* fixed broken logfile verification for second and further audit trails
+	* test program added
+	* documentation improved
+	* sh_forward_make_client: bug fixed in[8]->in[i]
+	* sh_error.h: fixed missing #include <errno.h>
+	* configure.in: fixed missing strerror() test
+	* sh_utmp.c: check logins/logouts
+	* check for missing files
+	* only reset access time if necessary
+	* O_EXCL in open()
+	* limit environment to TZ in execve (sh_entropy.c, not used on Linux)
+	* use trustfile() to determine whether logfile dir is trustworthy
+	* strip head instead of tail for numerical address
+	* store messages in fifo during log server outage
+	* re-init session key after server outage
+
+0.5 (21-12-1999):
+	* added option for mail relay server
+	* own popen() implementation in sh_entropy()      (portability)
+	* fixed error in sh_util_basename() (returned NULL for base == "/")
+	* fixed segfault in strlcpy/strlcat (check for src == NULL)
+	* FILENAME_MAX -> PATH_MAX                        (HP-UX 10.20)
+	* use TIGER for 32-byte compilers                 (portability)
+	* fixed hash function (do not include stdlib.h)
+	* flush buffer before write in mailer code        (IBM AIX 4.1)
+	* make mailer code non-forking
+	* cast argument of is...() to int                 (portability)
+	* return() after _exit() for braindead compilers  (portability)
+	* optionally use inet_addr                        (portability)
+	* check for broken mlock()                        (HP-UX 10.20)
+	* minor code cleanups
+	* fixed incorrect size of munlock()'ed memory in sh_error_string()
+	* fixed a buffer overflow in the error printing routine
+	* fixed a buffer overflow in sh_util_safe_name ()
+	* implement SRP session key exchange
+	* implement client/server facility
+	* implement @host/@end construct in configuration file
+	* preferably use uname(), and do gethostbyname() for FQDN
+	* make vernam cipher base numeric
+	* make OnlyStderr private in sh_error
+	* test -e "/dev/random" --> test -r "/dev/random" (portability)
+	* check for libsocket                             (portability)
+	* add #defines for IPPORT_SMTP, IPPORT_TIMESERVER (portability)
+	* eliminate superfluous /proc test 
+	* some unreachable code removed
+	* cast to (byte*) replaced by cast to (word64*) in sh_tiger_hash()
+	* check for setresuid() if no seteuid()           (HP-UX 10.20)  
+
+0.4 (09-11-1999):  
+	* make sure output from /dev/random has no NULL's
+	* one-time pad encryption for emailed keys
+	  (better than nothing ...)
+
+0.3 (04-11-1999):
+	* logfile readable for group
+	* verify signatures for any file
+	* signature block in tarball
+	* use select() in time server routine
+	* better protection for session keys (mlock)
+
+0.2:
+	* fixed incorrect man page
+	* fixed incorrect example rc file
+	* recursive error logging should work now
+
+0.1:
+	* initial release -- on Samhain 1999, of course
+
+development start:
+	* probably 29-06-1999
+

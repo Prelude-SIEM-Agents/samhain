@@ -1,0 +1,349 @@
+
+SAMHAIN distributed host monitoring system
+------------------------------------------
+
+Copyright (C) 1999-2009 Rainer Wichmann                                    
+                                                                      
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or     
+(at your option) any later version.                                   
+                                                                      
+This program is distributed in the hope that it will be useful,       
+but WITHOUT ANY WARRANTY; without even the implied warranty of        
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         
+GNU General Public License for more details.                          
+                                                                      
+You should have received a copy of the GNU General Public License     
+along with this program; if not, write to the Free Software           
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+
+
+Incorporated code
+-----------------
+
+  (i) Support for the TIGER cryptographic checksum algorithm
+  is provided by the reference implementation, which includes 
+  the following statement:
+
+	 * Tiger: A Fast New Hash Function
+	 *
+	 * Ross Anderson and Eli Biham
+	 *
+	 * Tiger has no usage restrictions nor patents. It can be used freely, 
+	 * with the reference implementation, 
+	 * with other implementations or with 
+	 * a modification to the reference implementation (as long as it still 
+	 * implements Tiger). We only ask you to let us know about your 
+	 * implementation and to cite the origin of Tiger and of the reference 
+	 * implementation. 
+	 *
+	 * The authors' home pages can be found both in 
+	 * http://www.cs.technion.ac.il/~biham/ and in 
+	 * http://www.cl.cam.ac.uk/users/rja14/.
+	 * The authors' email addresses are biham@cs.technion.ac.il 
+	 * and rja14@cl.cam.ac.uk.
+
+
+
+  (ii) Support for testing write access by untrusted users
+  to any element in the path of a file is provided by the
+  public domain trustfile library, which includes the following
+  statement:
+
+	 * Author information:
+	 * Matt Bishop
+	 * Department of Computer Science
+	 * University of California at Davis
+	 * Davis, CA  95616-8562
+	 * phone (916) 752-8060
+	 * email bishop@cs.ucdavis.edu
+	 *
+	 * This code is placed in the public domain.  I do ask that
+	 * you keep my name associated with it, that you not represent
+	 * it as written by you, and that you preserve these comments.
+	 * This software is provided "as is" and without any guarantees
+	 * of any sort.
+
+  (iii) Support for big integer arithmetic is provided by the bignum
+  package (v. 1.2) by Henrik.Johansson@Nexus.Comm.SE, 
+  which includes the following statement:
+
+        * Everyone is allowed to distribute this package to anyone
+        * else, as long as all changes are recorded and mentioned.
+        * If you are including this in a commercial product, be sure
+        * to distribute _all_ of the package with the product.
+	*
+        * (...writing more stuff here later, but I guess everyone
+        * knows the approximate contents of it - no warranty, no
+        * charge, and so on.  I guess it is like the GNU concept.
+        * Read that for further details...)
+
+  (iv) Support for compression is provided by the (mini) LZO library,
+  which includes the following statement:
+
+       * Copyright (C) 1999 Markus Franz Xaver Johannes Oberhumer
+       * Copyright (C) 1998 Markus Franz Xaver Johannes Oberhumer
+       * Copyright (C) 1997 Markus Franz Xaver Johannes Oberhumer
+       * Copyright (C) 1996 Markus Franz Xaver Johannes Oberhumer
+       * 
+       * The LZO library is free software; you can redistribute it and/or
+       * modify it under the terms of the GNU General Public License as
+       * published by the Free Software Foundation; either version 2 of
+       * the License, or (at your option) any later version.
+       * 
+       * The LZO library is distributed in the hope that it will be useful,
+       * but WITHOUT ANY WARRANTY; without even the implied warranty of
+       * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+       * GNU General Public License for more details.
+       * 
+       * You should have received a copy of the GNU General Public License
+       * along with the LZO library; see the file COPYING.
+       * If not, write to the Free Software Foundation, Inc.,
+       * 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+       * 
+       * Markus F.X.J. Oberhumer
+       * <markus.oberhumer@jk.uni-linz.ac.at>
+       * http://wildsau.idv.uni-linz.ac.at/mfx/lzo.html
+
+  (v) Support for determining the type of a file system is provided by
+  code from the GNU find(1) utility which includes the following statement:
+
+   /* fstype.c -- determine type of filesystems that files are on
+      Copyright (C) 1990, 91, 92, 93, 94 Free Software Foundation, Inc.
+
+      This program is free software; you can redistribute it and/or modify
+      it under the terms of the GNU General Public License as published by
+      the Free Software Foundation; either version 2, or (at your option)
+      any later version.
+
+      This program is distributed in the hope that it will be useful,
+      but WITHOUT ANY WARRANTY; without even the implied warranty of
+      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+      GNU General Public License for more details.
+
+      You should have received a copy of the GNU General Public License
+      along with this program; if not, write to the Free Software
+      Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA  */
+
+   /* Written by David MacKenzie <djm@gnu.ai.mit.edu>. */
+
+
+  (vi) Support for the MD5 hash algorithm is provided by code
+  from busybox which is distributed under the GPL.
+
+   /* md5.c - Functions to compute MD5 message digest of files or memory blocks
+    *         according to the definition of MD5 in RFC 1321 from April 1992.
+    * Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+    *
+    * NOTE: The canonical source of this file is maintained with the GNU C
+    * Library.  Bugs can be reported to bug-glibc@prep.ai.mit.edu.
+    *
+    * This program is free software; you can redistribute it and/or modify it
+    * under the terms of the GNU General Public License as published by the
+    * Free Software Foundation; either version 2, or (at your option) any
+    * later version.
+    *
+    * This program is distributed in the hope that it will be useful,
+    * but WITHOUT ANY WARRANTY; without even the implied warranty of
+    * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    * GNU General Public License for more details.
+    *
+    * You should have received a copy of the GNU General Public License
+    * along with this program; if not, write to the Free Software Foundation,
+    * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+    */
+
+   /* Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.  */
+
+
+  (vi) Support for the SHA-1 hash algorithm is provided by code
+  from mhash which includes the following statement:
+
+       /* sha.c - Implementation of the Secure Hash Algorithm
+        *
+        * Copyright (C) 1995, A.M. Kuchling
+        *
+        * Distribute and use freely; there are no restrictions on further
+        * dissemination and usage except those imposed by the laws of your
+        * country of residence.
+        *
+        * Adapted to pike and some cleanup by Niels Möller.
+        */
+
+       /* $Id: sha1.c,v 1.2 2001/01/24 08:20:29 nmav Exp $ */
+
+       /* SHA: NIST's Secure Hash Algorithm */
+
+       /* Based on SHA code originally posted to sci.crypt by Peter Gutmann
+          in message <30ajo5$oe8@ccu2.auckland.ac.nz>.
+          Modified to test for endianness on creation of SHA objects by AMK.
+          Also, the original specification of SHA was found to have a weakness
+          by NSA/NIST.  This code implements the fixed version of SHA.
+       */
+
+  (vii) Support for AVL Trees is provided by code
+  from AVLTree which includes the following statement:
+
+    /* zAVLTree.h: Header file for zAVLTrees.
+     * Copyright (C) 1998,2001  Michael H. Buselli
+     * This is version 0.1.3 (alpha).
+     * Generated from $Id: xAVLTree.h.sh,v 1.5 2001/06/07 06:58:28 cosine Exp $
+     *
+     * This library is free software; you can redistribute it and/or
+     * modify it under the terms of the GNU Library General Public
+     * License as published by the Free Software Foundation; either
+     * version 2 of the License, or (at your option) any later version.
+     *
+     * This library is distributed in the hope that it will be useful,
+     * but WITHOUT ANY WARRANTY; without even the implied warranty of
+     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     * Library General Public License for more details.
+     *
+     * You should have received a copy of the GNU Library General Public
+     * License along with this library; if not, write to the Free
+     * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
+     *
+     * The author of this library can be reached at the following address:
+     * Michael H. Buselli
+     * 30051 N. Waukegan Rd. Apt. 103
+     * Lake Bluff, IL  60044-5412
+     *
+     * Or you can send email to <cosine@cosine.org>.
+     * The official web page for this product is:
+     * http://www.cosine.org/project/AVLTree/
+     */
+
+   (viii) The modules sh_userfiles.c and sh_mounts.c have been
+   contributed by Eircom Net Computer Incident Response Team and
+   are authored by Jerry Connolly and Cian Synnott, respectively. 
+
+   They are released under the terms of the GNU General Public 
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version:
+   
+   "Feel free to GPL those files -
+   they were fully released by our company to the project.
+   
+   Cian
+   
+   -- 
+   Cian Synnott
+   Eircom Net Computer Incident Response Team"
+
+   (ix) Enhanced functionality for the SUID check has been
+   contributed with a patch copyright by Rob Rati <rob.rati@motorola.com>.
+   The patch is licensed under the GPL with the following statement:
+
+   "Here is the patch with the aforementioned feature enhancements, and I 
+   license all changes within this patch under the GNU Public License (GPL) 
+   GNU General Public License as published by the Free Software Foundation; 
+   either version 2 of the License, or (at your option) any later version."
+
+   (x) Unit testing uses the 'cutest' framework by Asim Jalis, (files
+   CuTest.h, CuTest.c, make-tests.sh) which is licensed under the zlib license:
+
+     * Copyright (c) 2003 Asim Jalis
+     *
+     * This software is provided 'as-is', without any express or implied
+     * warranty. In no event will the authors be held liable for any damages
+     * arising from the use of this software.
+     *
+     * Permission is granted to anyone to use this software for any purpose,
+     * including commercial applications, and to alter it and redistribute it
+     * freely, subject to the following restrictions:
+     *
+     * 1. The origin of this software must not be misrepresented; you must not
+     * claim that you wrote the original software. If you use this software in
+     * a product, an acknowledgment in the product documentation would be
+     * appreciated but is not required.
+     *
+     * 2. Altered source versions must be plainly marked as such, and must not
+     * be misrepresented as being the original software.
+     *
+     * 3. This notice may not be removed or altered from any source
+     * distribution.
+
+   (xi) The dnmalloc library used by samhain is Copyright (C) 2005, Yves Younan, 
+   Wouter Joosen and Frank Piessens, and licensed under the LGPL:
+
+     *   This library is free software; you can redistribute it and/or
+     *   modify it under the terms of the GNU Lesser General Public
+     *   License as published by the Free Software Foundation; either
+     *   version 2.1 of the License, or (at your option) any later version.
+     *
+     *   This library is distributed in the hope that it will be useful,
+     *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+     *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+     *   Lesser General Public License for more details.
+     *
+     *   You should have received a copy of the GNU Lesser General Public
+     *   License along with this library; if not, write to the Free Software
+     *   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+  
+
+Other
+-----
+
+  Depending on the compilation options used, samhain may use the 
+  SRP authentication algorithm (in an independent implementation,
+  without any use of code from the SRP software).
+  The original SRP software contains the following license statement:
+
+    The SRP License
+    ---------------
+  
+    SRP and all related technologies are free for both commercial and
+    non-commercial use.  They are distributed under a standard
+    X11-style Open Source license which is shown below.
+    
+    The SRP distribution contains parts from various freeware
+    packages; these parts fall under both the SRP Open Source license
+    and any existing licenses.  Care has been taken to ensure that
+    these licenses are compatible with Open Source distribution,
+    but it is the responsibility of the licensee to comply with these
+    licenses.  The file "Copyrights" contains a list of the copyrights
+    incorporated by portions of the software.
+    
+    This software is covered under the following copyright:
+  
+    /*
+     * Copyright (c) 1997-1999  The Stanford SRP Authentication Project
+     * All Rights Reserved.
+     *
+     * Permission is hereby granted, free of charge, to any person obtaining
+     * a copy of this software and associated documentation files (the
+     * "Software"), to deal in the Software without restriction, including
+     * without limitation the rights to use, copy, modify, merge, publish,
+     * distribute, sublicense, and/or sell copies of the Software, and to
+     * permit persons to whom the Software is furnished to do so, subject to
+     * the following conditions:
+     *
+     * The above copyright notice and this permission notice shall be
+     * included in all copies or substantial portions of the Software.
+     *
+     * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
+     * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
+     * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+     *
+     * IN NO EVENT SHALL STANFORD BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
+     * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
+     * RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER OR NOT ADVISED OF
+     * THE POSSIBILITY OF DAMAGE, AND ON ANY THEORY OF LIABILITY, ARISING OUT
+     * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+     *
+     * In addition, the following conditions apply:
+     *
+     * 1. Any software that incorporates the SRP authentication technology
+     *    must display the following acknowlegment:
+     *    "This product uses the 'Secure Remote Password' cryptographic
+     *     authentication system developed by Tom Wu (tjw@CS.Stanford.EDU)."
+     *
+     * 2. Any software that incorporates all or part of the SRP distribution
+     *    itself must also display the following acknowledgment:
+     *    "This product includes software developed by Tom Wu and Eugene
+     *     Jhong for the SRP Distribution (http://srp.stanford.edu/srp/)."
+     *
+     * 3. Redistributions in source or binary form must retain an intact copy
+     *    of this copyright notice and list of conditions.
+     */

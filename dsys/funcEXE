@@ -1,0 +1,57 @@
+#########################################################################
+#
+# Subroutines for determining existence of / path to executables
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+findEXE() {
+    if test $# -lt 1
+    then
+	printFATAL "findEXE: insufficient arguments"
+    fi
+
+    X="$PATH";
+    prog="$1";
+    OLD_IFS=${IFS}
+    IFS=':'; export IFS 
+    for dir in $X; do
+	exe="$dir/$1"
+	if (test -f "$exe" || test -f "${exe}.exe")
+	then
+	    EXECUTABLE="$exe"; export EXECUTABLE
+	    IFS=${OLD_IFS}; export IFS
+	    return 0
+	fi
+    done
+    IFS=${OLD_IFS}; export IFS
+    printINFO "Command $1 not found in \$PATH"
+    EXECUTABLE=""; export EXECUTABLE
+}
+
+needEXE() {
+    # printINFO "Checking for $@"
+    for arg
+    do
+	findEXE "$arg"
+	test -z "$EXECUTABLE" && printFATAL "Need \"$arg\" in \$PATH"
+    done
+    return 0
+}

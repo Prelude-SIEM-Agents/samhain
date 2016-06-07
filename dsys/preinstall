@@ -1,0 +1,57 @@
+#! /bin/sh
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+name=`./samhain-install.sh --print-config name`
+sbin=`./samhain-install.sh --print-config sbin_dir`
+
+MONIT=""
+test -f /usr/local/bin/monit && MONIT="/usr/local/bin/monit"
+if test x"$MONIT" = x
+then
+    test -f /usr/bin/monit && MONIT="/usr/bin/monit"
+    if test x"$MONIT" = x
+    then
+	:
+    else
+	zz=`/usr/bin/monit status | grep ${name}`
+	if test x"$zz" = x
+	then
+	    :
+	else
+	    ${MONIT} stop "${name}"
+	    exit 0
+	fi
+    fi
+fi
+
+if test -f /etc/init.d/${name}
+then
+	/etc/init.d/${name} stop
+elif test -f /etc/rc.d/init.d/${name}
+then
+	/etc/rc.d/init.d/${name} stop
+else
+	if test -f $sbin/$name
+	then
+		$sbin/$name stop
+	fi
+fi
+
+exit 0

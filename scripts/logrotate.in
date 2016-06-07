@@ -1,0 +1,24 @@
+@mylogfile@ {
+    weekly
+    rotate 52
+    nocreate
+    missingok
+    compress
+
+    prerotate
+        if test -f @mylockfile@; then \
+          PIN=`cat @mylockfile@`; \
+          /bin/kill -TTIN $PIN; \
+          sleep 1; \
+          AA=0; \
+          while test "x$AA" != "x120"; do \
+           AA=$(( AA + 1 )); \
+           if test -f @mylogfile@.lock; then \
+             sleep 1; \
+           else \
+             break; \
+           fi \
+          done; \
+        fi
+    endscript
+}

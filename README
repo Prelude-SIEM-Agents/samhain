@@ -1,0 +1,497 @@
+
+CONTENT OF THIS DOCUMENT
+------------------------
+
+  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  +++                                                                     +++
+  +++ NOTE: The distribution package contains a much more detailed MANUAL +++
+  +++                                                                     +++
+  +++        ----  See the docs/ subdirectory ----                        +++
+  +++                                                                     +++
+  +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+	- INSTALL             basic install procedure
+
+	- PGP SIGNATURES      signing database and config file
+
+	- CLIENT/SERVER       how to install and use with client/server mode
+                              for distributed host monitoring
+
+	- STEALTH             how to install and use with stealth mode enabled
+
+	- USAGE               some usage examples 
+
+	- CAVEATS             what the name says 
+
+	- START AT BOOT TIME  how to start the daemon during the boot sequence
+
+	- CONFIGURE OPTIONS   overview of supported options, and defaults
+
+	- TESTING             test suite (also useful to see EXAMPLES)
+
+
+
+
+INSTALL:
+-------
+
+	Unpack the source with:
+
+		gunzip -c samhain-current.tar.gz | tar xvf -
+
+	This will drop two files in your current directory:
+
+		samhain-{version}.tar.gz    
+		samhain-{version}.tar.gz.asc
+
+	To check authenticity and integrity of the source code, verify
+	the PGP signature on samhain-{version}.tar.gz
+	(public PGP key for Rainer Wichmann at http://wwwkeys.pgp.net/):
+
+		gpg --verify samhain-{version}.tar.gz.asc samhain-{version}.tar.gz
+
+	Then unpack samhain-{version}.tar.gz:
+
+		gunzip -c samhain-{version}.tar.gz | tar xvf -
+		cd samhain-{version}
+
+	If you have an incarnation of 'dialog' (xdialog, dialog, lxdialog)
+	installed, you can use the GUI install tool:
+
+		./Install.sh
+
+	Otherwise use the commands:
+
+		./configure [options]
+		make
+		su root
+		make install
+
+	At least the following executable will be built:
+
+	  +++ samhain +++ the monitoring agent, without any
+                          client/server support (i.e. local use only)
+
+	Additional executables will be built if you compile in client/server 
+	and/or stealth mode (see below).
+
+	The 'make install' target will strip the executable(s), i.e.
+	discard symbols.
+
+	PATHS:
+	-----
+	For configuring the install paths/locations, 
+	see the MANUAL.
+
+
+	WARNING:
+	------- 
+	Some versions of gcc have a bug that generates incorrect 
+	code if strength reducing is enabled. 
+	If you modify the compiler flags, always use the -fno-strength-reduce 
+	option with gcc, unless you are sure that your compiler does not
+	suffer from the problem (see README.gcc_bug).
+	Also, some gcc versions generate incorrect code unless the
+	-fno-omit-frame-pointer option is used. 
+	The -fno-strength-reduce and the -fno-omit-frame-pointer options are 
+	enabled by default by the 'configure' script.
+
+PGP SIGNATURES:
+--------------
+	By default, samhain will report on the checksums of the database
+	and configuration files on startup.
+
+	You can always (clear)sign the database (once initialized) 
+        with GnuPG, as well as the configuration file
+	(recommended: gpg -a --clearsign --not-dash-escaped FILE).
+
+	However, to have samhain check these signatures, rather than ignoring
+	them, you need GnuPG and you must compile samhain with the option
+
+		./configure --with-gpg=PATH
+
+	where PATH is the path to the gpg/pgp binary. 
+
+	Samhain will invoke gpg only after checking that 
+	only trusted users (by default: root and the effective user) 
+	have write access to any element in the path.
+
+	The public key for verification must be in the keyring of the
+	effective user (usually root)
+
+	For more security, it is possible to compile in the checksum
+	of the GnuPG executable, and/or the key fingerprint. See
+	the MANUAL for more details.
+
+	The public key will be searched in the gpg home directory 
+	(~/.gnupg/) of the effective user (usually root).
+	The key identification and fingerprint will be reported.
+
+CLIENT/SERVER:
+-------------
+
+	samhain supports logging to a central server via TCP/IP.
+	To enable this option, use the ./configure option
+
+		./configure --enable-network=client|server [more options]
+
+	NOTE: client and server are __distict__ applications, and must be
+	built seperately. By default, installation names and paths are
+	different. Do not blame us if you abuse './configure' options to 
+	cause name clashes, if you install both on the same host.
+
+	The following executables are built:
+	
+	  +++ samhain (client) +++ the monitoring agent, 
+				   with client code included
+				   if --enable-network=client
+
+	  +++ yule    (server) +++ the log server  (no monitoring, just report
+				   collecting !!!)
+				   if --enable-network=server
+
+	  +++ samhain_setpwd   +++ a utility program to set the password of
+                                   a monitoring agent (see man page samhain.8).
+				   Use it without options to get help. 
+                                 
+
+	To set up a monitoring agent, do the following:
+
+ 	  -- select a (16-digit hexadecimal) password. To generate
+	     a random password, you can use:
+
+		./yule -G
+
+	  -- use 'samhain_setpwd samhain <suffix> <password>'
+	     to generate an agent 'samhain.suffix' with the selected password
+	     (you can rename the agent afterwards, of course) 
+
+	  -- use 'yule -P password' to compute an entry to register the agent
+
+	  -- in the servers's configuration file, insert the computed entry
+	     (replace HOSTNAME with the host, on which the agent will run)
+	     in the section called [Clients]
+
+	By default, client/server authentication 
+	is done with the SRP (Secure Remote Password) protocol.
+
+	It is also possible to store configuration and database files
+	on the server. See the manual for details.
+
+STEALTH:
+-------
+
+	samhain supports a 'stealth' mode of operation, meaning that
+	the program can be run without any obvious trace of its presence
+	on disk. The supplied facilities are more sophisticated than 
+	just running the program under a different name,
+	and might thwart efforts using 'standard' Unix commands,
+	but they will not resist a search using dedicated utilities. 
+	To enable this mode, use the ./configure option
+
+		./configure --enable-stealth=XOR_VAL [more options]
+
+	XOR_VAL must be a decimal number in the range 0, 128..255
+	(using 0 will have no effect).
+
+	The runtime executable will contain no printable strings revealing
+	its nature or purpose (strings are xor'ed with XOR_VAL at compile 
+	time, and decoded at runtime). 
+
+	The configuration file is expected to be
+	a postscript file with _uncompressed_ image data, wherein 
+	the configuration data are hidden by steganography.
+	To create a suitable image file from an existing image, 
+	you may use e.g. the ImageMagick program 'convert', such as:
+
+		convert +compress ima.jpg ima.ps
+
+	The following additional executable will be built:
+ 
+	  +++ samhain_stealth +++ steganography utility program to hide/extract
+				  the configuration file data in/from a 
+				  postscript file with
+				  _uncompressed_ image data.
+				  Use it without options to get help. 
+
+	Database and log file entries are xor'ed with XOR_VAL to 'mask' 
+	printable strings as binary data. No steganography is supported 
+	for them, as this would require image files of unreasonable large
+	size.
+	However, if the database/log file is an existing image (say, a .jpg
+	file), the data will be appended to the end of the image data.
+	The image will display normally, and on examination of the file,
+	the add-on data will look like binary (image) data at first sight.
+	The built-in utility to verify and print log file entries 
+	will handle this situation transparently.
+
+	To re-name samhain to something unsuspicious, use the configure option
+
+		./configure --enable-install-name=NAME
+
+	'make install' will then re-name samhain upon installation. Also,
+	database, log file, and pid file will have 'samhain' replaced by
+	NAME.
+
+
+USAGE EXAMPLES:
+--------------
+
+	Review the default configuration file that comes with the
+	source distribution. Read the man page (samhain.8).
+
+	initialize database:  samhain -t init
+
+	check files:          samhain -t check
+
+	run as daemon:        samhain -t check -D
+
+	report to log server: samhain -t check -D -e warn
+
+	start the log server: yule -S 
+
+
+CAVEATS:
+-------
+	Permissions:
+	-----------
+	samhain needs root permissions to check some system files. 
+	The log server does not require root permissions, unless
+	you use a privileged port (port number below 1024).
+	If you use --enable-udp to listen on the syslog socket, you need
+	to start the log server with root permissions (it will drop them
+	after binding to the port).
+
+	Trust:
+	-----
+	samhain checks the path to critical files (database, configuration)
+	for write access by untrusted users. By default, only root and
+	the effective user are trusted. More UIDs can be added as a
+	compile options (some systems habe 'bin' as owner of the root
+	directory).
+
+	Integrity:
+	---------
+	On startup, samhain will report on signatures or checksums of
+	database and configuration files. You better check these reports.
+
+	Both startup and exit will be reported. If you are using samhain
+	as daemon and start it at boot time, you may want to check that
+	startup/exit corresponds with scheduled reboots.
+
+	If the path to the samhain binary is defined in the configuration
+	file, samhain will checksum the binary at startup and compare 
+	at program termination. This will minimize the time available
+	for an intruder to modify the binary. 
+
+	Mail address:
+	------------
+	For offsite mail, you may have to set a mail relay host 
+	in the configuration file.
+
+START AT BOOT TIME:
+------------------
+	the easy way (supported on Linux, FreeBSD, HP-UX, AIX): 
+
+		su root
+		make install-boot
+
+ 
+
+CONFIGURE OPTIONS:
+-----------------
+
+    -------------------
+    -- basic options --
+    -------------------
+
+		--enable-network        Compile with client/server support.
+
+		--enable-udp		Enable the server to listen on
+					port 514/udp (syslog).
+
+		--enable-srp            Use SRP protocol to authenticate to 
+					log server.
+
+		--with-gpg=PATH         Use GnuPG to verify database/config.
+					The public key of the effective
+					user (in ~/.gnupg/pubring.gpg) 
+					will be used.
+
+		--enable-login-watch    Watch for login/logout events.
+
+		--enable-stealth=XOR_VAL  Enable stealth mode, and set XOR_VAL.
+					XOR_VAL must be decimal in 
+					0..32 or 127..255
+					and will be used to 'mask' literal 
+					strings as binary data.
+					(0 has no effect).
+
+		--enable-micro-stealth=XOR_VAL  
+					As --with-stealth, but without
+					steganographic hidden configuration
+					file.
+
+		--enable-nocl=PW        Enable command line parsing ONLY if
+					PW is the first argument on the command
+					line. If PW is "" (empty string),
+					command line parsing is completely
+					disabled.
+
+		--enable-base=BASE      Set base for one-time pads. Must be
+					ONE string (no space) made of TWO
+					comma-separated integers in the range
+					-2147483648...2147483647.
+					(The default is compile time.)
+					Binaries compiled with different
+					values cannot verify the audit trail(s)
+					of each other.
+					THIS IS IMPORTANT IF YOU COMPILE
+					MULTIPLE TIMES, E.G. ON DIFFERENT 
+					HOSTS.
+
+
+    -------------------
+    --   paths       --
+    -------------------
+
+		${install_name} is "samhain" by default
+			(see --with-install-name=NAME )
+
+		configuration:  /etc/${install_name}rc
+		state data:     /var/lib/${install_name}
+		log file:       /var/log/${install_name}_log
+		lock/pid file:  /var/run/${install_name}.pid
+
+		mandir:         /usr/local/man
+		bindir:         /usr/local/sbin/
+
+
+		--exec-prefix=EPREFIX	Set sbindir prefix (default
+					is /usr/local, ie. binaries
+					go to /usr/local/sbin)	
+
+		--prefix=PREFIX		install directory
+					(default is NONE)
+
+		IF PREFIX = USR; then
+
+		   configuration:  /etc/${install_name}rc
+		   state data:     /var/lib/${install_name}
+		   log file:       /var/log/${install_name}_log
+		   lock/pid file:  /var/run/${install_name}.pid
+
+		   mandir:         /usr/share/man
+		   bindir:         /usr/sbin/
+
+		IF PREFIX = OPT; then
+
+		   configuration:  /etc/opt/${install_name}rc
+		   state data:     /var/opt/${install_name}/${install_name}
+		   log file:       /var/opt/${install_name}/${install_name}_log
+		   lock/pid file:  /var/opt/${install_name}/${install_name}.pid
+
+		   mandir:         /opt/${install_name}/man
+		   bindir:         /opt/${install_name}/bin/
+
+		IF PREFIX = (something else); then
+
+		   If EPREFIX is not set, it will be set to PREFIX.
+		   configuration:  PREFIX/etc/${install_name}rc
+		   state data:     PREFIX/var/lib/${install_name}
+		   log file:       PREFIX/var/log/${install_name}_log
+		   lock/pid file:  PREFIX/var/run/${install_name}.pid
+
+		   mandir:         PREFIX/share/man
+		   bindir:         PREFIX/sbin/
+
+		
+
+		--with-config-file=FILE	Set path of configuration file
+					(default is PREFIX/etc/samhainrc)
+
+		--with-data-file=FILE	   Set path of data file
+				(PREFIX/var/lib/samhain/samhain_file)
+		--with-html-file=FILE	   Set path of server status html file
+				(PREFIX/var/lib/samhain/samhain.html)
+
+		--with-log-file=FILE	 Set path of log file
+				(PREFIX/var/log/samhain_log)
+		--with-pid-file=FILE	 Set path of lock file
+				(PREFIX/var/run/samhain.pid)
+
+    -------------------
+    --  other        --
+    -------------------
+
+
+		--with-checksum=CHECKSUM   Compile in TIGER checksum of the
+					gpg/pgp binary.
+					CHECKSUM must be the full
+					line output by samhain or GnuPG when
+					computing the checksum.
+
+		--with-fp=FINGERPRINT   Compile in public key fingerprint.
+					FINGERPRINT must be without spaces.
+					Only useful in combination with
+					'--with-gpg'. 
+					If used, samhain will check the 
+					fingerprint, but still report on the 
+					used public key.
+
+		--enable-identity=USER	Set user when dropping root privileges
+					(default is the user "nobody").
+					Only needed if there is no user
+					'nobody' on your system 
+					(check /etc/passwd)
+
+		--with-port=PORT	Set port number for TCP/IP
+					(default is 49777).
+					Only needed if this port is already 
+					used by some other application.
+
+		--with-logserver=HOST	Set host address for log server
+					(default is NULL).
+					You can set this in the configuration
+					file as well.
+
+		--with-timeserver=HOST	Set host address for time server
+					(default is NULL - use own clock).
+					You can set this in the configuration
+					file as well.
+
+		--with-sender=SENDER	Set sender for e-mail
+					(default is daemon).
+
+		--enable-xml-log 	Use XML format for log file.
+
+		--enable-debug		Enable extended debugging
+
+		--enable-ptrace		Use anti-debugging code.
+
+		--with-trusted=UID	Comma-separated list of UID's of
+					users that are always trusted
+					(default is 0 = root).
+					You will need this only if the
+					path to the config file has directories
+					owned neither by 'root' nor by the
+					(effective) user of the program. 
+
+
+TESTING:
+-------
+	For testing compilation etc., you may use the test suite:
+
+		./test/test.sh n [hostname]
+
+	The argument 'n' is the number of the test to run. Some tests require
+        that the (fully qualified) hostname be given as second argument.
+
+	Without options, you will get a short help/usage message, listing
+	each test, its purpose, and the name of the configuration file used.
+	You may want to review the respective configuration file before
+        running a test.
+
+	Also listed are the scripts used for each test. If you have problems
+	getting samhain to run, you may use these scripts as examples.
+

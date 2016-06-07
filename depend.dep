@@ -1,0 +1,101 @@
+
+# DO NOT DELETE THIS LINE
+samhain.o: $(srcsrc)/samhain.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_unix.h $(srcinc)/sh_files.h $(srcinc)/sh_getopt.h $(srcinc)/sh_readconf.h $(srcinc)/sh_hash.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_restrict.h $(srcinc)/sh_nmail.h $(srcinc)/sh_tiger.h $(srcinc)/sh_gpg.h $(srcinc)/sh_mem.h $(srcinc)/sh_xfer.h $(srcinc)/sh_tools.h $(srcinc)/sh_hash.h $(srcinc)/sh_extern.h $(srcinc)/sh_modules.h $(srcinc)/sh_ignore.h $(srcinc)/sh_prelink.h $(srcinc)/sh_sem.h sh_MK.h $(srcinc)/sh_schedule.h 
+sh_unix.o: $(srcsrc)/sh_unix.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_unix.h $(srcinc)/sh_utils.h $(srcinc)/sh_mem.h $(srcinc)/sh_hash.h $(srcinc)/sh_tools.h $(srcinc)/sh_restrict.h $(srcinc)/sh_ipvx.h $(srcinc)/sh_tiger.h $(srcinc)/sh_prelink.h $(srcinc)/sh_pthread.h $(srcinc)/sh_sem.h $(srcinc)/sh_static.h $(srcinc)/sh_prelude.h $(srcinc)/zAVLTree.h $(srcinc)/sh_ignore.h 
+sh_utils.o: $(srcsrc)/sh_utils.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_tiger.h $(srcinc)/sh_entropy.h $(srcinc)/sh_pthread.h 
+sh_error.o: $(srcsrc)/sh_error.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_cat.h $(srcinc)/sh_database.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_tiger.h $(srcinc)/sh_nmail.h $(srcinc)/sh_xfer.h $(srcinc)/sh_prelude.h $(srcinc)/sh_pthread.h $(srcinc)/sh_tools.h $(srcinc)/sh_extern.h $(srcinc)/sh_checksum.h 
+sh_files.o: $(srcsrc)/sh_files.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_files.h $(srcinc)/sh_tiger.h $(srcinc)/sh_hash.h $(srcinc)/sh_ignore.h $(srcinc)/sh_inotify.h $(srcinc)/zAVLTree.h $(srcinc)/sh_dbIO.h $(srcinc)/CuTest.h 
+sh_getopt.o: $(srcsrc)/sh_getopt.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_getopt.h $(srcinc)/sh_unix.h $(srcinc)/sh_files.h $(srcinc)/sh_utils.h $(srcinc)/sh_mail.h $(srcinc)/sh_xfer.h $(srcinc)/sh_hash.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_dbCheck.h $(srcinc)/sh_dbCreate.h $(srcinc)/sh_sem.h $(srcinc)/sh_extern.h 
+sh_readconf.o: $(srcsrc)/sh_readconf.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_calls.h $(srcinc)/sh_error.h $(srcinc)/sh_extern.h $(srcinc)/sh_unix.h $(srcinc)/sh_files.h $(srcinc)/sh_xfer.h $(srcinc)/sh_gpg.h $(srcinc)/sh_hash.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_ignore.h $(srcinc)/sh_database.h $(srcinc)/sh_mail.h $(srcinc)/sh_modules.h $(srcinc)/sh_nmail.h $(srcinc)/sh_prelink.h $(srcinc)/sh_prelude.h $(srcinc)/sh_tiger.h $(srcinc)/sh_tools.h $(srcinc)/sh_utils.h $(srcinc)/sh_restrict.h $(srcinc)/sh_socket.h 
+sh_tiger0.o: $(srcsrc)/sh_tiger0.c Makefile config_xor.h $(srcinc)/sh_tiger.h $(srcinc)/sh_unix.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_pthread.h $(srcinc)/sh_string.h $(srcinc)/sh_checksum.h 
+sh_tiger1.o: $(srcsrc)/sh_tiger1.c Makefile config_xor.h 
+sh_tiger2.o: $(srcsrc)/sh_tiger2.c Makefile config_xor.h 
+sh_tiger1_64.o: $(srcsrc)/sh_tiger1_64.c Makefile config_xor.h 
+sh_tiger2_64.o: $(srcsrc)/sh_tiger2_64.c Makefile config_xor.h 
+sh_hash.o: $(srcsrc)/sh_hash.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_dbIO_int.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_hash.h $(srcinc)/sh_error.h $(srcinc)/sh_tiger.h $(srcinc)/sh_gpg.h $(srcinc)/sh_unix.h $(srcinc)/sh_files.h $(srcinc)/sh_ignore.h $(srcinc)/sh_pthread.h $(srcinc)/sh_xfer.h $(srcinc)/sh_hash.h $(srcinc)/sh_checksum.h 
+sh_mail.o: $(srcsrc)/sh_mail.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_unix.h $(srcinc)/sh_tiger.h $(srcinc)/sh_mail.h $(srcinc)/sh_utils.h $(srcinc)/sh_fifo.h $(srcinc)/sh_tools.h $(srcinc)/sh_pthread.h $(srcinc)/sh_filter.h $(srcinc)/sh_mail_int.h $(srcinc)/sh_nmail.h $(srcinc)/sh_ipvx.h $(srcinc)/sh_static.h $(srcinc)/sh_tools.h 
+sh_mem.o: $(srcsrc)/sh_mem.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_mem.h $(srcinc)/sh_pthread.h 
+sh_entropy.o: $(srcsrc)/sh_entropy.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_tiger.h $(srcinc)/sh_calls.h $(srcinc)/sh_pthread.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h $(srcinc)/CuTest.h 
+sh_forward.o: $(srcsrc)/sh_forward.c Makefile config_xor.h $(srcinc)/sh_ipvx.h $(srcinc)/samhain.h $(srcinc)/sh_tiger.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_forward.h $(srcinc)/sh_srp.h $(srcinc)/sh_fifo.h $(srcinc)/sh_tools.h $(srcinc)/sh_entropy.h $(srcinc)/sh_html.h $(srcinc)/sh_nmail.h $(srcinc)/sh_socket.h $(srcinc)/sh_static.h $(srcinc)/rijndael-api-fst.h $(srcinc)/sh_readconf.h $(srcinc)/zAVLTree.h $(srcinc)/sh_extern.h 
+sh_modules.o: $(srcsrc)/sh_modules.c Makefile config_xor.h $(srcinc)/sh_modules.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utmp.h $(srcinc)/sh_mounts.h $(srcinc)/sh_userfiles.h $(srcinc)/sh_suidchk.h $(srcinc)/sh_processcheck.h $(srcinc)/sh_portcheck.h $(srcinc)/sh_logmon.h $(srcinc)/sh_registry.h $(srcinc)/sh_fInotify.h 
+sh_utmp.o: $(srcsrc)/sh_utmp.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_modules.h $(srcinc)/sh_utmp.h $(srcinc)/sh_pthread.h $(srcinc)/sh_inotify.h 
+sh_kern.o: $(srcsrc)/sh_kern.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_modules.h $(srcinc)/sh_kern.h sh_ks_xor.h $(srcinc)/sh_unix.h $(srcinc)/sh_hash.h 
+sh_suidchk.o: $(srcsrc)/sh_suidchk.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_modules.h $(srcinc)/sh_suidchk.h $(srcinc)/sh_hash.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_unix.h $(srcinc)/sh_files.h $(srcinc)/sh_schedule.h $(srcinc)/sh_calls.h $(srcinc)/zAVLTree.h 
+sh_srp.o: $(srcsrc)/sh_srp.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_tiger.h $(srcinc)/sh_mem.h $(srcinc)/sh_utils.h $(srcinc)/sh_srp.h $(srcinc)/bignum.h $(srcinc)/CuTest.h 
+sh_fifo.o: $(srcsrc)/sh_fifo.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_mem.h $(srcinc)/sh_unix.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h $(srcinc)/sh_fifo.h $(srcinc)/CuTest.h 
+sh_tools.o: $(srcsrc)/sh_tools.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_mem.h $(srcinc)/sh_error.h $(srcinc)/sh_tools.h $(srcinc)/sh_utils.h $(srcinc)/sh_tiger.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h $(srcinc)/sh_ipvx.h $(srcinc)/rijndael-api-fst.h $(srcinc)/rijndael-api-fst.h 
+sh_html.o: $(srcsrc)/sh_html.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_xfer.h $(srcinc)/sh_error.h $(srcinc)/sh_unix.h $(srcinc)/sh_utils.h $(srcinc)/sh_html.h $(srcinc)/zAVLTree.h 
+sh_gpg.o: $(srcsrc)/sh_gpg.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_tiger.h $(srcinc)/sh_static.h $(srcinc)/sh_gpg.h 
+sh_cat.o: $(srcsrc)/sh_cat.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_cat.h 
+sh_calls.o: $(srcsrc)/sh_calls.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_calls.h $(srcinc)/sh_ipvx.h $(srcinc)/sh_sub.h $(srcinc)/sh_utils.h 
+sh_extern.o: $(srcsrc)/sh_extern.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_tiger.h $(srcinc)/sh_extern.h $(srcinc)/sh_calls.h $(srcinc)/sh_filter.h $(srcinc)/sh_static.h 
+sh_database.o: $(srcsrc)/sh_database.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_cat.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h 
+sh_err_log.o: $(srcsrc)/sh_err_log.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_tiger.h 
+sh_err_console.o: $(srcsrc)/sh_err_console.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_utils.h $(srcinc)/sh_sem.h 
+sh_err_syslog.o: $(srcsrc)/sh_err_syslog.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h 
+sh_schedule.o: $(srcsrc)/sh_schedule.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_mem.h $(srcinc)/sh_error_min.h $(srcinc)/sh_schedule.h 
+bignum.o: $(srcsrc)/bignum.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/bignum.h 
+mkhdr.o: $(srcsrc)/mkhdr.c Makefile config.h 
+samhain_setpwd.o: $(srcsrc)/samhain_setpwd.c Makefile config_xor.h 
+samhain_stealth.o: $(srcsrc)/samhain_stealth.c Makefile config_xor.h 
+encode.o: $(srcsrc)/encode.c Makefile 
+sstrip.o: $(srcsrc)/sstrip.c Makefile config.h 
+trustfile.o: $(srcsrc)/trustfile.c Makefile config_xor.h $(srcinc)/sh_calls.h $(srcinc)/slib.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h 
+exepack.o: $(srcsrc)/exepack.c Makefile config.h $(srcinc)/minilzo.h $(srcinc)/exepack.data 
+exepack_fill.o: $(srcsrc)/exepack_fill.c Makefile config.h config.h $(srcinc)/minilzo.h 
+exepack_mkdata.o: $(srcsrc)/exepack_mkdata.c Makefile config.h $(srcinc)/minilzo.h 
+minilzo.o: $(srcsrc)/minilzo.c Makefile $(srcinc)/minilzo.h 
+slib.o: $(srcsrc)/slib.c Makefile config_xor.h $(srcinc)/slib.h $(srcinc)/sh_calls.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h $(srcinc)/sh_string.h $(srcinc)/sh_mem.h 
+rijndael-alg-fst.o: $(srcsrc)/rijndael-alg-fst.c Makefile config_xor.h $(srcinc)/rijndael-alg-fst.h 
+rijndael-api-fst.o: $(srcsrc)/rijndael-api-fst.c Makefile config_xor.h $(srcinc)/rijndael-api-fst.h 
+zAVLTree.o: $(srcsrc)/zAVLTree.c Makefile $(srcinc)/zAVLTree.h 
+sh_socket.o: $(srcsrc)/sh_socket.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_socket.h $(srcinc)/sh_error.h $(srcinc)/sh_unix.h $(srcinc)/sh_calls.h $(srcinc)/sh_guid.h $(srcinc)/sh_fifo.h $(srcinc)/sh_utils.h $(srcinc)/sh_utils.h $(srcinc)/zAVLTree.h $(srcinc)/sh_html.h $(srcinc)/sh_tools.h $(srcinc)/CuTest.h 
+sh_ignore.o: $(srcsrc)/sh_ignore.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_mem.h $(srcinc)/sh_error.h $(srcinc)/CuTest.h 
+yulectl.o: $(srcsrc)/yulectl.c Makefile config_xor.h 
+sh_mounts.o: $(srcsrc)/sh_mounts.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_modules.h $(srcinc)/sh_mounts.h 
+sh_userfiles.o: $(srcsrc)/sh_userfiles.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_modules.h $(srcinc)/sh_userfiles.h $(srcinc)/sh_utils.h $(srcinc)/sh_schedule.h $(srcinc)/sh_error.h $(srcinc)/sh_hash.h $(srcinc)/sh_files.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h 
+sh_prelude.o: $(srcsrc)/sh_prelude.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_cat.h $(srcinc)/sh_error_min.h $(srcinc)/sh_prelude.h $(srcinc)/sh_static.h 
+sh_prelink.o: $(srcsrc)/sh_prelink.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_tiger.h $(srcinc)/sh_extern.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h 
+sh_static.o: $(srcsrc)/sh_static.c Makefile config_xor.h $(srcinc)/sh_pthread.h 
+sh_portcheck.o: $(srcsrc)/sh_portcheck.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_mem.h $(srcinc)/sh_calls.h $(srcinc)/sh_utils.h $(srcinc)/sh_modules.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h $(srcinc)/sh_ipvx.h $(srcinc)/CuTest.h 
+sh_processcheck.o: $(srcsrc)/sh_processcheck.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_modules.h $(srcinc)/sh_processcheck.h $(srcinc)/sh_utils.h $(srcinc)/sh_error.h $(srcinc)/sh_extern.h $(srcinc)/sh_calls.h $(srcinc)/sh_pthread.h $(srcinc)/CuTest.h 
+sh_prelude_old.o: $(srcsrc)/sh_prelude_old.c Makefile config_xor.h $(srcinc)/slib.h $(srcinc)/sh_mem.h $(srcinc)/sh_cat.h $(srcinc)/sh_error_min.h $(srcinc)/sh_prelude.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h 
+sh_pthread.o: $(srcsrc)/sh_pthread.c Makefile config_xor.h $(srcinc)/sh_pthread.h $(srcinc)/sh_calls.h $(srcinc)/sh_modules.h 
+kern_head.o: $(srcsrc)/kern_head.c Makefile config.h $(srcinc)/kern_head.h $(srcinc)/kern_head.h 
+sh_string.o: $(srcsrc)/sh_string.c Makefile config_xor.h $(srcinc)/sh_string.h $(srcinc)/sh_mem.h $(srcinc)/CuTest.h 
+dnmalloc-1.0.beta5-rw.o: $(srcsrc)/dnmalloc-1.0.beta5-rw.c Makefile 
+t-test1.o: $(srcsrc)/t-test1.c Makefile config.h $(srcinc)/malloc.h 
+dnmalloc-portable.o: $(srcsrc)/dnmalloc-portable.c Makefile config.h 
+dnmalloc.o: $(srcsrc)/dnmalloc.c Makefile config.h 
+sh_port2proc.o: $(srcsrc)/sh_port2proc.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_error_min.h $(srcinc)/sh_pthread.h $(srcinc)/sh_ipvx.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_ipvx.h 
+sh_log_parse_syslog.o: $(srcsrc)/sh_log_parse_syslog.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_log_check.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h 
+sh_log_parse_pacct.o: $(srcsrc)/sh_log_parse_pacct.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_log_check.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h 
+sh_log_parse_apache.o: $(srcsrc)/sh_log_parse_apache.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_log_check.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h 
+sh_log_evalrule.o: $(srcsrc)/sh_log_evalrule.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h $(srcinc)/sh_log_check.h $(srcinc)/sh_log_evalrule.h $(srcinc)/sh_log_correlate.h $(srcinc)/sh_log_mark.h $(srcinc)/sh_log_repeat.h $(srcinc)/zAVLTree.h 
+sh_log_check.o: $(srcsrc)/sh_log_check.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_string.h $(srcinc)/sh_log_check.h $(srcinc)/sh_log_evalrule.h $(srcinc)/sh_log_correlate.h $(srcinc)/sh_log_mark.h $(srcinc)/sh_log_repeat.h $(srcinc)/sh_extern.h $(srcinc)/sh_modules.h 
+sh_log_parse_samba.o: $(srcsrc)/sh_log_parse_samba.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_log_check.h $(srcinc)/sh_string.h 
+sh_nmail.o: $(srcsrc)/sh_nmail.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_mem.h $(srcinc)/sh_mail.h $(srcinc)/sh_tiger.h $(srcinc)/sh_string.h $(srcinc)/sh_utils.h $(srcinc)/sh_fifo.h $(srcinc)/sh_filter.h $(srcinc)/sh_mail_int.h $(srcinc)/zAVLTree.h 
+sh_filter.o: $(srcsrc)/sh_filter.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_mem.h $(srcinc)/sh_filter.h 
+sh_inotify.o: $(srcsrc)/sh_inotify.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_calls.h $(srcinc)/sh_inotify.h $(srcinc)/sh_mem.h $(srcinc)/sh_utils.h $(srcinc)/slib.h $(srcinc)/zAVLTree.h $(srcinc)/sh_calls.h $(srcinc)/sh_inotify.h $(srcinc)/CuTest.h 
+sh_log_correlate.o: $(srcsrc)/sh_log_correlate.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h $(srcinc)/sh_log_check.h $(srcinc)/sh_log_evalrule.h 
+sh_log_mark.o: $(srcsrc)/sh_log_mark.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_mem.h $(srcinc)/sh_string.h $(srcinc)/sh_error_min.h $(srcinc)/sh_log_check.h $(srcinc)/sh_log_evalrule.h $(srcinc)/zAVLTree.h 
+sh_log_repeat.o: $(srcsrc)/sh_log_repeat.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_string.h $(srcinc)/sh_log_check.h $(srcinc)/sh_log_evalrule.h 
+sh_log_parse_generic.o: $(srcsrc)/sh_log_parse_generic.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_log_check.h $(srcinc)/sh_string.h 
+sh_login_track.o: $(srcsrc)/sh_login_track.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_string.h $(srcinc)/sh_tools.h $(srcinc)/sh_ipvx.h $(srcinc)/sh_error_min.h $(srcinc)/CuTest.h $(srcinc)/CuTest.h 
+sh_audit.o: $(srcsrc)/sh_audit.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_error.h $(srcinc)/sh_extern.h $(srcinc)/sh_utils.h 
+sh_registry.o: $(srcsrc)/sh_registry.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_modules.h $(srcinc)/sh_hash.h $(srcinc)/sh_tiger.h 
+sh_ipvx.o: $(srcsrc)/sh_ipvx.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_static.h $(srcinc)/sh_pthread.h $(srcinc)/sh_utils.h $(srcinc)/sh_ipvx.h $(srcinc)/CuTest.h 
+sh_restrict.o: $(srcsrc)/sh_restrict.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_mem.h $(srcinc)/sh_error_min.h $(srcinc)/sh_string.h $(srcinc)/sh_utils.h $(srcinc)/sh_restrict.h $(srcinc)/CuTest.h 
+sh_filetype.o: $(srcsrc)/sh_filetype.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_mem.h $(srcinc)/sh_error_min.h $(srcinc)/sh_utils.h 
+sh_sub.o: $(srcsrc)/sh_sub.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_pthread.h 
+sh_fInotify.o: $(srcsrc)/sh_fInotify.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_modules.h $(srcinc)/sh_pthread.h $(srcinc)/sh_inotify.h $(srcinc)/sh_unix.h $(srcinc)/sh_hash.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_files.h $(srcinc)/sh_ignore.h 
+sh_checksum.o: $(srcsrc)/sh_checksum.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_checksum.h $(srcinc)/sh_utils.h $(srcinc)/CuTest.h 
+sh_guid.o: $(srcsrc)/sh_guid.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/CuTest.h 
+sh_dbIO.o: $(srcsrc)/sh_dbIO.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_dbIO_int.h $(srcinc)/sh_hash.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_gpg.h $(srcinc)/sh_tiger.h $(srcinc)/sh_xfer.h $(srcinc)/sh_pthread.h $(srcinc)/sh_socket.h $(srcinc)/sh_files.h $(srcinc)/zAVLTree.h 
+sh_dbCheck.o: $(srcsrc)/sh_dbCheck.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_unix.h $(srcinc)/sh_utils.h $(srcinc)/sh_hash.h $(srcinc)/sh_files.h $(srcinc)/sh_tiger.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_dbIO_int.h $(srcinc)/sh_pthread.h 
+sh_dbCreate.o: $(srcsrc)/sh_dbCreate.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_hash.h $(srcinc)/sh_files.h $(srcinc)/sh_dbIO.h $(srcinc)/sh_dbIO_int.h $(srcinc)/sh_pthread.h $(srcinc)/sh_guid.h 
+sh_xfer_client.o: $(srcsrc)/sh_xfer_client.c Makefile config_xor.h $(srcinc)/sh_ipvx.h $(srcinc)/samhain.h $(srcinc)/sh_tiger.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_xfer.h $(srcinc)/sh_srp.h $(srcinc)/sh_fifo.h $(srcinc)/sh_tools.h $(srcinc)/sh_entropy.h $(srcinc)/sh_html.h $(srcinc)/sh_nmail.h $(srcinc)/sh_socket.h $(srcinc)/sh_static.h $(srcinc)/rijndael-api-fst.h 
+sh_xfer_server.o: $(srcsrc)/sh_xfer_server.c Makefile config_xor.h $(srcinc)/sh_ipvx.h $(srcinc)/samhain.h $(srcinc)/sh_tiger.h $(srcinc)/sh_utils.h $(srcinc)/sh_unix.h $(srcinc)/sh_xfer.h $(srcinc)/sh_srp.h $(srcinc)/sh_fifo.h $(srcinc)/sh_tools.h $(srcinc)/sh_entropy.h $(srcinc)/sh_html.h $(srcinc)/sh_nmail.h $(srcinc)/sh_socket.h $(srcinc)/sh_static.h $(srcinc)/sh_guid.h $(srcinc)/rijndael-api-fst.h $(srcinc)/sh_readconf.h $(srcinc)/zAVLTree.h $(srcinc)/sh_extern.h 
+sh_xfer_syslog.o: $(srcsrc)/sh_xfer_syslog.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_tools.h $(srcinc)/sh_utils.h $(srcinc)/sh_ipvx.h 
+sh_xload_client.o: $(srcsrc)/sh_xload_client.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_utils.h $(srcinc)/sh_fifo.h $(srcinc)/sh_guid.h 
+sh_sem.o: $(srcsrc)/sh_sem.c Makefile config_xor.h $(srcinc)/samhain.h $(srcinc)/sh_sem.h $(srcinc)/sh_error_min.h 

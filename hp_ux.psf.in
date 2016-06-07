@@ -1,0 +1,75 @@
+# PSF
+depot
+  layout_version 1.0
+# Product definition:
+product
+  tag            @install_name@
+  revision       @VERSION@
+  is_patch       false
+  title          @install_name@ Client
+  description    "Client for the @install_name@ system"
+  machine_type   *
+  os_name        HP-UX
+  os_release     ?.11.*
+  os_version     ?
+  directory      /
+  is_locatable   false
+
+# Dummy for configure warning
+# datarootdir = @datarootdir@
+
+# Specify a checkremove script that executes during the 
+# swremove analysis phase. (This script prevents the
+# removal of the SD product and returns an ERROR.
+#    checkremove     scripts/checkremove.sd
+ 
+ configure       ./sc/configure
+ unconfigure     ./sc/unconfigure
+ preremove       ./sc/preremove
+
+ # Fileset definitions:
+  fileset
+    tag          basic
+    title        Core system
+    revision     @VERSION@
+    file_permissions -m 0700 -o root -g sys
+ #
+ # Files:
+#
+    directory    ./sbin/init.d=/sbin/init.d
+    file         -m 0555 -o bin -g bin @install_name@
+#
+    directory    .@prefix@=@prefix@
+    file         -m 0555 -o bin -g bin .
+#
+    directory    .@sysconfdir@=@sysconfdir@
+    file  -v     -m 0600 @install_name@rc
+    file         -m 0555 -o bin -g bin .
+#
+    directory    .@sbindir@=@sbindir@
+    file         *
+    file         -m 0555 -o bin -g bin .
+    file         -m 0750 -o bin -g bin @install_name@
+#
+    directory    .@mydataroot@=@mydataroot@
+    file         -m 0555 -o bin -g bin .
+#
+    directory    .@mylogdir@=@mylogdir@
+    file         -m 0755 -o adm -g adm .
+#
+    directory    .@mylockdir@=@mylockdir@
+    file         -m 0555 -o bin -g bin .
+ end
+ # Manpage fileset definitions:
+ #fileset
+ #   tag          man
+ #   title        Manual pages for samhain
+ #   revision     2.05
+ #   directory    .@mandir@/man8=@mandir@/man8
+ #   file         *
+ #   directory    .@mandir@/man5=@mandir@/man5
+ #   file         *
+ #end  
+ #man
+end
+#

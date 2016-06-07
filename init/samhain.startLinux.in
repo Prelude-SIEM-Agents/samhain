@@ -1,0 +1,315 @@
+#!/bin/bash
+
+# chkconfig: 2345 99 10
+# description: File Integrity Checking Daemon
+#
+# processname: @install_name@
+# config  : @myconffile@
+# logfile : @mylogfile@
+# database: @mydatafile@
+#
+
+### BEGIN INIT INFO
+# Provides: @install_name@
+# Required-Start: $syslog $network
+# Required-Stop: $syslog $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Keep an eye on stuff
+# Description: Keep an eye on stuff
+### END INIT INFO
+
+# For Debian
+#
+FLAGS="defaults 99 10"
+
+NAME=@install_name@
+DAEMON=@sbindir@/@install_name@
+RETVAL=0
+VERBOSE=yes
+PIDFILE=@mylockfile@
+
+if [ -x $DAEMON ]; then
+	:
+else
+	echo "${0}: executable ${DAEMON} not found"
+	exit 0
+fi
+
+# Sort out sourcing in the distribution specific library functions
+# and the command to run them.
+if [ -f /etc/redhat-release ]; then
+	. /etc/init.d/functions
+	DISTRO=redhat
+elif [ -f /etc/mandrake-release ]; then
+	. /etc/init.d/functions
+	DISTRO=redhat
+elif [ -f /etc/yellowdog-release ]; then
+	. /etc/init.d/functions
+	DISTRO=redhat
+elif [ -f /etc/SuSE-release ]; then
+	. /etc/rc.config
+	. /etc/rc.status
+	# Determine the base and follow a runlevel link name.
+	base=${0##*/}
+	link=${base#*[SK][0-9][0-9]}
+	# Force execution if not called by a runlevel directory.
+	test $link = $base && START_@INSTALL_NAME@=yes
+	# Check whether START_@INSTALL_NAME@ is in /etc/rc.config
+	# If yes, abort unless its value is 'yes'
+	if test "x${START_@INSTALL_NAME@}" != "x"; then
+	    test "${START_@INSTALL_NAME@}" = yes || exit 0
+	fi
+	return=$rc_done
+	DISTRO=suse
+elif [ -f /etc/debian_version ]; then
+	# . /etc/default/rcS
+	set -e
+	DISTRO=debian
+elif [ -f /etc/slackware-version ]; then
+	# . /etc/rc.d/rc.sysvinit
+	DISTRO=generic
+else
+	DISTRO=generic
+fi
+
+debian_end()
+{
+	if [ $RETVAL -eq 0 ];
+	then
+		echo "."
+	else
+		echo " failed."
+	fi
+}
+
+# Generic function "a la Red Hat"
+MOVE_TO_COL="echo -en \\033[60G"
+SETCOLOR_SUCCESS="echo -en \\033[1;32m"
+SETCOLOR_FAILURE="echo -en \\033[1;31m"
+SETCOLOR_NORMAL="echo -en \\033[0;39m"
+
+echo_success() {
+	$MOVE_TO_COL
+	echo -n "[  "
+	$SETCOLOR_SUCCESS
+	echo -n "OK"
+	$SETCOLOR_NORMAL
+	echo -n "  ]"
+	echo -ne "\r"
+	echo ""
+}
+
+echo_failure() {
+	$MOVE_TO_COL
+	echo -n "["
+	$SETCOLOR_FAILURE
+	echo -n "FAILED"
+	$SETCOLOR_NORMAL
+	echo -n "]"
+	echo -ne "\r"
+	echo ""
+}
+
+
+# echo OK in green if is success, FAILED in red is failed
+generic_end()
+{
+	if [ $RETVAL -eq 0 ];
+	then
+		echo_success
+	else
+		echo_failure
+	fi
+}
+
+log_stat_msg () {
+case "$1" in
+	0)
+	echo "Service $NAME: Running";
+	;;
+	1)
+	echo "Service $NAME: Stopped and /var/run pid file exists";
+	;;
+	3)
+	echo "Service $NAME: Stopped";
+	;;
+	*)
+	echo "Service $NAME: Status unknown";
+	;;
+esac
+}
+
+
+case "$1" in
+  start)
+	#
+	# Remove a stale PID file, if found
+	#
+	if test -f ${PIDFILE}; then
+	    /bin/rm -f ${PIDFILE}
+	fi
+	#
+	case "$DISTRO" in
+	debian)
+		echo -n "Starting ${NAME}"
+		( /sbin/start-stop-daemon --start --oknodo --quiet --exec $DAEMON )
+		RETVAL=$?
+		debian_end
+		;;
+	redhat)
+		if [ -f /etc/sysconfig/${NAME} ]; then
+                       . /etc/sysconfig/${NAME}
+                fi
+		echo -n $"Starting ${NAME}: "
+                if [ -n "$OPTIONS" ]; then
+                        daemon $DAEMON $OPTIONS
+                else
+                        daemon $DAEMON
+                fi
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/${NAME}
+		echo
+		;;
+	suse)
+		echo -n "Starting service ${NAME}"
+		/sbin/startproc $DAEMON
+		RETVAL=$? 
+		if [ $RETVAL -eq 0 ]; then
+			return=$rc_done
+		else
+			return=$rc_failed
+		fi
+		echo -e "$return"
+		;;
+	*)
+		echo -n "Starting ${NAME} ... "
+		$DAEMON start
+		RETVAL=$?
+		generic_end
+		;;
+	esac
+	exit $RETVAL
+	;;
+
+  stop)
+	case "$DISTRO" in
+	debian)
+		echo -n "Stopping $NAME"
+        	( /sbin/start-stop-daemon --stop --oknodo --quiet --exec $DAEMON )
+		RETVAL=$? 
+		debian_end
+		;;
+	redhat)
+        	echo -n $"Stopping ${NAME}: "
+        	killproc ${NAME}
+		RETVAL=$? 
+		rm -f /var/lock/subsys/${NAME}
+        	echo
+		;;
+	suse)
+		echo -n "Shutting down service ${NAME}"
+		/sbin/killproc -TERM $DAEMON
+		RETVAL=$? 
+		if [ $RETVAL -eq 0 ]; then
+			return=$rc_done
+		else
+			return=$rc_failed
+		fi
+		echo -e "$return"
+		;;
+	*)
+	        if test x"$VERBOSE" != xno; then
+		    echo -n "Stopping ${NAME} ... "
+		fi
+		$DAEMON stop
+		RETVAL=$?
+		generic_end
+		;;
+	esac
+	#
+	# Remove a stale PID file, if found
+	#
+	if test -f ${PIDFILE}; then
+	    /bin/rm -f ${PIDFILE}
+	fi
+        if test -S @mylockdir@/${NAME}.sock; then
+            /bin/rm -f @mylockdir@/${NAME}.sock
+        fi
+	;;
+
+  restart)
+	$0 stop
+	sleep 3
+	$0 start
+	RETVAL=$?
+	;;
+
+  reload|force-reload)
+	case "$DISTRO" in
+	debian)
+        	echo -n "Reloading $NAME configuration files"
+        	( /sbin/start-stop-daemon --stop --signal 1 --quiet --exec $DAEMON )
+		RETVAL=$?
+		debian_end
+  		;;
+	redhat)
+        	echo -n $"Reloading ${NAME} configuration: "
+        	killproc ${NAME} -HUP
+		RETVAL=$?
+        	echo
+        	;;
+	suse)
+		echo -n "Reload service ${NAME}"
+		/sbin/killproc -HUP $DAEMON
+		RETVAL=$? 
+		if [ $RETVAL -eq 0 ]; then
+			return=$rc_done
+		else
+			return=$rc_failed
+		fi
+		echo -e "$return"
+		;;
+	*)
+		echo -n "Reloading ${NAME} ... "
+		$DAEMON reload
+		RETVAL=$?
+		generic_end
+		;;
+	esac
+	;;
+
+  status)
+	case "$DISTRO" in
+	redhat)
+        	status ${NAME}
+		exit $?
+        	;;
+	suse)
+		echo -n "Checking for service ${NAME}: "
+		/sbin/checkproc $DAEMON
+		RETVAL=$? 
+		if [ $RETVAL -eq 0 ]; then
+			return="OK"
+		else
+			return="No process"
+		fi
+		echo "$return"
+		exit $RETVAL
+		;;
+	*)
+		$DAEMON status
+		ERRNUM=$?
+		log_stat_msg ${ERRNUM}
+		exit ${ERRNUM}
+		;;
+	esac
+	;;
+
+  *)
+	echo "$0 usage: {start|stop|status|restart|reload}"
+	exit 1
+	;;
+esac
+
+exit $RETVAL

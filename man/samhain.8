@@ -1,0 +1,880 @@
+.TH SAMHAIN 8 "26 June 2015" "" "Samhain manual"
+.SH NAME
+samhain \- check file integrity
+.SH SYNOPSIS
+.SS "INITIALIZING, UPDATING, AND CHECKING"
+.PP
+
+.B samhain 
+{
+.I \-t init|\-\-set\-checksum\-test=init
+} [\-\-init2stdout] [\-r DEPTH|\-\-recursion=DEPTH] [log-options]
+
+.B samhain 
+{
+.I \-t update|\-\-set\-checksum\-test=update
+} [\-D | \-\-daemon | \-\-foreground] [\-\-forever] [\-r DEPTH|\-\-recursion=DEPTH] [log-options]
+
+.B samhain 
+{
+.I \-t check|\-\-set\-checksum\-test=check
+} [\-D | \-\-daemon | \-\-foreground] [\-\-forever] [\-r DEPTH,\-\-recursion=DEPTH] [log-options]
+
+.B samhain 
+[ \-p threshold ] {
+.I \-\-verify\-database=database
+} 
+
+.B samhain 
+[ \-p threshold ] {
+.I \-\-create\-database=file\-list
+} 
+
+
+
+.SS "LISTING THE DATABASE"
+.PP
+
+.B samhain 
+[\-a | \-\-full\-detail]
+[\-\-delimited]
+[\-\-binary]
+[\-\-list\-filter=file]
+\-d 
+.IR file | 
+.RI \-\-list\-database= file 
+
+.SS "VERIFYING AN AUDIT TRAIL"
+.PP
+
+.B samhain 
+[\-j | \-\-just\-list]
+\-L 
+.IR logfile | 
+.RI \-\-verify\-log= logfile 
+
+.B samhain 
+\-M 
+.IR mailbox | 
+.RI \-\-verify\-mail= mailbox 
+
+
+.SS "MISCELLANEOUS"
+.PP
+
+.B samhain
+.RI \-\-server\-port= portnumber
+
+.B samhain
+\-H 
+.I string 
+| 
+.RI \-\-hash\-string= string 
+
+.B samhain
+\-c | \-\-copyright
+
+.B samhain
+\-v | \-\-version
+
+.B samhain
+\-h | \-\-help 
+
+.B samhain
+\-V key@/path/to/executable | \-\-add\-key=key@/path/to/executable
+
+.SS "SERVER STARTUP"
+.PP
+
+.B yule
+[\-q | \-\-qualified]
+[
+.RI \-\-chroot= chrootdir ]
+[\-D | \-\-daemon | \-\-foreground]
+[log-options]
+
+.SS "SERVER MISCELLANEOUS"
+.PP
+
+.B yule
+[\-P 
+.I password 
+| 
+.RI \-\-password= password ]
+
+.B yule
+[\-G | \-\-gen-password]
+
+.SS "LOG OPTIONS"
+.PP
+
+[\-s 
+.I threshold 
+| 
+.RI \-\-set\-syslog\-severity= threshold ] 
+[\-l 
+.I threshold 
+| 
+.RI \-\-set\-log\-severity= threshold ] 
+[\-m 
+.I threshold 
+| 
+.RI \-\-set\-mail\-severity= threshold ] 
+[\-e 
+.I threshold 
+| 
+.RI \-\-set\-export\-severity= threshold ] 
+[\-p 
+.I threshold 
+| 
+.RI \-\-set\-print\-severity= threshold ] 
+[\-x 
+.I threshold 
+| 
+.RI \-\-set\-external\-severity= threshold ] 
+[
+.RI \-\-set\-prelude\-severity= threshold ] 
+[
+.RI \-\-set\-database\-severity= threshold ] 
+[
+.RI \-\-enable\-trace ]
+[
+.RI \-\-trace\-logfile= tracefile ]
+
+
+
+.SH WARNING
+.PP
+The information in this man page is not always up to date.
+The authoritative documentation is the user manual.
+
+.SH DESCRIPTION
+.PP
+.B samhain
+is a file integrity / intrusion detection system both for single hosts 
+and networks.
+It consists of a monitoring application 
+.RB ( samhain ) 
+running on
+individual hosts, and (optionally) a central log server
+.RB ( yule ). 
+Currently, samhain can monitor the 
+integrity of files/directories, and (optionally) also 
+check for kernel rootkits 
+(Linux and FreeBSD only), search the disk for SUID/SGID, 
+and watch for login/logout events.
+.PP
+.B samhain/yule
+can log by email, to a tamper-resistant, signed log file, 
+to syslog, to the Prelude IDS, to a MySQL/PostgreSQL/Oracle database,
+and/or to stdout 
+.RI ( /dev/console 
+if run as daemon).
+.B samhain/yule
+can run as a daemon, and can use a time server instead of the host's
+system clock. Most of the functionality is defined by a 
+configuration file that is read at startup.
+.PP
+Most options of these usually would be set in the configuration file. 
+Options given on the command line will override
+those in the configuration file. 
+
+.SS "OPTIONS FOR INITIALIZING, UPDATING, AND CHECKING"
+.PP
+
+.B samhain
+.I "\-t init, \-\-set\-checksum-test=init"
+.RI [ options ]
+
+Initialize the database of file signatures. The path to the
+database is compiled in, and initializing will
+.B append 
+to the respective file (or create it, if it does not exist).
+.B "It is ok to append to e.g. a JPEG image, but it is an error"
+.B "to append to an already existing file signature database."
+.PP
+.TP
+[\-\-init2stdout]
+Write the database to stdout. 
+.TP
+[\-r DEPTH|\-\-recursion=DEPTH]
+Set the (global) recursion depth.
+
+.PP
+.B samhain
+.I "\-t update, \-\-set\-checksum-test=update"
+.RI [ options ]
+
+Update the database of file signatures. The path to the
+database is compiled in, and updating will 
+.B overwrite 
+the database, starting from the start of the database (which may not be
+identical to the start of the file \- see above).
+.PP
+.TP
+[\-r DEPTH|\-\-recursion=DEPTH]
+Set the (global) recursion depth.
+.TP
+[\-D|\-\-daemon]
+Run as daemon. File checks are performed as specified by the timing
+options in the configuration file. Updates are saved after each file check.
+.TP
+[\-\-foreground]
+Run in the foreground. This will cause samhain to exit after the update,
+unless the option
+.I "\-\-forever"
+is used.
+.TP
+[\-\-forever]
+If not running as daemon, do not exit after finishing the update, but
+loop forever, and perform checks with corresponding database updates
+according to the timing options in the
+configuration file.
+.TP
+[\-i|\-\-interactive]
+Run update in interactive mode.
+.TP
+[\-\-listfile=PATH]
+Run the update with a list of 'good' filepaths given in file (one path per line).
+
+
+.PP
+.B samhain
+.I "\-t check, \-\-set\-checksum-test=check"
+.RI [ options ]
+
+Check the filesystem against the database of file signatures. 
+The path to the database is compiled in.
+.PP
+.TP
+[\-r DEPTH|\-\-recursion=DEPTH]
+Set the (global) recursion depth.
+.TP
+[\-D|\-\-daemon]
+Run as daemon. File checks are performed as specified by the timing
+options in the configuration file.
+.TP
+[\-\-foreground]
+Run in the foreground. This will cause samhain to exit after the file check,
+unless the option
+.I "\-\-forever"
+is used.
+.TP
+[\-\-forever]
+If not running as daemon, do not exit after finishing the check, but
+loop forever, and perform checks according to the timing options in the
+configuration file.
+
+.PP
+.B samhain
+[ \-p\ threshold ]
+.I "\-\-verify\-database=database"
+
+Check the filesystem against the database given as argument,
+and exit with an appropriate exit status. The configuration file
+will 
+.B not
+be read.
+
+.PP
+.B samhain
+[ \-p\ threshold ]
+.I "\-\-create\-database=file\-list"
+
+Initialize a database from the given file list. 
+The configuration file
+will 
+.B not
+be read. The policy used will be
+.I ReadOnly.
+File content will be stored for a file
+if its path in the list is preceded with a 
+.B +
+sign.
+
+.SS "OPTIONS FOR LISTING THE DATABASE"
+.PP
+
+.B samhain 
+[\-a | \-\-full\-detail]
+[\-\-delimited]
+\-d 
+.IR file | 
+.RI \-\-list\-database= file 
+
+List the entries in the file signature database in a 
+.B ls \-l
+like format.
+.PP
+.TP
+[\-a | \-\-full\-detail]
+List all informations for each file, not only those you would get
+with ls \-l. Must precede the \-d option.
+.TP
+[\-\-delimited]
+List all informations for each file, in a comma-separated format.
+Must precede the \-d option.
+.TP
+[\-\-binary]
+List data in the binary format of the database, thus writing another
+database.
+Must precede the \-d option.
+.TP
+.RI [\-\-list\-filter= file ]
+Filter the output of the database listing by a list of files given
+in a text file. Together with \-\-binary this allows to write a
+partial database. Must precede the \-d option.
+.TP
+.RI [\-\-list\-file= file ]
+List the literal content of the given file as stored in the database.
+Content is not stored by default, must be enabled in the runtime
+configuration file. Must precede the \-d option.
+
+.SS "OPTIONS TO VERIFY AN AUDIT TRAIL"
+.PP
+
+These options will only work, if the executable used for verifying the
+audit trail is compiled with the same \-\-enable\-base=... option as the
+executable of the reporting process.
+
+.B samhain 
+[\-j | \-\-just\-list]
+\-L 
+.IR logfile | 
+.RI \-\-verify\-log= logfile 
+
+Verify the integrity of a signed logfile. The signing key is 
+auto\-generated on startup, and sent by email.
+.B samhain
+will ask for the key. Instead of entering the key, you can also enter
+the path to the mailbox holding the respective email message.
+.PP
+.TP
+[\-j | \-\-just\-list]
+Just list the logfile, do not verify it. This option must come
+.BR first .
+It is mainly intended for listing the content of an obfuscated logfile, if
+.B samhain
+is compiled with the 
+.B stealth
+option.
+
+.B samhain 
+\-M 
+.IR mailbox | 
+.RI \-\-verify\-mail= mailbox 
+
+Verify the integrity of the email reports from samhain. All reports must be
+in the same file.
+
+.SS "MISCELLANEOUS OPTIONS"
+.PP
+
+.B samhain
+.RI \-\-server\-port= portnumber
+
+Choose the port on the server host to which the client will connect.
+
+.B samhain
+\-H 
+.I string 
+| 
+.RI \-\-hash\-string= string
+
+Compute the TIGER192 checksum of a string. If the string starts with
+a '/', it is considered as a pathname, and the checksum of the corresponding
+file will be computed. 
+
+.B samhain
+\-c | \-\-copyright
+
+Print the copyright statement.
+
+.B samhain
+\-v | \-\-version 
+
+Show version and compiled-in options.
+
+.B samhain
+\-h | \-\-help 
+
+Print supported command line options (depending on compilation options).
+
+.B samhain
+\-V key@/path/to/executable | \-\-add\-key=key@/path/to/executable
+
+See the section "SECURITY" below.
+
+.SS "SERVER STARTUP OPTIONS"
+.PP
+
+.B yule
+[\-q | \-\-qualified]
+[
+.RI \-\-chroot= chrootdir ]
+[\-D | \-\-daemon | \-\-foreground]
+[log-options]
+
+Start the server, which is named
+.B yule
+by default. If the server is started with superuser privileges,
+it will drop them after startup.
+.PP
+.TP
+[\-q | \-\-qualified]
+Log client hostnames with fully qualified path. The default is to
+log only the leftmost domain label (i.e. the hostname).
+.TP
+[
+.RI \-\-chroot= chrootdir ]
+Chroot to the listed directory after startup.
+.TP
+[\-D | \-\-daemon]
+Run as daemon.
+.TP
+[\-\-foreground]
+Run in the foreground.
+
+
+.SS "MISCELLANEOUS SERVER OPTIONS"
+.PP
+
+.B yule
+[\-G | \-\-gen-password]
+
+Generate a random 8\-byte password and print it out in hexadecimal notation.
+
+
+.B yule
+[\-P 
+.I password 
+| 
+.RI \-\-password= password ]
+
+Use the given 
+.I password
+and generate an entry suitable for the [Clients] section of the
+configuration file.
+
+.SS "LOGGING OPTIONS"
+.PP
+
+Depending on the compilation options, some logging facilities may not
+be available in your executable.
+.PP
+.TP
+.I "\-s threshold, \-\-set\-syslog\-severity=threshold"
+Set the threshold for logging events via syslogd(8).
+Possible values are
+.IR debug ,
+.IR info ,
+.IR notice ,
+.IR warn ,
+.IR mark ,
+.IR err ,
+.IR crit ,
+.IR alert ,
+and
+.IR none .
+By default, everything equal to and above the threshold will be logged. 
+Time stamps have the priority 
+.IR warn , 
+system\-level errors have the priority
+.IR err ,
+and important start\-up messages the priority
+.IR alert .
+The signature key for the log file will never be logged to syslog or the
+log file itself.
+.TP
+.I "\-l threshold, \-\-set\-log\-severity=threshold"
+Set the threshold for logging events to the log file. 
+.TP
+.I "\-m threshold, \-\-set\-mail\-severity=threshold"
+Set the threshold for logging events via e\-mail. 
+.TP
+.I "\-e threshold, \-\-set\-export\-severity=threshold"
+Set the threshold for forwarding events via TCP to a log server. 
+.TP
+.I "\-x threshold, \-\-set\-extern\-severity=threshold"
+Set the threshold for calling external logging programs/scripts (if any are
+defined in the configuration file). 
+.TP
+.I "\-p threshold, \-\-set\-print\-severity=threshold"
+Set the threshold for logging events to stdout. 
+If
+.B samhain
+runs as a daemon, this is redirected to /dev/console.
+.TP
+.I "\-\-set\-prelude\-severity=threshold"
+Set the threshold for logging events to the Prelude IDS.
+.TP
+.I "\-\-set\-database\-severity=threshold"
+Set the threshold for logging events to the MySQL/PostgreSQL/Oracle 
+database.
+
+
+
+.SH SIGNALS
+.TP
+.I SIGUSR1
+Switch on/off maximum verbosity for console output.
+.TP
+.I SIGUSR2
+Suspend/continue the process, and 
+(on suspend) send a message
+to the server. This message has the same priority as timestamps. 
+This signal
+allows to run 
+.I samhain -t init -e none
+on the client
+to regenerate the database, with download of the configuration file
+from the server, while the daemon is suspended (normally you would get
+errors because of concurrent access to the server by two processes from
+the 
+.IR "same host" ")."
+.TP
+.I SIGHUP
+Reread the configuration file.
+.TP
+.I SIGTERM
+Terminate.
+.TP
+.I SIGQUIT
+Terminate after processing all pending requests from clients.
+.TP
+.I SIGABRT
+Unlock the log file, pause for three seconds, then proceed,
+eventually re-locking the log file and starting a fresh audit trail
+on next access.
+.TP
+.I SIGTTOU
+Force a file check (only client/standalone, and only in daemon mode).
+
+
+.SH DATABASE
+The database (default name
+.IR samhain_file )
+is a binary file, which can be created or updated using the 
+.B \-t 
+.I init
+or the
+.B \-t 
+.I update
+option. 
+If you use 
+.B \-t 
+.IR init ,
+you need to 
+.I remove
+the old database first,
+otherwise the new version will be 
+.I appended 
+to the old one.
+The file may be (clear text) signed by PGP/GnuPG.
+.br
+It is recommended to use GnuPG with the options
+.B gpg
+.I -a --clearsign --not-dash-escaped
+.br
+.B samhain
+will check the signature, if compiled with support for that.
+.PP
+At startup 
+.B samhain
+will compute the checksum of the database, and verify it for
+each further access. This checksum is not stored on disk (i.e. is lost
+after program termination), as there is no secure way to store it.
+
+.SH LOG FILE
+.PP
+Each entry in the log file has the format
+.BR "Severity : [Timestamp] Message" ,
+where the timestamp may be obtained from a time server rather than from
+the system clock, if 
+.B samhain
+has been compiled with support for this.
+Each entry is followed by a 
+.IR signature ,
+which is computed as
+.BR "Hash(Entry Key_N)" ,
+and 
+.B  Key_N
+is computed as
+.BR "Hash(Key_N\-1)" ,
+i.e. only knowledge of the first signature key in this chain allows to
+verify the integrity of the log file. This first key is autogenerated
+and e\-mailed to the designated recipient.
+.PP
+The default name of the log file is
+.IR samhain_log .
+To prevent multiple instances of
+.B samhain
+from writing to the same log file, the log file is locked by creating a 
+.IR "lock file" , 
+which is normally deleted at program termination. 
+The default name of the
+.I "lock file" 
+is
+.IR samhain.lock .
+If 
+.B samhain
+is terminated abnormally, i.e. with kill \-9,
+a stale lock file might remain, but usually
+.B samhain
+will be able to recognize that and remove the stale lock file
+on the next startup.
+.PP
+.SH EMAIL
+.PP
+E\-mails are sent (using built-in SMTP code)
+to one recipient only.
+The subject line contains timestamp
+and hostname, which are repeated in the message body. 
+The body of the mail contains a line with a 
+.I signature
+similar to that in the log file, computed from the message and a
+key. The key is iterated by a hash chain, and the initial
+key is revealed in the first email sent.
+Obviously, you have to believe that this first e\-mail is
+authentical ... 
+.PP
+.SH CLIENT/SERVER USAGE
+.PP
+To monitor several machines, and collecting data by a central log server,
+.B samhain
+may be compiled as a client/server application. The log server 
+.RB ( yule )
+will accept connection
+requests from registered clients only. With each client, the server will first
+engage in a challenge/response protocol for 
+.I authentication 
+of the client and 
+.I establishing
+a 
+.IR "session key" .
+.PP
+This protocol requires on the client side a 
+.IR "password" ,
+and on the server side a
+.IR "verifier" 
+that is computed from the
+.IR "password" .
+.PP
+To 
+.I register 
+a client, simply do the following:
+.br
+First, with the included utility program 
+.B samhain_setpwd
+re\-set the compiled\-in default password of the 
+client executable to your preferred
+value (with no option, a short usage help is printed). 
+To allow for non-printable chars, the new value
+must be given as a 16\-digit hexadecimal string 
+(only 0123456789ABCDEF in string), corresponding to an 8-byte password.
+.br
+Second, after re\-setting the password in the client executable,
+you can use the server's convenience function 
+.B yule
+.B \-P 
+.I password 
+that will take as input the (16\-digit hex) password, 
+compute the corresponding verifier, and outputs a default configuration file
+entry to register the client.
+.br
+Third, in the configuration file for the server, under the [Clients] section,
+enter
+the suggested registration entry of the form 
+.IR "Client=hostname@salt@verifier" ,
+where
+.I hostname 
+must be the (fully qualified) hostname of the machine on 
+which the client will run.
+.B "Don't forget to reload the server configuration thereafter." 
+.PP
+If a connection attempt is made, the server will lookup the entry for
+the connecting host, and use the corresponding value for the 
+.I verifier 
+to engage in the session key exchange. Failure to verify the client's
+response(s) will result in aborting the connection.
+.PP
+.SH STEALTH
+.PP
+.B samhain 
+may be compiled with support for a 
+.I stealth 
+mode of operation, meaning that
+the program can be run without any obvious trace of its presence
+on disk. The supplied facilities are simple - they are more
+sophisticated than just running the program under a different name,
+and might thwart efforts using 'standard' Unix commands,
+but they will not resist a search using dedicated utilities. 
+.PP
+In this mode, the runtime executable will hold no
+printable strings, and the configuration file is expected to be
+a postscript file with 
+.I uncompressed 
+image data, wherein 
+the configuration data are hidden by steganography.
+To create such a file from an existing image, you may use e.g. 
+the program 
+.BR convert (1), 
+which is part of the 
+.BR ImageMagick (1) 
+package, such as:
+.B "convert +compress"
+.IR "ima.jpg ima.ps" .
+.PP
+To hide/extract the configuration data within/from the postscript file,
+a utility program
+.B samhain_stealth 
+is provided.
+Use it without options to get help.
+.PP
+Database and log file may be e.g. existing image files, to which
+data are appended, xor'ed with some constant to mask them as binary data.
+.PP
+The user is responsible by herself for re-naming the compiled
+executable(s) to unsuspicious names, and choosing (at compile time) 
+likewise unsuspicious names for config file, database, and log (+lock) file. 
+.PP
+.SH SECURITY
+.PP
+For security reasons,
+.B samhain
+will not write log or data files in a directory, remove the lock file, 
+or read the configuration file, if any element
+in the path is owned or writeable by an untrusted user (including
+group-writeable files with untrusted users in the group, and world-writeable
+files).
+.br
+.I root
+and the
+.I effective
+user are always trusted. You can add more users in the configuration file.
+.PP
+Using a 
+.I "numerical host address" 
+in the e\-mail address is more secure than 
+using the hostname (does not require
+DNS lookup).
+.PP
+If you use a 
+.I precompiled
+.B samhain 
+executable (e.g. from a
+binary distribution), in principle a prospective intruder could easily 
+obtain a copy of the executable and analyze it in advance. This will
+enable her/him to generate fake audit trails and/or generate
+a trojan for this particular binary distribution.
+.br
+For this reason, it is possible for the user to add more key material into 
+the binary executable. This is done with the command:
+.PP
+.BI "samhain " \-\-add\-key=key@/path/to/executable
+.PP
+This will read the file 
+.I /path/to/executable, add the key 
+.I key,
+which should not contain a '@' (because it has a special meaning, separating
+key from path), overwrite any key previously set by this command, and
+write the new binary to the location 
+.I /path/to/executable.out
+(i.e. with .out appended). You should then copy the new binary to the location
+of the old one (i.e. overwrite the old one).
+.PP
+.B Note that using a precompiled samhain executable from a binary
+.B package distribution is not recommended unless you add in key material as
+.B described here.
+
+.PP
+.SH NOTES
+.PP
+For initializing the key(s), 
+.I "/dev/random" 
+is used, if available. This is a  
+device supplying cryptographically strong
+(non-deterministic) random noise. Because it is slow, 
+.B samhain
+might appear to hang at startup. Doing some random things 
+(performing rain dances, spilling coffee, hunting the mouse) might speed up
+things. If you do not have
+.IR "/dev/random" ,
+lots of statistics from 
+.BR vmstat (8) 
+and the like will be pooled and mixed by a hash function.
+.PP
+Some hosts might check whether the sender of the mail is valid. 
+Use only 
+.I "login names" 
+for the sender. 
+.br
+For sending mails, you may need to set a relay host for the sender domain 
+in the configuration file.
+.PP
+.SH BUGS
+.PP
+Whoever has the original signature key may change the log file and send fake
+e\-mails. The signature keys are e\-mailed at program startup 
+with a one\-time pad encryption. 
+This should be safe against an eavesdropper on the network, 
+but not against someone with read access to the binary, 
+.I if 
+she has caught
+the e\-mail.
+.PP
+.SH FILES
+.PP
+.I /etc/samhainrc
+.br	     
+.I /usr/local/man/man8/samhain.8
+.br	     
+.I /usr/local/man/man5/samhainrc.5
+.br	     
+.I /var/log/samhain_log
+.br	     
+.I /var/lib/samhain/samhain_file
+.br	     
+.I /var/lib/samhain/samhain.html
+.br	     
+.I /var/run/samhain.pid
+
+.SH SEE ALSO
+.PP
+.BR samhainrc (5)
+
+.SH AUTHOR
+.PP
+Rainer Wichmann (http://la\-samhna.de)
+.SH BUG REPORTS
+.PP
+If you find a bug in
+.BR samhain ,
+please send electronic mail to
+.IR support@la\-samhna.de .
+Please include your operating system and its revision, the version of
+.BR samhain ,
+what C compiler you used to compile it, your 'configure' options, and
+any information that you deem helpful.
+.PP
+.SH COPYING PERMISSIONS
+.PP
+Copyright (\(co) 1999, 2004 Rainer Wichmann
+.PP
+Permission is granted to make and distribute verbatim copies of
+this manual page provided the copyright notice and this permission
+notice are preserved on all copies.
+.ig
+Permission is granted to process this file through troff and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual page).
+..
+.PP
+Permission is granted to copy and distribute modified versions of this
+manual page under the conditions for verbatim copying, provided that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+
+

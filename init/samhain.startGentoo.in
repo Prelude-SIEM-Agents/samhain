@@ -1,0 +1,30 @@
+#!/sbin/runscript
+
+opts="depend start stop reload"
+
+depend() {
+	need clock hostname logger
+}
+
+start() {
+	ebegin "Starting @install_name@"
+	/sbin/start-stop-daemon --start --quiet  --exec @sbindir@/@install_name@
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping @install_name@"
+	/sbin/start-stop-daemon --stop --quiet --retry 15 --exec @sbindir@/@install_name@
+	rm -f @mylockfile@
+	eend $?
+}
+
+reload() {
+        if [ ! -f @mylockfile@ ]; then
+                eerror "@install_name@ isn't running"
+                return 1
+        fi
+        ebegin "Reloading configuration"
+        kill -HUP `cat @mylockfile@` &>/dev/null
+        eend $?
+}

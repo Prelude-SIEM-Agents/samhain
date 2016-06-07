@@ -1,0 +1,27 @@
+#!/bin/sh
+
+. /etc/rc.common
+
+StartService() {
+
+	ConsoleMessage "Starting service @install_name@."
+	@sbindir@/@install_name@ start
+
+}
+
+StopService() {
+
+	ConsoleMessage "Stopping service @install_name@."
+	@sbindir@/@install_name@ stop
+
+}
+
+RestartService() {
+
+	ConsoleMessage "Restarting service @install_name@."
+	@sbindir@/@install_name@ restart
+
+}
+
+
+RunService "$1"

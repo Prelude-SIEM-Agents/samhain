@@ -1,0 +1,188 @@
+#########################################################################
+#
+# Subroutine for the 'uninstall' command
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+commandUNINSTALL() {
+
+    printINFO "About to run \"$action\" on host \"$host\""
+
+    format=`setupFORMAT ${DB_version}`
+    realformat="$format"
+
+    src_version=`setupVERSION ${DB_version}`
+
+    test -f "${basedir}/archpkg/${DB_arch}/install-${DB_version}" || \
+        printFATAL "Install script ${DB_arch}/install-${DB_version} not found"
+
+    name=`/bin/sh "${basedir}/archpkg/${DB_arch}/install-${DB_version}" '--print-config' 'name'`
+
+    test x"$name" = x"${DB_name}" || \
+        printFATAL "Client database and installer files are inconsistent"
+
+    arch="${DB_arch}"
+
+    #---------------------------------------------------------------------
+    # Uninstall.
+    #---------------------------------------------------------------------
+    
+    if   test "x$format" = "xrun"; then
+       is_command="./samhain-install.sh --force --express purge"
+       target="uninstall"
+    elif test "x$format" = "xdeb"; then
+       is_command="dpkg --purge"
+       target="${DB_name}"
+    elif test "x$format" = "xrpm"; then
+       is_command="rpm --erase" 
+       target="${DB_name}"
+    elif test "x$format" = "xtbz2"; then
+       is_command="emerge unmerge"
+       target="${DB_name}"
+    elif test "x$realformat" = "xpkg"; then
+       is_command="pkgremove"
+       target="${DB_name}"
+    elif test "x$realformat" = "xdepot"; then
+       is_command="/usr/sbin/swremove"
+       target="${DB_name}"
+    else
+       printFATAL "Don't know how to uninstall package format ${format}"
+    fi
+
+    if test x"$silent" = x0
+    then
+        is_rmboot="./samhain-install.sh --force --express uninstall-boot"
+    else
+        is_rmboot="./samhain-install.sh --force --express --verbose uninstall-boot"
+    fi
+
+    #---------------------------------------------------------------------
+    # Create temporary directory on host.
+    #---------------------------------------------------------------------
+
+    tmpdir=`eval echo "${temp_dir}/sh_${src_version}_${arch}_${format}_$$"`
+
+    if test x"$simulate" = x0
+    then
+	ssh -x -l "root" "${host}" '(umask 0077; mkdir "'${tmpdir}'")'
+    else
+	printINFO "ssh -x -l root ${host} (umask 0077; mkdir ${tmpdir})"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not create temporary directory ${tmpdir} on host ${host}."
+    else
+	printLOG "Directory ${tmpdir} created on host ${host}."
+    fi
+
+    #---------------------------------------------------------------------
+    # Copy to host.
+    #---------------------------------------------------------------------
+
+    if test -f "${basedir}/configs/${arch}.initscript"
+    then
+	cp "${basedir}/configs/${arch}.initscript" "${tmpD}/initscript" || \
+	    printFATAL "Could not copy ${basedir}/configs/${arch}.initscript to ${tmpD}/initscript"
+	is_initscript_full="${tmpD}/initscript"
+    else
+	is_initscript_full="${basedir}/libexec/initscript"
+    fi
+
+    if test x"$simulate" = x0
+    then
+	if test x"$silent" = x0
+	then
+	    scp "${is_initscript_full}" "${basedir}/archpkg/${arch}/install-${src_version}.${format}" "root@${host}:${tmpdir}/"
+	else
+	    scp -q "${is_initscript_full}" "${basedir}/archpkg/${arch}/install-${src_version}.${format}" "root@${host}:${tmpdir}/"
+        fi
+    else
+	if test x"$silent" = x0
+	then
+	    printINFO "scp ${is_initscript_full} ${basedir}/archpkg/${arch}/install-${src_version}.${format} root@${host}:${tmpdir}/"
+	else
+	    printINFO "scp -q ${is_initscript_full} ${basedir}/archpkg/${arch}/install-${src_version}.${format} root@${host}:${tmpdir}/"
+        fi
+    fi        
+    if test x"$?" != x0
+    then
+	printFATAL "Could not copy uninstall script to host ${host}."
+    else
+	printINFO "Script copied to host ${host}."
+    fi
+
+
+    #---------------------------------------------------------------------
+    # Run uninstall script.
+    #---------------------------------------------------------------------
+    if test x"$simulate" = x0
+    then
+        #
+        # No, this is not a bug; the first 'start' argument to 'initscript'
+	# is a required dummy argument.
+	#
+	if test x"$silent" = x0
+	then
+            ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH'" && export PATH && cp "'install-${src_version}.${format}'" samhain-install.sh && chmod +x samhain-install.sh && chmod +x initscript && ./initscript start stop; eval "'${is_command}'" "'${target}'"; eval "'${is_rmboot}'")'\'
+	else
+            ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH'" && export PATH && cp "'install-${src_version}.${format}'" samhain-install.sh && chmod +x samhain-install.sh && chmod +x initscript && ./initscript start stop; eval "'${is_command}'" "'${target}'"; eval "'${is_rmboot}'") >/dev/null'\'
+        fi
+    else
+	printINFO "ssh -x -l root ${host} (cd ${tmpdir} && && PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:\$PATH && export PATH cp install-${src_version}.${realformat} samhain-install.sh && chmod +x samhain-install.sh && chmod +x initscript && ./initscript start stop; eval "${is_command}" "${target}";  eval "${is_rmboot}")"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not complete uninstall on host ${host}."
+    else
+	printLOG "Uninstall executed on host ${host}"
+    fi
+
+    #---------------------------------------------------------------------
+    # Clean up.
+    #---------------------------------------------------------------------
+
+    if test x"$simulate" = x0
+    then
+        ssh -x -l "root" "${host}" '(rm -rf "'${tmpdir}'")'
+    else
+        printINFO "ssh -x -l root ${host} (rm -rf ${tmpdir})"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not remove temporary directory ${tmpdir} on host ${host}."
+    else
+	printLOG "Directory ${tmpdir} deleted on host ${host}."
+    fi
+
+    #---------------------------------------------------------------------
+    # Write/update client database
+    #---------------------------------------------------------------------
+
+    SH_NAME="$name"; export SH_NAME
+    SH_PREFIX=`/bin/sh ${basedir}/archpkg/${DB_arch}/install-${DB_version}  --print-config prefix`; export SH_PREFIX
+
+    if test x"$simulate" = x0
+    then
+        updateDB D2_removed
+    else
+        printINFO "Updating client database."
+    fi
+}

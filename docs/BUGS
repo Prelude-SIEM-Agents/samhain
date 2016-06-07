@@ -1,0 +1,38 @@
+AIX:
+---
+
+Samhain must either be compiled as 32bit application, or with the --disable-dnmalloc
+configure flag, because the OS provides no way to enforce usage of 32bit address space.
+
+MacOS X:
+-------
+
+(1)  Pointed out by David: static linking is not supported on MacOS X,
+     see http://developer.apple.com/qa/qa2001/qa1118.html
+
+Solaris:
+-------
+
+(1)  This was pointed out by rog [at] iis dot fhg dot de (Ingo Rogalsky):
+     "It isn't possible, to link samhain statically with Solaris. 
+     This is a Solaris issue (see Sun Infodoc ID12624) and 
+     not a samhain problem."
+
+Linux, maybe others:
+-------------------
+
+(1)  With gdm (the GNOME display manager), GNOME version 1.2, using the 
+     file hiding kernel module (configure option --enable-khide)
+     at system boot may cause problems (keyboard locked up). 
+     No problem observed with kdm (the KDE display manager).
+
+     In case of problems, you may need to reboot into single-user mode and 
+     edit the boot init script ... it should be noted that on the test
+     system, gdm sometimes locked up the keyboard on other occasions 
+     (e.g. after a fsck).
+
+(2)  With gcc 2.95.2 (and glibc 2.1.3), it is not possible to use 
+     --with-database and --enable-debug at the same time (the code will
+     segfault). This is apparently a compiler bug, and it does not happen
+     with gcc 3.0.
+

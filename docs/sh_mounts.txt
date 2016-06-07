@@ -1,0 +1,59 @@
+Documentation for sh_mounts, the samhain "Mounts" module.
+---------------------------------------------------------
+sh_mounts implements functionality we had in a policy-checking Perl script we
+have here at eircom; basically, all it does is ensure that certain mounts are
+there (for example, /, /tmp, /var, /usr, /home) and that certain options are
+specified on those mounts (for example noexec,nosuid on /tmp).
+
+All quite simple. It wouldn't be too hard to extend this module somewhat, to
+report any NFS mounts found, for example, or to test that _only_ the mounts
+specified are mounted on the machine.
+
+Here's a bit for the manual:
+
+<Begin manual entry>
+
+Checking mounted filesystem policies
+------------------------------------
+samhain can be compiled to check if certain filesystems are mounted, and if they
+are mounted with the appropriate options. This module currently supports Linux,
+Solaris and FreeBSD. The configuration of the module is done in the Mounts 
+section of the configuration file:
+
+-------->8---------
+
+[Mounts]
+#
+# Activate (0 is off).
+#
+MountCheckActive=1
+
+#
+# Interval between checks.
+#
+MountCheckInterval=7200
+
+#
+# Logging severities. We have two checks: to see if a mount is there, and to
+# see if it is mounted with the correct options.
+#
+SeverityMountMissing=warn
+SeverityOptionMissing=warn
+
+#
+# Mounts to check for, followed by lists of options to check on them.
+#
+checkmount=/
+checkmount=/var
+checkmount=/usr
+checkmount=/tmp noexec,nosuid,nodev 
+checkmount=/home noexec,nosuid,nodev
+
+-------->8---------
+
+<End manual entry>
+
+The module is enabled as part of the compilation of samhain by specifying
+--enable-mounts-check
+
+This module by the eircom.net Computer Incident Response Team

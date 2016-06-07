@@ -1,0 +1,77 @@
+#!/bin/sh
+
+# This file is public domain and comes with NO WARRANTY of any kind
+# samhain deamon start/stop script.
+
+# This should be put in /etc/init.d (at least on machines SYSV R4
+# based systems) and linked to /etc/rc3.d/S99samhain. When this is done
+# the samhain daemon will be started when the machine is started.
+
+PATH=/sbin:/usr/bin:/usr/sbin:/bin
+basedir=/
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+
+samhain_daemon_user=root        # Run samhain as this user. 
+                                # If you use this, uncomment one of 
+				# the su rows below. 
+
+export PATH
+
+mode=$1
+
+# The following test may be removed if this script isn't to be run as root.
+if test ! -w /
+then
+   echo "$0: this script must be run as root ... fatal error"
+   exit 1
+fi
+
+
+# Safeguard (relative paths, core dumps..)
+cd $basedir
+
+case "$mode" in
+  'start')
+    # Start deamon
+    if test -x ${bindir}/samhain
+    then
+	if test -x /sbin/startproc
+	then
+	    # use startproc if available
+	    startproc ${bindir}/samhain -t check -D
+ 	else
+	    # For Linux
+            su -c -- $samhain_daemon_user $bindir/samhain -t check -D 
+	    # For sun
+	    # su $samhain_daemon_user $bindir/samhain -t check -D 
+	fi
+    else
+      echo "Can't execute ${bindir}/samhain"
+    fi
+    ;;
+
+
+  'stop')
+    if test -x ${bindir}/samhain
+    then
+	if test -x /sbin/killproc
+	then
+	    # alternatively use the command below, if you have 'killproc'
+	    killproc -TERM ${bindir}/samhain
+	else
+	    # Stop deamon - no PID file available, so search for the pid
+	    SH_PID=`ps aux | grep samhain | grep -v grep | awk '{print $2}'`
+	    kill ${SH_PID}
+	fi
+    fi
+    ;;
+
+  *)
+    # usage
+    echo "usage: $0 start|stop"
+    exit 1
+    ;;
+esac

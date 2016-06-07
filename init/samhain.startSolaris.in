@@ -1,0 +1,80 @@
+#!/bin/sh
+
+SBINDIR=@sbindir@
+NAME=@install_name@
+
+if [ ! -f ${SBINDIR}/${NAME} ]; then
+        exit 0
+fi
+
+
+log_stat_msg() {
+case "$1" in
+	0)
+	echo "Service $NAME: Running";
+	break;
+	;;
+	1)
+	echo "Service $NAME: Stopped and /var/run pid file exists";
+	break;
+	;;
+	3)
+	echo "Service $NAME: Stopped";
+	break;
+	;;
+	*)
+	echo "Service $NAME: Status unknown";
+	break;
+	;;
+esac
+}
+
+
+case "$1" in
+    start)
+        echo "${NAME} starting."
+        ;;
+    stop)
+        echo "${NAME} stopping."
+        ;;
+    restart)
+        echo "${NAME} restarting."
+        ;;
+    reload|force-reload)
+        echo "${NAME} reloading."
+        ;;
+    status)
+        ${SBINDIR}/${NAME}  $1
+	ERRNUM=$?
+	log_stat_msg ${ERRNUM}
+	exit ${ERRNUM}
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|reload|status}"
+        exit 1
+        ;;
+esac
+
+${SBINDIR}/${NAME}  $1
+
+status=$?
+
+
+if [ $status != 0 ]; then
+    echo $status
+    exit 1
+fi
+
+case "$1" in
+    stop)
+	if test -f @mylockfile@; then
+	    /bin/rm -f @mylockfile@
+	fi
+        /bin/rm -f @mylockdir@/${NAME}.sock
+	;;
+    *)
+	exit 0
+	;;
+esac
+
+exit 0

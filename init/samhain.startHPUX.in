@@ -1,0 +1,116 @@
+#!/sbin/sh
+
+# Allowed exit values
+#
+# 0 = success
+# 1 = failure
+# 2 = skip
+# 3 = reboot (now)
+
+# stdin is redirected from /dev/null
+# stderr, stdout are redirected to /etc/rc.log file (checklist mode)
+#                               or console          (raw mode)
+
+# /usr, /var, /opt my not be available until run state 2
+
+PATH=/usr/sbin:/usr/bin:/sbin
+export PATH
+
+rval=0
+
+DAEMON=@sbindir@/@install_name@
+NAME=@install_name@
+
+run_the_command() {
+        if test -f /etc/rc.config
+	then
+	    . /etc/rc.config
+	else
+	    echo "ERROR: /etc/rc.config defaults file MISSING"
+	fi
+	if test "x${CONTROL_@install_name@}" = x0
+	then
+	    rval=2
+	else
+	    ${DAEMON} $1 2>/dev/null
+	    ERRNUM=$?
+	    if test x"$ERRNUM" != x0
+	    then
+		echo "EXIT CODE: ${ERRNUM}"
+		rval=1
+	    fi
+	fi
+}
+
+log_stat_msg () {
+case "$1" in
+	0)
+	echo "Service $NAME: Running";
+	break;
+	;;
+	1)
+	echo "Service $NAME: Stopped and /var/run pid file exists";
+	break;
+	;;
+	3)
+	echo "Service $NAME: Stopped";
+	break;
+	;;
+	*)
+	echo "Service $NAME: Status unknown";
+	break;
+	;;
+esac
+}
+
+
+case "$1" in
+  'start_msg')
+        echo "Starting the $NAME subsystem"
+	;;
+
+  'stop_msg')
+        echo "Stopping the $NAME subsystem"
+	;;
+
+  'start')
+	run_the_command start
+	exit $rval
+	;;
+
+  stop)
+	run_the_command stop
+	#
+	# Remove a stale lockfile, if found
+	#
+	if test -f @mylockfile@; then
+	    /bin/rm -f @mylockfile@
+	fi
+	/bin/rm -f @mylockdir@/${NAME}.sock
+	exit $rval
+	;;
+
+  restart)
+	run_the_command restart
+	exit $rval
+	;;
+
+  reload|force-reload)
+	run_the_command reload
+	exit $rval
+	;;
+
+  status)
+	${DAEMON} status
+	ERRNUM=$?
+	log_stat_msg ${ERRNUM}
+	exit ${ERRNUM}
+	;;
+
+  *)
+        echo "Usage: @install_name@ {start_msg|stop_msg|start|stop|restart|reload|status}"
+        exit 1
+	;;
+esac
+
+exit $rval

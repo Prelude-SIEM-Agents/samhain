@@ -1,0 +1,39 @@
+Checking sensitive files owned by users.
+------------------------------------
+samhain can be compiled to support checking of files that are specified
+as being relative to the a user's home directory.  It is intended to
+detect interference with files that influence process behaviour such as
+.profile
+It simply adds the appropriate file entries to the main samhain list, at
+the specified alerting level.
+
+
+-------->8---------
+
+[UserFiles]
+#
+# Activate (0 is off).
+#
+UserfilesActive=1
+
+#
+# Files to check for under each $HOME
+# A specific level can be specified.
+# The allowed values are:
+# allignore
+# attributes
+# logfiles
+# loggrow
+# noignore
+# readonly
+# user0
+# user1
+# 
+#Ê The default is noignore
+UserfilesName=.login noignore
+UserfilesName=.profile readonly
+UserfilesName=.ssh/authorized_keys
+
+-------->8---------
+
+This module by the eircom.net Computer Incident Response Team.

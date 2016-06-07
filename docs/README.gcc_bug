@@ -1,0 +1,49 @@
+
+GCC Compiler Bug
+----------------
+
+Reference: http://boudicca.tux.org/hypermail/linux-kernel/2000week05/0983.html
+
+From: Johan Kullstam (kullstam@ne.mediaone.net)
+Date: Thu Jan 27 2000 - 18:00:28 EST 
+
+Horst von Brand <vonbrand@sleipnir.valparaiso.cl> writes: 
+
+> My question in this vein would be the -fno-strength-reduce. The gcc bug 
+> that placed this in the kernel was in gcc-2.7.2, and was worked around in 
+> 2.7.2.3 by just making this option unconditional. Both 2.2.15pre4 and 
+> 2.3.41pre2 at least demand gcc-2.7.2.3 as minimal version. 
+
+just when you thought it was safe to go into the water... 
+
+strength-reduction is broken again in gcc-2.95.2 (aka the current 
+release). i'm not sure about what versions actually do work. 
+
+for fun, try this one out. cut and paste the program bug.c. 
+
+$ gcc -O2 bug.c -o b0 
+$ gcc -O2 -fno-strength-reduce bug.c -o b1 
+
+run b1. notice it finish immediately. 
+now run b0. notice how b0 never terminates (until you ^C it). 
+
+
+-- bug.c ----------------------------------------- 
+static void bug(int size, int tries) 
+{ 
+  int i; 
+  int num = 0; 
+
+  while (num < size) 
+  { 
+    for (i = 1; i < tries; i++) num++; 
+  } 
+} 
+
+int main() 
+{ 
+  bug(5, 10); 
+  return 0; 
+} 
+-- bug.c ----------------------------------------- 
+

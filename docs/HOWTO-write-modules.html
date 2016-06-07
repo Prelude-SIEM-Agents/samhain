@@ -1,0 +1,771 @@
+<html>
+<head>
+<title>HOWTO Write Samhain Modules</title>
+<style type="text/css">
+<!--
+
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2d4488;
+}
+
+div.warnblock {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #FF9900;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #285577; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #2d5588; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style></head>
+
+<body>
+<div class="body">
+<p style="text-align: center; background: #ccc; border: 1px solid #2d5588;"><a 
+   style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/">samhain file integrity 
+   scanner</a>&nbsp;|&nbsp;<a style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/s_documentation.html">online 
+   documentation</a></p>
+<br><center>
+<h1>Writing modules for samhain</h1>
+</center>
+<br>
+<hr>
+<p>
+This document should help anyone who is sitting down to write a module
+for the samhain host intrusion detection system. We give an overview
+of samhain's structure from the point of view of the module author,
+and describe some of the samhain utility and interface functions
+available. Lastly, we explain how to integrate your module into the
+samhain autoconf build tools.
+</p>
+<h2>Introduction</h2>
+<p>
+Samhain is a rather useful file integrity and host intrusion detection
+system.  It is written entirely in C, and much care has been given to
+making it robust and secure. Additionally, it has been written with
+extensibility in mind, and so interfaces for adding user-contributed
+modules have been provided. A module author can easily extend the
+configuration file syntax and have his checking code run on a regular
+basis as one of samhain's internal checks.
+</p>
+
+<h2>Prerequisites</h2>
+<p>
+You'll need to know how to read and write C. You'll need the latest
+source for samhain.  You'll need to have read all of samhain's other
+documentation. Finally, if you want to make your module build as part
+of the samhain tree (you do), you'll need GNU's autoconf package.
+</p>
+<h2>An overview of samhain's execution</h2>
+<p>
+Here's what happens when samhain starts:
+<ul>
+	<li>
+	Check if samhain has been called with one of the "init.d" type 
+	commands - start, stop, reload, status. If so, these are handled 
+	as you might expect. Nice feature.
+	</li>
+	<li>
+	Initialise all global structures and parse command-line options.
+	</li>
+	<li>
+	Read the configuration file. This is handled in sh_readconf_read(). 
+	This includes attempting to download the file if samhain has been 
+	compiled to do so. 
+	</li>
+	<li>
+	Drop privileges if server.
+	</li>
+	<li>
+	Test the checksum on the database if client or standalone.
+	</li>
+	<li>
+	Now test if samhain has been compiled as a client or a server.
+	<ul>
+		<li>
+		If server, enter server main loop sh_receive() in 
+		sh_forward.c. This is simple enough; apart from checks for 
+		signals received, the server just accepts incoming 
+		connections, verifies that they are from an authorised 
+		client, and logs the message received.
+		</li>
+		<li>
+   		If client or standalone, we run the rest of main() in 
+		samhain.c, which follows:
+		</li>
+	</ul>
+	</li>
+	<li>
+	Initialise modules - that is, call the mod_init() function on each 
+	module. Note that if the module intialisation routine returns a 
+	nonzero value, you should also have it free anything that's been 
+	allocated by the configuration file reading functions, since this 
+	method is always called after an sh_readconf_read(), i.e. when the
+	configuration file is re-read after a SIGHUP.
+	</li>
+	<li>
+	Test the setup that's been read from the configuration - for example, 
+	check if any files or directories have been defined twice.
+	</li>
+	<li>
+	Enter the main loop (which runs just once if samhain is not 
+	configured as a daemon). Test if any signals have been received, 
+	and handle them appropriately:
+	<ul>
+		<li>
+		On reconfiguration (SIGHUP), clear internal file lists etc. 
+		and call the mod_reconf() function on each module. This should
+		clean up anything internal to the module before the 
+		configuration file is re-read. Then read the configuration 
+		file again and set things up as before, including a new call 
+		to mod_init().
+		</li>
+		<li>
+   		On SIGIOT (SIGABRT), shut down the log-file for a moment 
+		to allow for rotation.
+		</li>
+		<li>
+   		On SIGQUIT, terminate. Note that any call to exit() will 
+		invoke the exit_handler() defined in samhain.c; the first 
+		thing this does is to call mod_cleanup() on all modules. 
+		Then it cleans up everything else in samhain and exits.
+		</li>
+		<li>
+		On SIGUSR1 turn toggle debugging on/off.
+		</li>
+		<li>
+		On SIGUSR2 suspend the daemon an notify the server to
+		allow a second instance of samhain downloading its
+		configuration file without triggering an alert (restart
+		without exit) on the server.
+		</li>
+	</ul>
+	</li>
+	<li>
+	If it's time to check files, check directories and then files, and 
+	then flush the mail queue.
+	</li>
+	<li>
+	Execute modules. For each module, if mod_timer(tcurrent) returns a 
+	nonzero value, then execute mod_check().
+	</li>
+	<li>
+	Do various maintenance operations such as logging a timestamp/sending 
+	some mail if it's time, seeding/re-seeding the PRNG, etc.
+	</li>
+</ul>
+You'll note that in the text above I refer to a couple of module
+functions - mod_init(), mod_check(), etc. These are function pointers
+that act as hooks for attaching modules to samhain. Next we'll
+describe how they are used.
+</p>
+
+<h2>Samhain's module interface</h2>
+<p>
+Here we'll describe the interface samhain provides to module authors.
+</p>
+
+<h3>The module list</h3>
+<p>
+In sh_modules.h, the following structure is defined:
+</p>
+<pre>
+
+typedef struct mod_type
+{
+  /* The name of the module                                    */
+  char * name;      
+
+  /* Set by samhain to 1 on successful initialization, else 0  */
+  int    initval; 
+
+  /* The initialization function. Return 0 on success.         */
+  int (* mod_init)    (void);  
+                             
+  /* The timer function. Return 0 if NOT time to check.        */
+  int (* mod_timer)   (unsigned long tcurrent); 
+
+  /* The check function. Return 0 on success.                  */
+  int (* mod_check)   (void); 
+
+  /* The cleanup function. Return 0 on success.                */
+  int (* mod_cleanup) (void);
+
+  /* The preparation for reconfiguration. Return 0 on success. */
+  int (* mod_reconf) (void);
+
+  /* Section header in config file                             */
+  char * conf_section; 
+
+  /* A table of key/handler_function for config file entries   */
+  sh_rconf * conf_table; 
+
+} sh_mtype;
+</pre>
+
+<p>
+This is the structure used to hook modules into samhain. There is a
+list of these structures (modList), defined in sh_modules.c,
+containing pointers to the functions to be used for each module
+compiled into samhain. For example,
+</p>
+
+<pre>
+
+sh_mtype modList[] = {
+#ifdef SH_USE_UTMP
+  {
+    N_("UTMP"),
+    0,
+    sh_utmp_init,
+    sh_utmp_timer,
+    sh_utmp_check,
+    sh_utmp_end,
+    sh_utmp_null,
+
+    N_("[Utmp]"),
+    sh_utmp_table,
+  },
+#endif
+</pre>
+<p>
+is the beginning of that table. The author of the sh_utmp module has
+initialised the structure with the name of the module (note that N_()
+is just a macro used to delimit strings here), a 0 to signify that the
+module has not yet been initialised, and then pointers to _init(),
+_timer(), _check(), _cleanup() and _reconf() functions for the
+module. Finally, the last two structure elements are for configuration
+file parsing: the first is the section heading in the configuration
+file for this module, and the second is a table of type
+</p>
+
+<pre>
+
+typedef struct rconf
+{
+  char * the_opt;
+  int (*func)(char * opt);
+} sh_rconf;
+</pre>
+
+<p>
+(also defined in sh_modules.h). This structure is for storing options
+for this module to be found in the configuration file, as well as the
+functions that will be used to parse them when found. In the sh_utmp
+example above, we can see that this table has been set to
+sh_utmp_table - this is a reference to a list of the Utmp module's
+configuration options declared in sh_utmp.h. It should be clear now
+that one of the changes you will need to make to samhain's source
+files is to include your header file in sh_modules.c and add a modList
+entry like the above.
+</p>
+
+<p>
+For a description of when during samhain's execution these various
+module hooks are called, see the overview above. It would likely be
+helpful to you now to read through the source for one of the modules
+provided with samhain and see the above actually implemented. You
+should also be able to use one of these modules as a template for your
+own.
+</p>
+
+<h3>The message catalogue</h3>
+
+<p>
+Most module authors will want to log messages in their own specified
+format; samhain stores all of its message formats in a "messages
+catalogue" found in sh_cat.h and sh_cat.c. For example, for the
+sh_suidchk module we find the following entries in sh_cat.h, as part
+of an enum:
+</p>
+
+<pre>
+
+#ifdef SH_USE_SUIDCHK
+ MSG_SUID_POLICY,
+ MSG_SUID_FOUND,
+ MSG_SUID_STAT,
+ MSG_SUID_SUMMARY,
+#endif
+</pre>
+
+<p>
+Correspondingly in sh_cat.c we find
+</p>
+
+<pre>
+
+#ifdef SH_USE_SUIDCHK
+  { MSG_SUID_POLICY, SH_ERR_SEVERE,  RUN,   N_("msg=\"POLICY SUIDCHK  %s\" path=\"%s\"") },
+  { MSG_SUID_FOUND,  SH_ERR_INFO,    RUN,   N_("msg=\"Found suid/sgid file\" path=\"%s\"") },
+  { MSG_SUID_STAT,   SH_ERR_ERR,     ERR,   N_("msg=\"stat: %s\" path=\"%s\"") },
+  { MSG_SUID_SUMMARY,SH_ERR_INFO,    RUN,   N_("msg=\"Checked for SUID programs: %ld files, %ld seconds\"") },
+#endif
+</pre>
+<p>
+as part of the table msg_cat[] of type cat_entry:
+</p>
+<pre>
+
+typedef struct foo_cat_entry {
+  unsigned long id;
+  unsigned long priority;
+  unsigned long class;
+  char *        format;
+} cat_entry;
+</pre>
+<p>
+The first member of this structure is the message type's ID, as
+defined in the enum in sh_cat.h. The second is the default priority of
+such messages, defined as in the samhain documentation. The third is
+the class of the message, again defined as in the samhain
+documentation. Finally we have the message format itself, which is a
+printf() style format string.
+</p>
+<p>
+This catalogue is used by the logging functions in samhain; you will
+need to add your own message types and formats to sh_cat.h and
+sh_cat.c. Note that because samhain can be compiled for XML style
+logging, you will actually need to make two entries in sh_cat.c for
+each message; see the file itself for details.
+</p>
+<p>
+Note that there is a generic message format with the ID 'MSG_E_SUBGEN'
+and the default priority 'SH_ERR_ERR'. If you are using this message
+format, then you can log (a) a string, and (b) the name of the subroutine.
+</p>
+<p>
+This completes our description of samhain's module interface.
+</p>
+
+<h2>Samhain's utility functions</h2>
+<p>
+Here we'll describe the main utility functions available to samhain module
+authors.
+</p>
+
+<h3>String wrapping macros</h3>
+
+<p>
+Constant strings should be wrapped in the _(string) macro. Initialisation
+strings that cannot be replaced with a function should be wrapped
+in a N_(string) macro, and the variable thus initialized should be
+wrapped in a _(var) macro whereever used. This is important for the
+'stealth' functionality of samhain.
+</p>
+
+<h3>Logging messages</h3>
+
+<pre>
+#include "sh_error.h"
+
+void sh_error_handle(int severity, char * file, long line, long status,
+                     unsigned long msg_id, ...)
+</pre>
+<p>
+This is samhain's logging/reporting function, so the name is a little
+misleading - errors are not the only thing we should handle with
+this. The first four arguments are simple enough: severity is the
+logging severity, defined in the enum ShErrLevel from sh_error.h; file
+and line are the current file and line - usually you'll be using FIL__
+and __LINE__ for these; status is not very important - for module
+authors it'll do to always pass 0 to this. The final named argument is
+msg_id, which should be one of the message IDs defined in sh_cat.h;
+these correspond to message format strings in printf() format, which
+will be interpolated with the following arguments to form the log
+message.
+</p>
+<p>
+The '__LINE__' macro is provided by the C preprocessor. The FIL__ macro
+should be #defined to '_("sourcefile_name")' (see 'String wrapping macros'
+above).
+<p>
+Example of use:
+</p>
+<pre>
+#undef
+#define FIL__ _("sh_mounts.c")
+
+sh_error_handle(ShMountsSevMnt, FIL__, __LINE__, 0, MSG_MNT_MNTMISS,
+                 cfgmnt->path);
+</pre>
+<p>
+See cat.c for the definition of MSG_MNT_MNTMISS:
+</p>
+<pre>
+
+{ MSG_MNT_MNTMISS, SH_ERR_WARN,    RUN,   N_("msg=\"Mount missing\" path=\"%s\"")},
+</pre>
+<p>
+So we print this out at severity ShMountsSevMnt, which in this case is
+a configured value read from the samhain configuration file (see
+sh_mounts.c). If we wanted to print it at the default severity
+(SH_ERR_WARN), we could pass -1 as the severity.
+</p>
+
+<h3>Checking files for modification</h3>
+
+<pre>
+#include "sh_files.h"
+
+int  sh_files_pushdir_?? (char * dirName);
+int  sh_files_pushfile_?? (char * fileName);
+</pre>
+<p>
+These functions push directories and files onto the stack of those to check 
+for the specified policy (see the samhain documentation for further 
+information):
+<table>
+	<tr><td> sh_files_pushdir_user0 </td><td>pushes the directory at USER0 </td></tr>
+	<tr><td align=right> ... _user1</td><td align=right>USER1</td></tr>
+	<tr><td align=right> ... _attr</td><td align=right>ATTR</td></tr>
+	<tr><td align=right> ... _ro</td><td align=right>READONLY</td></tr>
+	<tr><td align=right> ... _log</td><td align=right>LOGFILE</td></tr>
+	<tr><td align=right> ... _glog</td><td align=right>GROWING LOGFILE</td></tr>
+	<tr><td align=right> ... _noig</td><td align=right>IGNORE NONE</td></tr>
+	<tr><td align=right> ... _allig</td><td align=right>IGNORE ALL</td></tr>
+</table>
+So if you're writing a module that adds particular files to check, like the 
+sh_userfiles module for example, these are the functions to use.
+</p>
+
+<h3>Managing memory</h3>
+
+<pre>
+#include "sh_mem.h"
+
+#define SH_FREE(a)  ...
+#define SH_ALLOC(a) ...
+</pre>
+<p>
+These are the macros to use when you're allocating/freeing memory in
+samhain. They do all the error checking/reporting you need, so when
+you get memory from SH_ALLOC you can just get to using it right away.
+</p>
+
+<h3>Parsing strings</h3>
+
+<pre>
+#include "sh_utils.h"
+
+char * sh_util_strdup    (const char * str);
+char * sh_util_strsep    (char **str, const char *delim);
+char * sh_util_strconcat (const char * arg1, ...);
+
+int sh_util_flagval(char * c, int * fval);
+int sh_util_isnum (char *str);
+
+#include "slib.h"
+
+int sl_strlcpy (char * dst, const char * src, size_t siz);
+int sl_strlcat (char * dst, const char * src, size_t siz);
+int sl_snprintf(char *str, size_t n, const char *format, ... );
+</pre>
+<p>
+These functions are the samhain internal functions for string
+handling. The first three act like their C library counterparts,
+except using samhain's memory management functions and error
+checking. sh_util_flagval converts the passed string into a truth
+value - the value is stored in <b>fval</b> as 1 or 0 - and returns 0
+on success, -1 on failure. sh_util_isnum just checks if the passed
+string is all numeric.
+</p>
+<p>
+The functions sl_strlcpy and sl_strlcat work similar to the C library
+strncpy/strncat functions, except that the destination string is always
+null terminated, and the third argument must be the full length of the 
+destination buffer, <i>not</i> the remaining space. On success, the 
+return value is 0.
+</p>
+<p>
+The function sl_snprintf provides either the system snprintf, or a replacement,
+if the system has no or a buggy snprintf.
+</p>
+
+<h3>Tracing execution</h3>
+
+<pre>
+#include "slib.h"
+
+#define SL_ENTER(s) ...
+#define SL_RETURN(retval, s) ...
+</pre>
+<p>
+These macros are for tracing execution through samhain functions. You
+should use SL_ENTER with the name of the function for each function
+entered, and SL_RETURN with the return value and the name of the
+function for each exit if you want to maintain compatibility with the
+rest of samhain.
+</p>
+
+<h3>Executing external programs (popen)</h3>
+
+<pre>
+#include "sh_extern.h"
+
+
+sh_tas_t task;
+/* Prepare task */
+sh_ext_tas_init(&task);
+sh_ext_tas_command(&task, char * command);
+sh_ext_tas_add_argv(&task, char * val);
+sh_ext_tas_add_envv (&task, char * environment_variable, char * value);
+
+int sh_ext_popen(&task);
+int sh_ext_pclose(&task);
+</pre>
+<p>
+To prepare a task to run, use 'sh_ext_tas_init' to initialise the task
+structure. With 'sh_ext_tas_command' the command (absolute path) is set,
+with 'sh_ext_tas_add_argv' command line options are added. Environment
+variables can be set with 'sh_ext_tas_add_envv'.
+</p>
+<p>
+To open for read, set &quot;task.rw = 'r';&quot;, to open for write
+use &quot;task.rw = 'w';&quot;.
+</p>
+<p>
+To run the task with privileges dropped to another UID, set
+&quot;task.privileged = 0;&quot; and task.run_user_uid, task.run_user_gid
+to the desired UID/GID.
+</p>
+<p>
+To verify the checksum of the called executable, set 
+task.checksum[KEY_LEN+1] to the TIGER192 checksum of the executable.
+</p>
+<p>
+After successful execution of sh_ext_popen (return status 0), 
+task.pipe is the stream opened for read or write, and task.pipeFD
+its associated file descriptor.
+</p> 
+
+<h3>Inserting arbitrary data into the baseline database</h3>
+<pre>
+
+#include "sh_hash.c"
+
+void sh_hash_push2db (char * key, unsigned long val1, 
+		      unsigned long val2, unsigned long val3,
+		      unsigned char * str, int size);
+
+char * sh_hash_db2pop (char * key, unsigned long * val1, 
+		       unsigned long * val2, unsigned long * val3,
+		       int * size);
+</pre>
+<p>
+The baseline database has a fixed record format. To enter data, these need
+to be prepared in the required format. To retrieve the data, the 
+'filepath' is used as key (if your data is not a file, you would provide
+a dummy pathname as key). For convenience, the two functions noted below
+are provided.
+</p>
+<p>
+When checking files, samhain will walk the database to find files that
+are in the database, but have been deleted from the disk. If you enter
+data, you need to mark it as such by using a key that
+starts with something else but '/', otherwise samhain will complain
+if it has not been checked during the file check.
+</p>
+<pre>
+
+#include "sh_hash.c"
+
+void sh_hash_push2db (char * key, unsigned long val1, 
+		      unsigned long val2, unsigned long val3,
+		      unsigned char * str, int size);
+
+char * sh_hash_db2pop (char * key, unsigned long * val1, 
+		       unsigned long * val2, unsigned long * val3,
+		       int * size);
+</pre>
+<p>
+To insert data, use 'sh_hash_push2db'. You can insert up to three long
+integers (val1, val2, val3) and/or a binary string of length size 
+(max. (PATH_MAX-1)/2). As noted
+above, you need to supply a key (stored as the 'filepath', which should
+start with a character different from '/'). To retrieve data, you can use
+'sh_hash_db2pop'. The return value is either NULL (if no string was
+stored under this key), or the stored string (length returned in 'size').
+</p>
+<p>
+A string to store may consist of any characters, including NULLs, and
+need not be NULL terminated. The returned string is
+always NULL terminated (the terminating NULL is not included in 'size'), 
+and should be freed with SH_FREE() if not required anymore.
+</p>
+<p>
+If the key is not found in the database, <b>size</b> is set to -1.
+</p>
+
+<h2>Incorporating modules into the samhain build</h2>
+<p>
+This is a somewhat secondary but important part of writing a module 
+for samhain:
+how to incorporate it into the samhain configuration and build process. 
+This just involves hacking the autoconf and makefile setup to include your 
+module. We'll present this file-by-file.
+</p>
+<h3>Makefile.in</h3>
+<p>
+You need to add a few bits to this file. First, add your header,
+source and object filenames to the HEADERS, SOURCES and OBJECTS
+variables. Then add your header to the dependencies for sh_modules.o
+and ./sh_modules.o. Finally add dependency lines for your module
+object file sh_whatever.o and ./sh_whatever.o, modelling them on the
+other module object dependency lines.
+</p>
+<h3>acconfig.h</h3>
+<p>
+The config.h.in will be generated from this file by 'autoheader'. 
+You just need to add a line like
+<pre>
+#undef SH_USE_MOUNTS
+</pre>
+that will be defined by the ./configure code if the user specifies 
+the module as enabled.
+</p>
+<h3>aclocal.m4</h3>
+<p>
+This file is used by 'autoconf' to help generate ./configure. You need to add 
+your module's ./configure option to the SH_ENABLE_OPTS variable; for example,
+to add the option --enable-mounts-check, we added the string 'mounts-check' to
+this variable.
+</p>
+<h3>configure.ac</h3>
+This is the other file used by 'autoconf' to generate ./configure. You need to
+add an AC_ARG_ENABLE call to this file, along the lines of those for other
+modules. For example, we added
+<pre>
+AC_ARG_ENABLE(mounts-check,
+        [  --enable-mounts-check        check mount options on filesystems [[no]
+]],
+        [
+        if test "x${enable_mounts_check}" = xyes; then
+                AC_DEFINE(SH_USE_MOUNTS)
+        fi
+        ]
+)
+</pre>
+for the sh_mounts module. This causes the #undef from acconfig.h above 
+to be defined when ./configure is run with the --enable-mounts-check argument.
+</p>
+This is all that you need. Once you've done the above, you'll need to
+run 'autoheader' and 'autoconfig' to generate config.h.in and the 
+./configure script. Then your module will build as part of the samhain
+source.
+</p>
+
+<h2>Conclusion</h2>
+<p>
+Armed with the above information, any proficient C programmer should
+be able to adapt and extend samhain to do whatever it is they need. We
+hope that this document has been reasonably clear, easy to follow and
+useful; please feel free to update it for clarity, accuracy and
+completeness and resubmit it to the samhain project.
+</p>
+<p>
+This document was written by the eircom.net Computer Incident Response Team.
+Updated with CSS by Rainer Wichmann.
+</p>
+</div>
+</body>
+</html>

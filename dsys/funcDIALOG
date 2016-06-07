@@ -1,0 +1,354 @@
+#########################################################################
+#
+# Interaction Subroutines
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+# print without newline
+#
+printASK() {
+    echo $ECHO_N "$@ $ECHO_C"
+}
+
+# find a 'dialog' program
+#
+findDIALOG() {
+
+    if test x"$DIALOG" = xno
+    then
+	DIALOG=""; return 0
+    elif test -n "$DIALOG"
+    then
+	return 0
+    fi
+
+    PATH=/usr/local/bin:/usr/local/sbin:$PATH; export PATH
+    X="$PATH"
+    progs="dialog";
+    OLD_IFS=${IFS}
+    IFS=':'; export IFS 
+    for dir in $X; do
+        for dia in $progs; do
+	    dialog="$dir/$dia"
+	    if (test -f "$dialog" || test -f "$dialog.exe")
+	    then
+		if "$dialog" 2>&1 | grep tailbox >/dev/null 2>&1
+		then
+		    IFS=${OLD_IFS}; export IFS
+		    DIALOG="$dialog"; export DIALOG
+		    return 0
+		fi
+	    fi
+	done
+    done
+    IFS=${OLD_IFS}; export IFS
+    DIALOG=""; export DIALOG
+}
+
+
+# prompt user for yes/no
+#
+promptYESNO() {
+    if test $# -lt 1
+    then
+	printFATAL "promptYESNO: insufficient arguments"
+    fi
+
+    if test $silent -gt 1
+    then
+	YESNO=y; export YESNO
+	return 0
+    fi
+
+    DEFAULT=""
+    case "$2" in
+	[yY]|[yY][eE][sS])
+	DEFAULT=y ;;
+	[nN]|[nN][oO])
+	DEFAULT=n ;;
+    esac
+
+    YESNO=""
+
+    if test -n "$DIALOG"
+    then
+
+	if test x"$assumeyes" = x1
+	then
+	    YESNO="$DEFAULT"; export YESNO
+	    return 0
+	fi
+
+	"$DIALOG" --title "deploy.sh $version" --yesno "$1" 10 75 2>"$tmpF"
+	mtest=$?
+	if test x"$mtest" = "x-1"
+	then
+	    printFATAL "promptYESNO: something went wrong"
+	elif test x"$mtest" = x0
+	then
+	    YESNO=y
+	else
+	    YESNO=n
+	fi
+    else
+	while :
+	do
+	    if test x"$DEFAULT" = xy
+	    then
+		printASK "$1 (Y/n) ?"
+	    elif test x"$DEFAULT" = xn
+	    then
+		printASK "$1 (N/y) ?"
+	    else
+		printASK "$1 (y/n) ?"
+	    fi
+	    
+	    if test x"$assumeyes" = x1
+	    then
+		YESNO="$DEFAULT"; export YESNO
+		echo "$DEFAULT"
+		return 0
+	    fi
+	    
+	    read YESNO
+	    if test -z "$YESNO"
+	    then
+		YESNO="$DEFAULT"
+	    fi
+	    
+	    case "$YESNO" in
+		[yY]|[yY][eE][sS])
+		YESNO=y; break ;;
+		[nN]|[nN][oO])
+		YESNO=n; break ;;
+		*)
+		YESNO="" ;;
+	    esac
+	done
+    fi
+    export YESNO
+    return 0
+}
+
+# get user input from tmp file
+#
+getINPUT() {
+    INPUT=`cat $tmpF`
+    export INPUT
+    return 0
+}
+
+# info box
+#
+promptINFO() {
+    if test $# -lt 1
+    then
+	printFATAL "promptINPUT: insufficient arguments"
+    fi
+
+    if test x"$silent" !=  x0
+    then
+	return 0
+    fi
+
+    if test -n "$DIALOG"
+    then
+	"$DIALOG" --title "deploy.sh $version" --sleep 2 --infobox "$1" 8 75  
+    else
+	echo $1
+    fi
+    return 0
+}
+
+# prompt user for input
+#
+promptINPUT() {
+    if test $# -lt 1
+    then
+	printFATAL "promptINPUT: insufficient arguments"
+    fi
+
+    if test $assumeyes -gt 0
+    then
+	printFATAL "promptINPUT: user interaction required"
+    fi
+
+    INPUT=""
+    DEFAULT="$2"
+
+    if test -n "$DIALOG"
+    then
+	"$DIALOG" --title "deploy.sh $version" --inputbox "$1" 16 75 "$2" 2>"$tmpF"
+	mtest=$?
+	if test x"$mtest" = "x1"
+	then
+	    # cancel button
+	    (exit 0); exit 0;
+        fi
+	if test x"$mtest" = "x-1"
+	then
+	    printFATAL "promptINPUT: something went wrong"
+	else
+	    getINPUT
+	fi
+    else
+
+	while :
+	do
+	    if test -z "$DEFAULT"
+	    then
+		printASK "$1 ?"
+	    else
+		printASK "$1 ? $DEFAULT"
+	    fi
+	    
+	    read INPUT
+	    
+	    if test -z "$INPUT"
+	    then
+		if test -n "$DEFAULT"
+		then
+		    locINPUT="$DEFAULT"
+		    break
+		fi
+	    elif test -n "$INPUT"
+	    then
+		break
+	    fi
+	done
+	export INPUT
+    fi
+    return 0
+}
+
+# get MENU from tmp file
+#
+getMENU() {
+    MENU=`cat $tmpF`
+    export MENU
+    return 0
+}
+
+# prompt user for options from menu
+#
+promptMENU() {
+    if test $# -lt 2
+    then
+	printFATAL "promptMENU: insufficient arguments"
+    fi
+
+    if test $assumeyes -gt 0
+    then
+	printFATAL "promptMENU: user interaction required"
+    fi
+
+    TITLE="$1"
+    shift
+
+    if test -n "$DIALOG"
+    then
+        #command="'$DIALOG' '--title' \\'deploy.sh $version\\' '--backtitle'"
+	#command="$command \'$TITLE\' '--menu' \'$TITLE\' '16' '75' '$#'"
+
+	argc=$#
+	if test $argc -gt 7
+	then
+		argc=7
+	fi
+
+	command="'$1' '' 'on'"
+	shift
+
+	for item
+	do
+		command="$command '$item' '' 'off'"
+	done
+
+	command="$command "
+
+	# printFATAL "$command"
+	eval $DIALOG '--title' \'deploy.sh $version\' '--backtitle' \'$TITLE\' '--radiolist' \'$TITLE\' '16' '75' $argc $command 2>"$tmpF"
+
+	mtest=$?
+
+	if test x"$mtest" = "x1"
+	then
+	    # cancel button
+	    (exit 0); exit 0;
+        fi
+	if test x"$mtest" = "x-1"; then
+	    printFATAL "promptMENU: something went wrong"
+	else
+	    getMENU
+	fi
+    else
+
+	MENU=""
+	INPUT=""
+
+	while :
+	do
+	    clear
+	    echo
+	    echo "$TITLE"
+	    echo
+	    echo "   1) $1"
+	    test -n "$2" && echo "   2) $2"
+	    test -n "$3" && echo "   3) $3"
+	    test -n "$4" && echo "   4) $4"
+	    test -n "$5" && echo "   5) $5"
+	    test -n "$6" && echo "   6) $6"
+	    test -n "$7" && echo "   7) $7"
+	    test -n "$8" && echo "   8) $8"
+	    test -n "$9" && echo "   9) $9"
+	    echo
+	    printASK "Please enter your choice: "
+
+	    read INPUT
+
+	    if echo "$INPUT" |  grep '[^0123456789]' >/dev/null 2>&1
+	    then
+		:
+	    elif test $INPUT -gt $#
+	    then
+		:
+	    else
+		break
+	    fi
+	done
+
+	case "$INPUT" in
+	1) MENU="$1"; break ;;
+	2) MENU="$2"; break ;;
+	3) MENU="$3"; break ;;
+	4) MENU="$4"; break ;;
+	5) MENU="$5"; break ;;
+	6) MENU="$6"; break ;;
+	7) MENU="$7"; break ;;
+	8) MENU="$8"; break ;;
+	9) MENU="$9"; break ;;
+	esac
+
+	export MENU
+    fi
+    return 0
+}
+

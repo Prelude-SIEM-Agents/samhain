@@ -1,0 +1,509 @@
+#########################################################################
+#
+# Subroutines for installing
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+getconfopts () {
+    fconf="$1"
+
+    if test -f "$fconf"
+    then
+	#
+	# check if readable
+	#
+	cat "$fconf" >/dev/null 2>&1 || return 1
+	#
+	# empty string if no --enable-nocl=..., else password
+	#
+	is_nocl=`cat "$fconf" | tr -d '\n' | egrep "^ *'?--enable-nocl=" | sed -e "s%^ *%%" | sed -e "s%^'%%" | sed -e "s%^--enable-nocl=%%" | sed -e "s% *$%%" | sed -e "s%'$%%"`
+	if test x"${is_nocl}" = x
+	then
+	    is_nocl="start"
+	else
+	    printINFO "Option --enable-nocl=${is_nocl} used."
+        fi 
+	#
+	#
+	#
+	is_xor=`cat "$fconf" | tr -d '\n' | egrep "^ *'?--enable-stealth=" | sed -e "s%^ *%%" | sed -e "s%^'%%" | sed -e "s%^--enable-nocl=%%" | sed -e "s% *$%%" | sed -e "s%'$%%"`
+	if test x"${is_xor}" = x
+	then
+	    is_xor="no"
+	else
+	    printINFO "Option --enable-stealth=${is_xor} used."
+        fi 
+	return 0
+    else
+	return 1
+    fi
+}
+
+writerecord () {
+    IDATE=`date +"%Y-%m-%d %H:%M:%S"`
+    echo "  <client>"
+    echo "    <client_host>${host}</client_host>"
+    echo "    <client_group>${hostgroup}</client_group>"
+    echo "    <client_os_machine>${arch}</client_os_machine>"
+    echo "    <client_install_status>${install_entry}</client_install_status>"
+    echo "    <client_install_date>${IDATE}</client_install_date>"
+    echo "    <client_install_name>${SH_NAME}</client_install_name>"
+    echo "    <client_install_prefix>${SH_PREFIX}</client_install_prefix>"
+    echo "    <client_install_version>${src_version}.${realformat}</client_install_version>"
+    echo "  </client>"
+}
+
+FTEST=0
+
+set_flag () {
+    case "$line" in
+    *\</client\>*)
+    FTEST=0;
+    return 0;
+    ;;
+
+    *\<client_host\>${host}\</client_host\>*)
+    FTEST=1;
+    return 1;
+    ;;
+
+    *)
+    return ${FTEST};
+    ;;
+    esac
+}
+
+
+#------------------------------------------------------------------------
+# Update client db
+#------------------------------------------------------------------------
+updateDB() {
+
+    if test "x$1" = x
+    then 
+        install_entry="D2_installed"
+    else
+        install_entry="$1"
+    fi
+    export install_entry
+
+    if test x"$DATABASE" = x
+    then
+        DATABASE="${basedir}/${defdatabase}"
+    fi
+
+    updlock="${DATABASE}.lockdir"
+    trap "rm -rf ${updlock}" 1 2 13 15
+
+    #
+    # A lockfile will not work, because 'root' can write anyway.
+    # However, 'mkdir' an existing directory will fail even for root
+    #
+    until (umask 222; mkdir "${updlock}") 2>/dev/null   # test & set
+    do
+       printINFO "Waiting for lock"
+       sleep 1
+    done
+
+
+    IDATE=`date +"%Y-%m-%d %H:%M:%S"`
+    rm -f "$tmpF"; touch "$tmpF"
+
+    if test -f "$DATABASE"; then
+        rcfile_perm=`ls -l "${DATABASE}" | \
+        awk '{ u= substr($1,2,3); g=substr($1,5,3); o=substr($1,8,3); \
+           gsub("-","",u); gsub("-","",g); gsub("-","",o); \
+           print "u=" u ",g=" g ",o=" o; }'`
+        rcfile_perm=`echo ${rcfile_perm} | sed s%g=,%g-rwx,% | sed s%,o=$%,o-rwx%`
+        rcfile_owner=`ls -l "${DATABASE}" | \
+           awk '{print $3 }'`
+        rcfile_group=`ls -l "${DATABASE}" | \
+           awk '{print $4 }'`
+    else
+        rcfile_perm=640;
+        rcfile_owner=`ls -ld ${basedir} | awk '{print $3 }'`
+        rcfile_group=`ls -ld ${basedir} | awk '{print $4 }'`
+    fi
+
+
+    if test -f "${DATABASE}"
+    then
+       SStr1=`grep '<yule_db>' "${DATABASE}"`
+       if test "x${SStr1}" != "x"
+       then
+
+	SStr2=`grep "<client_host>${host}</client_host>" "${DATABASE}"`
+
+	SStr3=
+
+	if test "x${SStr2}" != "x"
+	then
+	    # REPLACE
+
+	    printINFO "Replace ${host} in ${DATABASE}"
+
+	    exec 3<&0 <"${DATABASE}"
+	    while
+		read line
+	    do
+		# for some reason, var=xx only works in a function call (why?)
+		#
+		# here we test if we are still in the same client block
+		# (set_flag will return 0 for </client> and following)
+		set_flag "$line"
+
+		if test "x$?" = "x1"
+		then
+		    #
+		    # Write the full entry when client_os_machine is found
+		    #
+		    case "$line" in
+		    *\<client_os_machine\>*\</client_os_machine\>)
+		    echo "    <client_group>${hostgroup}</client_group>"           >>"${tmpF}"
+		    echo "    <client_os_machine>${arch}</client_os_machine>"           >>"${tmpF}"
+		    echo "    <client_install_status>${install_entry}</client_install_status>"    >>"${tmpF}"
+                    echo "    <client_install_date>${IDATE}</client_install_date>"         >>"${tmpF}"
+		    echo "    <client_install_name>${SH_NAME}</client_install_name>"       >>"${tmpF}"
+		    echo "    <client_install_prefix>${SH_PREFIX}</client_install_prefix>" >>"${tmpF}"
+		    echo "    <client_install_version>${src_version}.${realformat}</client_install_version>" >>"${tmpF}"
+		    ;;
+
+		    *\<client_group\>*\</client_group\>)
+		    :
+		    ;;
+			
+		    *\<client_install_status\>*\</client_install_status\>)
+		    :
+		    ;;
+
+		    *\<client_install_date\>*\</client_install_date\>)
+		    :
+	            ;;
+
+		    *\<client_install_name\>*\</client_install_name\>)
+		    :
+		    ;;
+
+		    *\<client_install_prefix\>*\</client_install_prefix\>)
+		    :
+		    ;;
+
+		    *\<client_install_version\>*\</client_install_version\>)
+		    :
+		    ;;
+
+		    *)
+		    echo "$line" >>"${tmpF}"
+		    ;;
+
+		    esac
+		else
+		    echo "$line" >>"${tmpF}"
+		fi
+
+	    done 
+	    exec 0<&3 3<&-
+	    cp "${tmpF}" "${DATABASE}"
+	else
+	    # WRITE NEW CLIENT RECORD
+
+	    printINFO "Write record for ${host} in ${DATABASE}"
+
+	    exec 3<&0 <"${DATABASE}"
+	    while
+		read line
+	    do
+		if test "x$line" = "x<yule_db>"
+		then
+		    echo "$line" >>"${tmpF}"
+		    writerecord  >>"${tmpF}"
+		else
+		    echo "$line" >>"${tmpF}"
+		fi
+	    done
+	    exec 0<&3 3<&-
+	    cp "${tmpF}" "${DATABASE}"
+        fi
+     else
+	# COMPLAIN
+	printLOG "File ${DATABASE} exists, but has wrong format";
+     fi
+    else
+     # WRITE XML FROM SCRATCH
+     printINFO "Write ${DATABASE} from scratch"
+     echo '<?xml version="1.0" encoding="ISO-8859-1"?>' >"${tmpF}"
+     echo '<!DOCTYPE yule_db SYSTEM "http://la-samhna.de/yule_db-0.2.dtd">' \
+	  >>"${tmpF}"
+     echo "<yule_db>"   >>"${tmpF}"
+     writerecord        >>"${tmpF}"
+     echo "</yule_db>"  >>"${tmpF}"
+     cp "${tmpF}" "${DATABASE}"
+    fi
+
+    chown ${rcfile_owner}:${rcfile_group} "${DATABASE}"
+    if [ $? -ne 0 ]; then
+    	rm -rf "${updlock}"
+    	printFATAL "Could not chown ${rcfile_owner}:${rcfile_group} ${DATABASE}"
+    fi
+    chmod ${rcfile_perm} "${DATABASE}"
+    if [ $? -ne 0 ]; then
+    	rm -rf "${updlock}"
+    	printFATAL "Could not chmod ${rcfile_perm} ${DATABASE}"
+    fi
+
+    rm -rf "${updlock}"
+}
+
+
+ageFILE() {
+    file="$1"
+
+    if test -f "${file}"
+    then
+	test -f "${file}.9" && { rm -f "${file}.9" || printFATAL "rm -f ${file}.9 failed."; }
+	test -f "${file}.8" && { mv "${file}.8" "${file}.9" || printFATAL "mv ${file}.8 ${file}.9 failed."; }
+	test -f "${file}.7" && { mv "${file}.7" "${file}.8" || printFATAL "mv ${file}.7 ${file}.8 failed."; }
+	test -f "${file}.6" && { mv "${file}.6" "${file}.7" || printFATAL "mv ${file}.6 ${file}.7 failed."; }
+	test -f "${file}.5" && { mv "${file}.5" "${file}.6" || printFATAL "mv ${file}.5 ${file}.6 failed."; }
+	test -f "${file}.4" && { mv "${file}.4" "${file}.5" || printFATAL "mv ${file}.4 ${file}.5 failed."; }
+	test -f "${file}.3" && { mv "${file}.3" "${file}.4" || printFATAL "mv ${file}.3 ${file}.4 failed."; }
+	test -f "${file}.2" && { mv "${file}.2" "${file}.3" || printFATAL "mv ${file}.2 ${file}.3 failed."; }
+	test -f "${file}.1" && { mv "${file}.1" "${file}.2" || printFATAL "mv ${file}.1 ${file}.2 failed."; }
+	test -f "${file}"   && { mv "${file}"   "${file}.1" || printFATAL "mv ${file}   ${file}.1 failed."; }
+     fi
+     return 0;
+}
+
+#------------------------------------------------------------------------
+# The path to yule data
+#------------------------------------------------------------------------
+pathYDATA() {
+    if test "x${yule_data}" = x
+    then
+	promptINPUT "Please enter the path to your yule executable"
+        yule_data="$INPUT"; export yule_data
+    fi
+    if test -d "${yule_data}"
+    then
+	:
+    else
+	printFATAL "Path to yule data directory not given."
+    fi
+}
+
+#------------------------------------------------------------------------
+# The path to yule
+#------------------------------------------------------------------------
+pathYULE() {
+
+    if test "x${yule_exec}" = x
+    then
+	findEXE yule
+	if test -n "$EXECUTABLE"
+	then
+	    yule_exec="$EXECUTABLE"
+	    export yule_exec
+	fi
+    else
+	if test -f "${yule_exec}"
+	then
+	    :
+	else
+	    yule_exec=""
+	    findEXE yule
+	    if test -n "$EXECUTABLE"
+	    then
+	        yule_exec="$EXECUTABLE"
+	        export yule_exec
+	    fi
+	fi
+    fi
+    if test "x${yule_exec}" = x
+    then
+	promptINPUT "Please enter the path to your yule executable"
+        yule_exec="$INPUT"; export yule_exec
+    fi
+    if test -f "${yule_exec}"
+    then
+	if "${yule_exec}" --help 2>&1 | grep qualified >/dev/null 2>&1
+	then
+	    :
+	else
+	    printFATAL "${yule_exec} is not Yule, or not executable."
+	fi
+    else
+	printFATAL "Path to yule executable directory not given."
+    fi
+}
+
+#------------------------------------------------------------------------
+# Select operating system
+#------------------------------------------------------------------------
+selbinARCH() {
+    #---------------------------------------------------------------------
+    # Select arch to build
+    #---------------------------------------------------------------------
+    if test x"$arch" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "No operating system selected, aborting."
+	fi
+	cd "$basedir/archpkg" || printFATAL "Cannot cd to $basedir/archpkg !"
+	LIST=`ls 2>/dev/null`
+	if test x"$LIST" = x
+	then
+		printFATAL "No OS directories found in ${basedir}/archpkg." 
+        fi
+
+	n=0
+	command="promptMENU 'Please select operating system of host' "
+	ALIST=""
+	FLIST=""
+	for ff in $LIST
+	do
+	    haspkg=`ls $ff/samhain-* 2>/dev/null`
+	    if test x"$haspkg" = x
+	    then
+		:
+	    else
+	        n=`expr $n + 1`
+	        osp="$ff"
+	        ALIST="$ALIST $ff"
+	        FLIST="$FLIST $ff"
+	        if test $n -lt 8
+	        then
+		    command="$command '${ff}'"
+                fi
+	    fi
+	done
+	if test $n -ge 8
+	then
+	   command="$command other"
+	fi
+	    
+	eval ${command}
+	m=$?
+	if test x$m = x1
+	then
+	    (exit 0); exit 0;
+	elif test x$m = "x-1"
+	then
+	    printFATAL "Something went wrong !"
+	else
+	    arch="$MENU"; export arch
+	    if test x"$arch" = xother
+	    then
+		promptINPUT "Please select operating system of host from $FLIST"
+		if test x$m = x1
+		then
+		    (exit 0); exit 0;
+		elif test x$m = "x-1"
+		then
+		    printFATAL "Something went wrong !"
+		else
+		    found=`echo $FLIST | sed -n /$INPUT/p 2>/dev/null`
+		    if test x"$found" = x
+		    then
+			printFATAL "There is no package for $INPUT"
+		    fi
+		    arch="$INPUT"; export arch
+		fi
+            fi
+	fi
+    fi
+    # arch selected or exited
+}
+
+selbinVERSION() {
+
+    OKVERLIST=""
+
+    #---------------------------------------------------------------------
+    # Select version
+    #---------------------------------------------------------------------
+    if test x"$src_version" = x
+    then
+	if test x"$assumeyes" = x1
+	then
+	    printFATAL "No version selected, aborting."
+	fi
+	cd "${basedir}/archpkg/${arch}" || printFATAL "Cannot cd to ${basedir}/archpkg/${arch} !"
+	LIST=`ls samhain-* 2>/dev/null`
+	if test x"$LIST" = x
+	then
+	    printFATAL "No binary package found in ${basedir}/archpkg/${arch}." 
+        fi
+
+	# --------------------------------------------------
+	# Build a list of ${version}.${format}
+	# --------------------------------------------------
+
+	for ff in $LIST
+	do
+	    sh_version=`echo "$ff" | sed 's/samhain\-//g'`
+	    if test -f "install-${sh_version}"
+	    then
+	        OKVERLIST="$OKVERLIST ${sh_version}"
+	    fi
+	done
+
+	rm -f "$tmpF" && touch "$tmpF"
+
+        for dd in $OKVERLIST
+        do
+            echo "$dd" >>"$tmpF"
+        done
+
+        OKVERLIST=`cat "$tmpF" | sort -r`
+
+        rm -f "$tmpF" && touch "$tmpF" 
+
+	command="promptMENU 'Please select version to install' "
+	for word in $OKVERLIST
+	do
+	    command="$command '${word}'"
+	done
+
+	eval ${command}
+	m=$?
+	if test x$m = x1
+	then
+	    (exit 0); exit 0;
+	elif test x$m = "x-1"
+	then
+	    printFATAL "Something went wrong !"
+	else
+	    first_version="$MENU";
+	fi
+
+	src_version=`echo ${first_version} | sed s%\.run%% | sed s%\.rpm%% | sed s%\.deb%% | sed s%\.tbz2%% | sed s%\.depot%% | sed s%\.pkg%%`
+	export src_version
+
+	format=`echo ${first_version} | sed '/^\(.*\)\.\([0-9a-zA-Z]*\)$/{ s//\2/; q; }'`
+	if test "x$format" = xpkg
+	then
+	    format="solaris-pkg"
+        fi
+	export format
+
+    fi
+}

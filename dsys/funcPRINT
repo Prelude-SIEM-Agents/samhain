@@ -1,0 +1,84 @@
+#########################################################################
+#
+# Printing/logging Subroutines
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+# Fatal error
+#
+printFATAL() {
+    printERROR ${1+"$@"} 
+    main_exit_status=1
+    echo '1' > "$tmpERR"
+    (exit 1); exit 1;
+}
+
+# Print a message to stderr
+#
+printERROR() {
+    echo "ERROR:" ${1+"$@"} >&2
+}
+
+# Print a message to stderr
+#
+printWARNING() {
+    echo "WARNING:" ${1+"$@"} >&2
+}
+
+# Print a message to stdout
+#
+printLOG() {
+    if test $silent -lt 2
+    then
+	now=`date`
+	if test -z "$logfile"
+	then
+	    if test x"$simulate" = x0
+	    then
+	        echo "${now}:" ${1+"$@"}
+	    else
+		echo "${now}: (simulate)" ${1+"$@"}
+	    fi
+	else
+	    if test x"$simulate" = x0
+	    then
+	        echo "${now}:" ${1+"$@"} >"$logfile"
+	    else
+		echo "${now}: (simulate)" ${1+"$@"} >"$logfile"
+	    fi
+	fi
+    fi
+}
+
+# Print a message to stdout
+#
+printINFO() {
+    if test x"$silent" = x0
+    then
+	if test x"$simulate" = x0
+	then
+	    echo ${1+"$@"}
+	else
+	    echo "(simulate)" ${1+"$@"}
+	fi
+    fi
+}
+

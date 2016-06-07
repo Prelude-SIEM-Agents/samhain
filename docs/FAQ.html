@@ -1,0 +1,866 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head>
+<title>Frequently Asked Questions for Samhain</title>
+<meta name="author" content="Rainer Wichmann">
+
+<style type="text/css">
+<!--
+
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2d4488;
+}
+
+div.warnblock {
+	background: #b6c5f2; color: #000;
+        background: #ffffcc; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #FF9900;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #285577; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #2d5588; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style></head>
+<body>
+<div class="body">
+<p style="text-align: center; background: #ccc; border: 1px solid #2d5588;"><a 
+   style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/">samhain file integrity 
+   scanner</a>&nbsp;|&nbsp;<a style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/s_documentation.html">online 
+   documentation</a></p>
+<br><center><h1><a name="FAQ-top">Frequently Asked Questions for Samhain</a></h1></center>
+<br><center><h2>Rainer Wichmann</h2></center>
+<hr>
+<div class="warnblock">
+<ul>
+  <li>If you encounter problems after installing samhain, disable daemon
+      mode and run it in the foreground with 
+      <tt>samhain --foreground [more options]</tt> for debugging.</li>
+  <li>If you have problems getting client/server mode to work, please check
+      the <a href="http://www.la-samhna.de/samhain/HOWTO-client+server-troubleshooting.html">HOWTO client+server troubleshooting</a> document.</li>
+</ul>
+</div>
+<p><i>FAQ Revised: Wednesday 14 January 2015 20:41:15</i></p>
+<hr><h2>Table of Contents</h2>
+<dl>
+<dt><b>1. Most frequently</b></dt>
+<dd><ul>
+<li><a href="#Most frequently0">1.1. Owner not trustworthy / Group writeable and member not trustworthy</a></li>
+<li><a href="#Most frequently1">1.2. samhain exits with the message &quot;Untrusted path&quot; for config/log/pid/database files</a></li>
+<li><a href="#Most frequently2">1.3. It does not log anything / Can't stop logging to console</a></li>
+<li><a href="#Most frequently3">1.4. Client cannot self-resolve, but nslookup works fine</a></li>
+<li><a href="#Most frequently4">1.5. Server logs hostname instead of FQDN (or vice versa)</a></li>
+</ul></dd>
+<dt><b>2. Build and install</b></dt>
+<dd><ul>
+<li><a href="#Build and install0">2.1. [Fedora Core] Cannot compile with --enable-khide</a></li>
+<li><a href="#Build and install1">2.2. [Fedora Core] Cannot compile with --with-kcheck</a></li>
+<li><a href="#Build and install2">2.3. &quot;make&quot; loops infinitely !</a></li>
+<li><a href="#Build and install3">2.4. Why does static compiling (<code>--enable-static</code>) on Solaris fail ?</a></li>
+<li><a href="#Build and install4">2.5. Compilation fails with '/usr/bin/ld: cannot find -lnss_files'</a></li>
+<li><a href="#Build and install5">2.6. The executable is corrupted after installation</a></li>
+<li><a href="#Build and install6">2.7. --enable-xml-log has no effect</a></li>
+<li><a href="#Build and install7">2.8. ./install-sh: strip: not found (Solaris)</a></li>
+<li><a href="#Build and install8">2.9. What is sh_tiger1.s?</a></li>
+<li><a href="#Build and install9">2.10. Why does static compiling (<code>--enable-static</code>) on MaxOS X fail ?</a></li>
+<li><a href="#Build and install10">2.11. Why does compiling with MySQL fail on Solaris ?</a></li>
+</ul></dd>
+<dt><b>3. File checking</b></dt>
+<dd><ul>
+<li><a href="#File checking0">3.1. How can I exclude a (sub-)directory ?</a></li>
+<li><a href="#File checking1">3.2. In messages about policy violations, what does the code after POLICY [XYZ] 
+mean ?</a></li>
+<li><a href="#File checking2">3.3. Does samhain support prelink ?</a></li>
+<li><a href="#File checking3">3.4. I get error messages about 'subdirectory count != hardlinks'</a></li>
+</ul></dd>
+<dt><b>4. Client/Server</b></dt>
+<dd><ul>
+<li><a href="#Client/Server0">4.1. I don't want to poke a hole into my firewall to let the client connect to the server !</a></li>
+<li><a href="#Client/Server1">4.2. The client sends 127.0.0.1 (or some other numerical address) as its name to the log server</a></li>
+<li><a href="#Client/Server2">4.3. The server wants to send rc.ip-adress rather than rc.fqdn to the client</a></li>
+<li><a href="#Client/Server3">4.4. Cannot resolve client name host=XXX</a></li>
+<li><a href="#Client/Server4">4.5. Cannot resolve socket peer IP for client host=XXX peer=YYY</a></li>
+<li><a href="#Client/Server5">4.6. Reverse lookup of socket peer failed host=XXX peer=YYY obj=ZZZ</a></li>
+<li><a href="#Client/Server6">4.7. No socket peer alias matches client name host=XXX peer=YYY</a></li>
+<li><a href="#Client/Server7">4.8. Session key negotiation failed</a></li>
+<li><a href="#Client/Server8">4.9. Invalid connection attempt: Not in client list</a></li>
+<li><a href="#Client/Server9">4.10. Invalid connection attempt: Session key mismatch</a></li>
+<li><a href="#Client/Server10">4.11. How do I update the file signature database ?</a></li>
+<li><a href="#Client/Server11">4.12. Time limit exceeded</a></li>
+<li><a href="#Client/Server12">4.13. Invalid connection attempt:  Signature mismatch</a></li>
+<li><a href="#Client/Server13">4.14. [Server] PANIC .. Address already in use&nbsp; &nbsp;subroutine=bind</a></li>
+</ul></dd>
+<dt><b>5. Email</b></dt>
+<dd><ul>
+<li><a href="#Email0">5.1. Reverse lookup failed</a></li>
+<li><a href="#Email1">5.2. From daemon@example.com</a></li>
+<li><a href="#Email2">5.3. How do I define more than one email addresses ?</a></li>
+</ul></dd>
+<dt><b>6. Misc</b></dt>
+<dd><ul>
+<li><a href="#Misc0">6.1. Error message: &quot;Invalid line XYZ in configuration file&quot;</a></li>
+<li><a href="#Misc1">6.2. Why do I get a local logfile if I log to the server ?</a></li>
+<li><a href="#Misc2">6.3. Why is there no NIS support with a static samhain executable on Linux ?</a></li>
+<li><a href="#Misc3">6.4. Why do I get hundreds of messages about modified CTIME ?</a></li>
+<li><a href="#Misc4">6.5. PANIC &mdash; File not accessible</a></li>
+<li><a href="#Misc5">6.6. How can I avoid error messages for invalid UIDs (no such user) ?</a></li>
+<li><a href="#Misc6">6.7. [Redhat] The /etc/init.d/(samhain|yule) init script hangs</a></li>
+<li><a href="#Misc7">6.8. The /etc/init.d/(samhain|yule) init script exits with: execvp: No such file or directory</a></li>
+<li><a href="#Misc8">6.9. Why am I not receiving the &quot;BEGIN LOGKEY&quot; message by email ?</a></li>
+<li><a href="#Misc9">6.10. Why does console logging fail if I compile with 
+   <code>--enable-(micro-)stealth</code> ?</a></li>
+<li><a href="#Misc10">6.11. I need a list for my schedule !</a></li>
+<li><a href="#Misc11">6.12. The hiding kernel module has no effect !</a></li>
+<li><a href="#Misc12">6.13. What does the message &quot;Large lstat/open overhead&quot; mean ?</a></li>
+<li><a href="#Misc13">6.14. What does the message &quot;Device not available path=/dev/random&quot; mean ? I have /dev/random !</a></li>
+<li><a href="#Misc14">6.15. Logging to an external program fails; the program receives no data 
+   on stdin !</a></li>
+<li><a href="#Misc15">6.16. SIGILL on AIX</a></li>
+</ul></dd>
+<dt><b>7. Database</b></dt>
+<dd><ul>
+<li><a href="#Database0">7.1. Why are client messages corrupted / incompletely stored in the DB ?</a></li>
+<li><a href="#Database1">7.2. I want / don't want the server timestamps (for client messages) in the SQL database</a></li>
+<li><a href="#Database2">7.3. I don't want the client TIMESTAMP messages in the SQL database</a></li>
+<li><a href="#Database3">7.4. What does the log_ref field mean ?</a></li>
+<li><a href="#Database4">7.5. How can I check what is in the database ?</a></li>
+</ul></dd>
+</dl>
+<hr><h2>1. Most frequently</h2>
+<dl>
+<dt><b><a name="Most frequently0">1.1. Owner not trustworthy / Group writeable and member not trustworthy</a></b></dt>
+<dd>An untrusted user (might be an untrusted group member
+        for group writeable files/directories) owns or can write to an
+        element in the path listed in the error message. This concerns
+        the configuration file, the log file, and the database file.
+        The offending element in the path is identified as obj=/xxx in the
+        error message.
+	To fix the problem, see next entry.<br><br></dd>
+<dt><b><a name="Most frequently1">1.2. samhain exits with the message &quot;Untrusted path&quot; for config/log/pid/database files</a></b></dt>
+<dd>Paths to critical
+   files (e.g. the configuration file) must be writeable by trusted users
+   only.   
+   If a path element is group writeable, all group members must be trusted.
+   By default, only <i>root</i> and the (effective) <i>user</i> of
+   the program are trusted. To add trusted users, use the compile time
+   option
+<div class="block"><pre>
+$ ./configure --with-trusted=0,...
+</pre></div>
+   or the configure file option:
+<div class="block"><pre>
+[Misc]
+TrustedUser=username
+</pre></div>
+If the path to the configuration file itself is writeable 
+  by other users than <i>root</i> and the 
+  <i>effective user</i>
+  these must be defined as trusted already
+  at compile time.<br><br></dd>
+<dt><b><a name="Most frequently2">1.3. It does not log anything / Can't stop logging to console</a></b></dt>
+<dd>(1) There is a section in the manual dealing with
+logging and filtering.<br />
+
+(2) To log to the console:
+<div class="block"><pre>
+$ samhain -p info ...
+</pre></div>
+or in the configuration file:
+<div class="block"><pre>
+[Log]
+PrintSeverity=info
+</pre></div>
+
+To <i>stop</i> logging to the console:
+<div class="block"><pre>
+$ samhain -p none ...
+</pre></div>
+or in the configuration file:
+<div class="block"><pre>
+[Log]
+PrintSeverity=none
+</pre></div>
+Defining <tt>/dev/null</tt> as console device works as well, but 
+is a bad idea, because samhain will open the device and write (i.e. it is
+a very inefficient method).<br><br></dd>
+<dt><b><a name="Most frequently3">1.4. Client cannot self-resolve, but nslookup works fine</a></b></dt>
+<dd><ul>
+<li>Nslookup is  a program to query Internet domain name servers.
+</li>
+<li>Applications (like samhain) are not supposed to query DNS servers
+ directly. Rather, they are supposed to query the resolver library that:
+  <ul>
+   <li>is provided by the operating system,</li>
+   <li>configured by the system administrator,</li>
+   <li>may use several different method to determine host names, as
+       configured in <tt>/etc/nsswitch.conf</tt>, and</li>
+   <li>usually is configured to give precedence to 
+       the <tt>/etc/hosts</tt> file.</li>
+  </ul>
+</li>
+<li>Therefore, whether nslookup gives correct answers may be completely 
+    irrelevant. For self-resolving the own hostname, the resolver
+    library probably will use <tt>/etc/hosts</tt>, rather than 
+    querying a DNS server.
+</li>
+</ul>
+<p>
+Below you can find some examples of good and bad <tt>/etc/hosts</tt> files:
+</p>
+<div class="block"><pre>
+        # CORRECT
+	#
+        127.0.0.1  localhost
+        xxx.xxx.xxx.xxx myhost.mydomain.tld  myhost
+</pre></div>
+
+<div class="block"><pre>
+        # CORRECT
+	#
+        127.0.0.1  localhost.localdomain localhost
+        xxx.xxx.xxx.xxx myhost.mydomain.tld  myhost
+</pre></div>
+
+<div class="block"><pre>
+        # BAD
+	#
+        127.0.0.1  myhost.mydomain.tld  localhost
+        xxx.xxx.xxx.xxx myhost.mydomain.tld  myhost
+</pre></div>
+
+<div class="block"><pre>
+        # BAD
+	#
+        127.0.0.1  localhost myhost
+        xxx.xxx.xxx.xxx myhost.mydomain.tld  myhost
+</pre></div><br><br></dd>
+<dt><b><a name="Most frequently4">1.5. Server logs hostname instead of FQDN (or vice versa)</a></b></dt>
+<dd>The default is to log the hostname only, if you want the FQDN
+then there is an option for the server configuration:
+<div class="block"><pre>
+        [Misc]
+	SetStripDomain = true / false
+</pre></div><br><br></dd>
+</dl>
+<hr><h2>2. Build and install</h2>
+<dl>
+<dt><b><a name="Build and install0">2.1. [Fedora Core] Cannot compile with --enable-khide</a></b></dt>
+<dd>The Fedora Core kernel is patched to unconditionally deny reading
+from /dev/kmem. Compiling the stealth kernel modules is not possible
+under these circumstances.<br><br></dd>
+<dt><b><a name="Build and install1">2.2. [Fedora Core] Cannot compile with --with-kcheck</a></b></dt>
+<dd>The Fedora Core kernel is patched to unconditionally deny reading
+from /dev/kmem. Checking the kernel for the presence of rootkits is
+not possible under these circumstances.<br><br></dd>
+<dt><b><a name="Build and install2">2.3. &quot;make&quot; loops infinitely !</a></b></dt>
+<dd>This may happen (e.g. when building via NFS for multiple architectures) 
+   if the relative timestamps in the source directory are
+   wrong (time not in sync on different machines) or some intermediate
+   target is unusable (up-to-date, but built for a different OS). Use
+   &quot;touch * &amp;&amp; make distclean&quot; in the source directory
+   to recover.<br><br></dd>
+<dt><b><a name="Build and install3">2.4. Why does static compiling (<code>--enable-static</code>) on Solaris fail ?</a></b></dt>
+<dd>Ingo Rogalsky has provided the following information: It isn't possible 
+   to link Samhain statically with Solaris. This
+   is a Solaris issue (see Sun Infodoc ID12624) and not a samhain problem.<br><br></dd>
+<dt><b><a name="Build and install4">2.5. Compilation fails with '/usr/bin/ld: cannot find -lnss_files'</a></b></dt>
+<dd>For Linux, this is a known problem with --enable-static if you compile
+     in MySQL support. The problem is that the 
+     <tt>mysql_config</tt> that comes as part of the MySQL
+     distribution script incorrectly lists dependencies on 
+     the libnss_files and libnss_dns libraries which are only available as
+     shared libraries, so the linker cannot find the static libraries.
+
+     You can check this by inspecting the output of 
+     <code>mysql_config --libs</code>. The version of 
+     <tt>mysql_config</tt> that comes with the RedHat mysql
+     RPM (RedHat 9) does not have this bug; the one distributed by the MySQL
+     people has. You can fix the problem by editing 
+     <tt>mysql_config</tt>: search for the 
+     <i>client_libs</i> variable, and remove all instances 
+     of <i>-lnss_files</i> and <i>-lnss_dns</i>.<br><br></dd>
+<dt><b><a name="Build and install5">2.6. The executable is corrupted after installation</a></b></dt>
+<dd>The executable will get stripped during the installation. On
+        suitable systems (i386 Linux/FreeBSD currently), additionally 
+        the &quot;sstrip&quot;
+        utility (copyright 1999 by Brian Raiter, under the GNU GPL) 
+        will be used to strip the executable even more, to prevent 
+        debugging with the GNU &quot;gdb&quot; debugger.
+        The &quot;strip&quot; utility cannot handle the resulting
+        executable, therefore trying to strip manually after installation
+        will corrupt the executable.<br><br></dd>
+<dt><b><a name="Build and install6">2.7. --enable-xml-log has no effect</a></b></dt>
+<dd>If you have compiled for stealth, you won't see much, because if
+        obfuscated, then both a 'normal' and an XML logfile look,
+        well ... obfuscated. Use <code>samhain -jL /path/to/logfile</code>
+        to view the logfile.<br><br></dd>
+<dt><b><a name="Build and install7">2.8. ./install-sh: strip: not found (Solaris)</a></b></dt>
+<dd>Install the SUNWbtool package.<br><br></dd>
+<dt><b><a name="Build and install8">2.9. What is sh_tiger1.s?</a></b></dt>
+<dd>This is a precompiled assembly file for the i386 architecture 
+generated from sh_tiger1.c using gcc 3.4.0 with the following options,
+that were found to generate the fastest code:
+<pre>
+ -O1 -fno-delayed-branch -fexpensive-optimizations -fstrength-reduce 
+     -fpeephole2 -fschedule-insns2 -fregmove -frename-registers -fweb 
+     -momit-leaf-frame-pointer -funroll-loops
+</pre>
+These options were determined using 
+<a href="http://www.coyotegulch.com/products/acovea/">acovea</a> 5.1.1 
+by  Scott Robert Ladd. The file is provided as precompiled assembly 
+because different versions of gcc can have very different performance, 
+require different options to compile optimal code, and
+it would be impossible to maintain a library of optimal compile options
+for every version of gcc.<br><br></dd>
+<dt><b><a name="Build and install9">2.10. Why does static compiling (<code>--enable-static</code>) on MaxOS X fail ?</a></b></dt>
+<dd>Static linking is not supported on MacOS X, see 
+<a href="http://developer.apple.com/qa/qa2001/qa1118.html">Technical Q&A QA1118</a>. 
+This is a MacOS X issue and not a bug in samhain.<br><br></dd>
+<dt><b><a name="Build and install10">2.11. Why does compiling with MySQL fail on Solaris ?</a></b></dt>
+<dd>The reason is often the shell script 'mysql_config' that comes as part
+of MySQL. This script is intended to print appropriate compiler flags for
+compiling applications that use MySQL. Unfortunately, since Sun compiles
+MySQL with the Solaris compiler, this script outputs options for the Solaris 
+compiler (i.e. unsuitable for gcc). To solve this problem, you need to move
+this script (i.e. 'mysql_config') out of your PATH before running 
+<tt>./configure</tt> (unless of course you are using the Solaris compiler
+rather than gcc).<br><br></dd>
+</dl>
+<hr><h2>3. File checking</h2>
+<dl>
+<dt><b><a name="File checking0">3.1. How can I exclude a (sub-)directory ?</a></b></dt>
+<dd><div class="block"><pre>
+[IgnoreAll]
+dir=-1/ignore/this/subdirectory
+</pre></div><br><br></dd>
+<dt><b><a name="File checking1">3.2. In messages about policy violations, what does the code after POLICY [XYZ] 
+mean ?</a></b></dt>
+<dd>This code indicates which items are modified (e.g. C = checksum). You can 
+find a description in section 5.4.9 in the user manual. It is there because 
+then you can see in the message list of the Beltane web console what has been 
+modified, without the need to look at the message in detail.<br><br></dd>
+<dt><b><a name="File checking2">3.3. Does samhain support prelink ?</a></b></dt>
+<dd>Yes. There is a special checking policy [Prelink]. Directories with
+prelinked executables / shared libraries (see /etc/prelink.conf) should be
+placed under this policy, rather than under the [ReadOnly] policy.<br><br></dd>
+<dt><b><a name="File checking3">3.4. I get error messages about 'subdirectory count != hardlinks'</a></b></dt>
+<dd>Some filesystems do not always follow the rule that the number
+of directory
+hardlinks equals the number of subdirectories. E.g. the root directory of
+reiserfs partitions generally seems to have two additional hardlinks.
+To account for such exceptions, you can either switch off the
+hardlink check globally, or specify exceptions:
+<div class="block"><pre>
+[Misc]
+# Switch off hardlink check
+#
+UseHardlinkCheck=no
+</pre></div>
+<div class="block"><pre>
+[Misc]
+# Specify exceptions for the hardlink check
+#
+HardlinkOffset=N:/path
+</pre></div>
+Here, N is the numerical offset (actual - expected hardlinks) for 
+'/path'. For multiple exceptions, use
+this options multiple times (note that '/path N:/path2' would itself be a valid
+path, so using the option only once with multiple exceptions on the same line 
+would be ambiguous).<br><br></dd>
+</dl>
+<hr><h2>4. Client/Server</h2>
+<dl>
+<dt><b><a name="Client/Server0">4.1. I don't want to poke a hole into my firewall to let the client connect to the server !</a></b></dt>
+<dd>Pat Smith has posted the following solution. On the client, create
+an iptable rule as follows (<i>note: you probably don't need this if you
+configure / compile in 127.0.0.1 as the server address</i>):
+<div class="block"><pre>
+iptables -t nat -A OUTPUT -p tcp -m tcp --dport 49777 -d <i>server-ip</i> -j REDIRECT
+</pre></div>
+
+On the server, create an ssh tunnel for each client outside the firewall:
+
+<div class="block"><pre>
+ssh -f -C -R 49777:localhost:49777 -N <i>client-ip</i>
+</pre></div>
+
+It is necessary that each client has a distinct name, and that the server
+knows the name of the client. With the setup above, each client will appear
+as &quot;localhost&quot; to the server, thus the server 
+needs to trust the client name
+as reported by the client itself, and suppress all errors on resolving
+this name to the apparent address. In the server configuration:
+
+<div class="block"><pre>
+[Misc]
+SetClientFromAccept = false
+SeverityLookup = debug
+</pre></div>
+
+Obviously, self-resolving must work on the client machine, otherwise
+you are in trouble (see next issue).<br><br></dd>
+<dt><b><a name="Client/Server1">4.2. The client sends 127.0.0.1 (or some other numerical address) as its name to the log server</a></b></dt>
+<dd>See 'Client cannot self-resolve' in the 'Most frequently' section<br><br></dd>
+<dt><b><a name="Client/Server2">4.3. The server wants to send rc.ip-adress rather than rc.fqdn to the client</a></b></dt>
+<dd>The client self-resolves to its ip address. 
+See 'Client cannot self-resolve' in the 'Most frequently' section<br><br></dd>
+<dt><b><a name="Client/Server3">4.4. Cannot resolve client name host=XXX</a></b></dt>
+<dd><div class="block"><pre>
+The server must be able to determine the client name.
+This is because only authenticated connections from registered 
+clients are allowed, and
+the server must be able to check the client hostname against the list of
+allowed hosts, and look up the password verifier for that
+host.
+</pre></div>
+There are two different ways to accomplish this. Unfortunately, judging 
+from customer feedback as well from common sense, both do not work very well
+with a messed up local DNS (including /etc/hosts files) and/or
+&uuml;berparanoid or misconfigured firewalls (in case of connections 
+across one).
+<ul>
+  <li>
+     <p>
+     <i>First method: Determine client name on client, and 
+     try to cross-check on server</i>
+     <p>
+     <p>
+     This does not work for a number of people because (1) the
+     <tt>/etc/hosts</tt> file on the client machine has errors 
+     (yes, there are plenty machines with a completely 
+     messed up <tt>/etc/hosts</tt> file), (2) the
+     server cannot resolve the client address because the local DNS is
+     f***ed up, or (3) the client machine has multiple network interfaces, and
+     the interface used is not the one the client name resolves to.
+     </p>
+       <p>
+       If the client uses the wrong interface on a multi-interface machine, 
+       there is a config file option 
+       <tt>SetBindAddress=</tt><i>IP address</i>
+       that allows to choose the interface the client will use for
+       outgoing connections.
+       </p>
+       <p>
+       If you want to download the config file from the server, you
+       should instead use the corresponding command line
+       <tt>--bind-address=</tt><i>IP address</i>
+       to select the interface.
+       </p>
+
+     <p>
+     If you encounter problems, you may (1) fix your 
+     <tt>/etc/hosts</tt> file(s), (2) fix your local DNS, or
+     (3) switch to the second method.
+     </p>
+     <p>
+     Errors in name resolving/cross-checking can be avoided by setting a 
+     very low severity (lower than the logging threshold), e.g.
+     </p>
+     <p>
+     <tt>SeverityLookup=</tt><i>debug</i>
+     </p>
+     <p>
+     in the <i>Misc</i> section of the server configuration,
+     if you prefer running <i>unsafe</i> at any speed 
+     instead of fixing the problem (you have been warned). Doing so will
+     allow an attacker to pose as the client.
+     </p>
+  </li>
+  <li>
+     <p><i>Second method: Use address of connecting entity as 
+     known to the communication layer</i></p>
+     <p>
+     This has been dropped as default 
+     long ago because it may not always be the 
+     address of the client machine. 
+     To enable this method, use
+     </p>
+     <p>
+     <tt>SetClientFromAccept=</tt><i>true</i>
+     </p>
+     <p>
+     in the <i>Misc</i> section of the server configuration
+     file. If the address cannot be resolved, or reverse lookup of the
+     resolved name fails, <i>no</i> error message will be issued,
+     but the numerical address will be used.
+     </p>
+  </li>
+</ul><br><br></dd>
+<dt><b><a name="Client/Server4">4.5. Cannot resolve socket peer IP for client host=XXX peer=YYY</a></b></dt>
+<dd>See above<br><br></dd>
+<dt><b><a name="Client/Server5">4.6. Reverse lookup of socket peer failed host=XXX peer=YYY obj=ZZZ</a></b></dt>
+<dd>See above<br><br></dd>
+<dt><b><a name="Client/Server6">4.7. No socket peer alias matches client name host=XXX peer=YYY</a></b></dt>
+<dd>See above<br><br></dd>
+<dt><b><a name="Client/Server7">4.8. Session key negotiation failed</a></b></dt>
+<dd>See the document <a href="HOWTO-client+server-troubleshooting.html">HOWTO client+server troubleshooting</a><br><br></dd>
+<dt><b><a name="Client/Server8">4.9. Invalid connection attempt: Not in client list</a></b></dt>
+<dd>See the document <a href="HOWTO-client+server-troubleshooting.html">HOWTO client+server troubleshooting</a><br><br></dd>
+<dt><b><a name="Client/Server9">4.10. Invalid connection attempt: Session key mismatch</a></b></dt>
+<dd>See the document <a href="HOWTO-client+server-troubleshooting.html">HOWTO client+server troubleshooting</a><br><br></dd>
+<dt><b><a name="Client/Server10">4.11. How do I update the file signature database ?</a></b></dt>
+<dd>If you keep the file signature database on the server,
+     the database is supposed to be updated on the server, using the
+     <a href="http://www.la-samhna.de/beltane/">beltane</a> 
+     web-based console (currently in beta) and the
+     log messages from the client.
+     <p>
+     Alternatively, you can <code>scp</code> the database
+     to the client, run <code>samhain -t update -l none --foreground</code> 
+     (you
+     need to avoid logging because otherwise you will get in conflict with
+     the running samhain daemon), and then <code>scp</code> the 
+     database back to the server. Actually, with a properly set up 
+     &quot;ssh&quot;, using RSA/DSA authentication 
+     and ssh-agent you could write a script to automate this.<br><br></dd>
+<dt><b><a name="Client/Server11">4.12. Time limit exceeded</a></b></dt>
+<dd>The respective client for that this message is generated has not
+        sent anything for some interval of time (default 84600 sec = 1 day).
+        The interval can be set as follows:
+<div class="block"><pre>
+        [Misc]
+	# unit is seconds
+        SetClientTimeLimit=NNN
+</pre></div>
+
+        This feature has the purpose to detect if a client is dead. You
+        might want to ensure that timestamps are sent to the server:
+<div class="block"><pre>
+        [Log]
+	ExportSeverity=mark
+</pre></div>
+        If you don't want to use this feature, set the time limit to some
+        very large value.<br><br></dd>
+<dt><b><a name="Client/Server12">4.13. Invalid connection attempt:  Signature mismatch</a></b></dt>
+<dd>Clients sign their messages using a session key negotiated
+        with the server. The message indicates that the server could
+        not verify the signature. This may be caused by a running two
+        instances of samhain on the same client machine, both of them
+        accessing the server (and negotiating different session keys
+        ...). The system will recover automatically from the problem
+        by forcing the failed client to negotiate a fresh session key.<br><br></dd>
+<dt><b><a name="Client/Server13">4.14. [Server] PANIC .. Address already in use&nbsp; &nbsp;subroutine=bind</a></b></dt>
+<dd>The server cannot bind to its port because the port is already used.
+        Maybe you have accidentially already an instance of the
+        server running.<br><br></dd>
+</dl>
+<hr><h2>5. Email</h2>
+<dl>
+<dt><b><a name="Email0">5.1. Reverse lookup failed</a></b></dt>
+<dd>Fix your DNS (reverse lookup: numerical IP address to FQDN, to verify 
+   FQDN to numerical IP address).
+<div class="block"><pre>
+Whether &quot;nslookup&quot; works is not very informative, because 
+&quot;nslookup&quot; does not use the resolver library of the operating
+system. Therefore,
+it is not exactly the
+best tool for debugging name resolving problems (see the book
+&quot;DNS and bind&quot;).
+</pre></div><br><br></dd>
+<dt><b><a name="Email1">5.2. From daemon@example.com</a></b></dt>
+<dd>samhain fails to resolve the
+        self-address of the host. 
+See 'Client cannot self-resolve' in the 'Most frequently' section.<br><br></dd>
+<dt><b><a name="Email2">5.3. How do I define more than one email addresses ?</a></b></dt>
+<dd>Use <tt>SetMailAddress=...</tt> multiple times (upt to eight addresses
+are possible, with at most 63 characters per address):
+<div class="block"><pre>
+[Misc]
+SetMailAddress=aaa@foo.com
+SetMailAddress=bbb@foo.com
+</pre></div><br><br></dd>
+</dl>
+<hr><h2>6. Misc</h2>
+<dl>
+<dt><b><a name="Misc0">6.1. Error message: &quot;Invalid line XYZ in configuration file&quot;</a></b></dt>
+<dd>This message indicates that line XYZ in the configuration file contains
+an unrecognized directive. The primary reasons are:<br />
+
+(a) The directive should be placed into a particular section of the
+configuration file, but the section header is not present (or you forgot
+to uncomment it).<br />
+
+(b) Samhain is compiled without support for this directive.<br />
+
+(c) You have a typo in the directive.<br /><br><br></dd>
+<dt><b><a name="Misc1">6.2. Why do I get a local logfile if I log to the server ?</a></b></dt>
+<dd>Because you can use all log facilities in parallel. You should
+        switch off in the config file what you don't want/need:
+<div class="block"><pre>
+        [Log]
+        # local log file
+        LogSeverity=none
+</pre></div><br><br></dd>
+<dt><b><a name="Misc2">6.3. Why is there no NIS support with a static samhain executable on Linux ?</a></b></dt>
+<dd>Some functions (including NIS) require 
+   libraries that are only available as shared libraries
+   with modern GLIBC versions. While you can always compile a static
+   executable, normally it would still open the shared library at runtime.
+   As of version 1.8.11, samhain avoids this by providing replacement
+   functions from uClibc. However, these do not include NIS support.<br><br></dd>
+<dt><b><a name="Misc3">6.4. Why do I get hundreds of messages about modified CTIME ?</a></b></dt>
+<dd>This happens because some
+        backup applications reset the atime/mtime timestamps, which causes
+        the ctime timestamp to be modified (rootkits avoid this by
+        temporarily resetting the system clock to the original ctime ...).
+	<p>
+        To fix this problem, read the manual of your backup application, or 
+        redefine the ReadOnly policy to <i>not</i> check
+        the ctime timestamp:
+<div class="block"><pre>
+        [Misc]
+        RedefReadOnly=-CTM
+</pre></div>
+<div class="warnblock"><pre>
+        Order matters - you must <i>first</i> redefine 
+        ReadOnly <i>before</i> you use it
+</pre></div><br><br></dd>
+<dt><b><a name="Misc4">6.5. PANIC &mdash; File not accessible</a></b></dt>
+<dd>Most likely permission denied because of unsufficient privileges.<br><br></dd>
+<dt><b><a name="Misc5">6.6. How can I avoid error messages for invalid UIDs (no such user) ?</a></b></dt>
+<dd>Set SeverityNames to a low value
+<div class="block"><pre>
+[EventSeverity]
+SeverityNames=debug
+</pre></div><br><br></dd>
+<dt><b><a name="Misc6">6.7. [Redhat] The /etc/init.d/(samhain|yule) init script hangs</a></b></dt>
+<dd>Redhat uses &quot;initlog&quot; (see 
+     <code>man initlog</code>) in initscripts. If it hangs, most probably
+     samhain/yule runs in the foreground rather than as daemon. Set
+     daemon mode in the configuration file:
+<div class="block"><pre>
+[Misc]
+Daemon=yes
+</pre></div><br><br></dd>
+<dt><b><a name="Misc7">6.8. The /etc/init.d/(samhain|yule) init script exits with: execvp: No such file or directory</a></b></dt>
+<dd>Either the program is not installed, or it is not in the PATH (the one
+     used by the init script, which may be different from your PATH).<br><br></dd>
+<dt><b><a name="Misc8">6.9. Why am I not receiving the &quot;BEGIN LOGKEY&quot; message by email ?</a></b></dt>
+<dd>This message (which contains the key to verify the log file) is generated
+   when logging to the log file starts. It has the severity &quot;ALRT&quot;,
+   thus you should make sure that you have set the logging threshold for
+   email correctly to receive it.<br><br></dd>
+<dt><b><a name="Misc9">6.10. Why does console logging fail if I compile with 
+   <code>--enable-(micro-)stealth</code> ?</a></b></dt>
+<dd>The default logging options are more &quot;stealthy&quot;. Set the
+   threshold explicitely rather than relying on the default.<br><br></dd>
+<dt><b><a name="Misc10">6.11. I need a list for my schedule !</a></b></dt>
+<dd>You can have the same effect with a list of schedules. See the section
+&quot;Timing file checks&quot; in the manual.<br><br></dd>
+<dt><b><a name="Misc11">6.12. The hiding kernel module has no effect !</a></b></dt>
+<dd>Most probably you compiled using the wrong &quot;System.map&quot; file.<br><br></dd>
+<dt><b><a name="Misc12">6.13. What does the message &quot;Large lstat/open overhead&quot; mean ?</a></b></dt>
+<dd>Your system needs several seconds to proceed from an lstat() system call
+   to an open() system call. This is a tremenduous overhead, and 
+   indicates that either your system has a really severe performance problem,
+   or someone tries to slow down samhain.<br><br></dd>
+<dt><b><a name="Misc13">6.14. What does the message &quot;Device not available path=/dev/random&quot; mean ? I have /dev/random !</a></b></dt>
+<dd>/dev/random blocks unless there is some entropy it can deliver. Samhain 
+   will time out and fall back on /dev/urandom after some seconds to avoid 
+   hanging for a potentially long time. It will try /dev/random again next 
+   time it needs entropy.<br><br></dd>
+<dt><b><a name="Misc14">6.15. Logging to an external program fails; the program receives no data 
+   on stdin !</a></b></dt>
+<dd>Probably your program is not designed to <i>wait for input</i>, but exits
+   if reading fails (because there is no data <i>yet</i>). You may want to 
+   let your program wait for the terminating &quot;[EOF]&quot; line.<br><br></dd>
+<dt><b><a name="Misc15">6.16. SIGILL on AIX</a></b></dt>
+<dd>For each scanned file, samhain needs to 
+     store some information in memory (e.g. to recognize changes that have
+     already been reported, and avoid duplicate reports). On AIX, if you are
+     checking a <i>really huge</i> number of files, 
+     memory usage may exceed the default limit of 256 MB, and the process may 
+     terminate with SIGILL.
+     <p>
+     The problem can be solved by linking with the flag 
+     <code>-bmaxdata:0x80000000</code>. This allows the application to
+     access up to 8 segments (where each segment is 256MB).
+     <p>
+     If you are using gcc, you need to use instead
+     the flag <code>-Wl,bmaxdata:0x80000000</code>, which tells 
+     gcc to pass on the 
+     <i>bmaxdata</i>
+     flag to the AIX linker. You can use the LDFLAGS environment variable to
+     pass linker flags to the configure script:
+<div class="block"><pre>
+     export LDFLAGS="-Wl,bmaxdata:0x80000000"
+</pre></div><br><br></dd>
+</dl>
+<hr><h2>7. Database</h2>
+<dl>
+<dt><b><a name="Database0">7.1. Why are client messages corrupted / incompletely stored in the DB ?</a></b></dt>
+<dd>Because the messages are not in XML format, and therefore incorrectly
+        parsed. The most frequent reasons are:
+<div class="block"><pre>
+        1.) Your server is compiled with --enable-xml-log, but your client(s)
+        is/are not.
+
+        2.) In your client or server configuration file, you are using
+        the option for a custom message header, but without paying attention
+        to preserving the XML format.
+</pre></div><br><br></dd>
+<dt><b><a name="Database1">7.2. I want / don't want the server timestamps (for client messages) in the SQL database</a></b></dt>
+<dd><div class="block"><pre>
+[Database]
+SetDBServerTstamp = true/false
+</pre></div>
+
+     This will enable/disable logging of the server timestamp for client
+     messages. The server timestamp will be written to a seperate record,
+     with <i>log_ref</i> set to the value of 
+     <i>log_index</i> of the corresponding client message.<br><br></dd>
+<dt><b><a name="Database2">7.3. I don't want the client TIMESTAMP messages in the SQL database</a></b></dt>
+<dd><div class="block"><pre>
+     Sending timestamps from the client allows the server to detect if
+     a client is not running anymore (use SetClientTimeLimit=NNN in the
+     [Misc] section of the server config file to set the number of seconds
+     after which the server will issue an error message if no timestamp has
+     been received).
+</pre></div>
+
+     However, you might not want to log these timestamps to the database
+     (or other log facilities). To filter them, you can use two methods
+     (examples are for the SQL database). 
+     The first
+     one has the disadvantage that only messages of 
+     severity <i>err</i> or higher will be logged:
+<div class="block"><pre>
+     [Misc]
+     UseClientSeverity=yes
+
+     [Log]
+     DatabaseSeverity=err
+</pre></div>
+
+     The second method is more specific &mdash; log everything not
+     belonging to the STAMP class of messages:
+<div class="block"><pre>
+     [Misc]
+     UseClientClass=yes
+
+     [Log]
+     DatabaseClass=PANIC RUN FIL TCP ERR ENET EINPUT
+</pre></div><br><br></dd>
+<dt><b><a name="Database3">7.4. What does the log_ref field mean ?</a></b></dt>
+<dd>NULL are client messages. Nonzero integer is a server timestamp
+        for a client message (where log_ref indicates the log_index entry 
+        number of the corresponding client message). Zero indicates a message
+        by the server itself (e.g. the server's start message).<br><br></dd>
+<dt><b><a name="Database4">7.5. How can I check what is in the database ?</a></b></dt>
+<dd>Use a command line client to login to the database and query it:
+<div class="block"><pre>
+     sh$ mysql -u &lt;user_name&gt; -p &lt;database_name&gt;
+     Enter password: ****
+     mysql&gt; SELECT log_index,log_ref,log_host,log_sev,log_msg,path FROM &lt;table_name&gt; WHERE entry_status = 'NEW' ORDER BY log_index;
+     ....
+     mysql&gt; \q 
+</pre></div><br><br></dd>
+</dl>
+<hr>
+
+<p>Copyright (c) 2004 Rainer Wichmann</p>
+
+<p><i>This list of questions  and answers was generated by 
+<a href="http://www.makefaq.org/">makefaq</a>.</i>
+
+</div>
+</body>
+</html>

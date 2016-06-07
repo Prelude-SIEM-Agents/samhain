@@ -1,0 +1,97 @@
+CREATE DATABASE samhain;
+USE mysql;
+INSERT INTO db (Host,Db,User,Select_priv,Insert_priv,Update_priv,Delete_priv,Create_priv,Drop_priv) VALUES ('localhost','samhain','','N','Y','N','N','N','N');
+USE samhain;
+CREATE TABLE    samhain.log (
+	log_index BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	log_ref   BIGINT UNSIGNED NULL,
+	log_host  VARCHAR(64)   NOT NULL DEFAULT "localhost",
+	INDEX ix_log_host (log_host),
+	log_time  DATETIME      NOT NULL,
+	log_sev   ENUM("DEBG","INFO","NOTE","WARN","MARK","ERRO","CRIT","ALRT","RCVT")       NOT NULL,
+	log_msg   BLOB,
+
+	log_hash  VARCHAR(32) NOT NULL,
+	KEY ix_hash (log_hash),
+
+	entry_status  VARCHAR(16) NOT NULL DEFAULT "NEW",
+	INDEX ix_entry_status (entry_status),
+
+  	path          BLOB,         
+  	userid        VARCHAR(8),
+  	grp           VARCHAR(8),
+  	program       VARCHAR(8),
+  	subroutine    VARCHAR(16),
+  	status        VARCHAR(12),
+  	hash          VARCHAR(50),
+  	path_data     BLOB,         
+  	hash_data     VARCHAR(50),
+  	key_uid       VARCHAR(64),
+  	key_uid_data  VARCHAR(64),
+  	key_id        VARCHAR(16),
+  	module        VARCHAR(8),
+  	return_code   INTEGER,
+  	syscall       VARCHAR(16),
+  	ip            VARCHAR(46),
+  	tty           VARCHAR(16),
+        peer          VARCHAR(64),
+	fromhost      VARCHAR(64),
+        obj           BLOB,
+        interface     VARCHAR(64),
+        time          VARCHAR(64),
+        dir           BLOB,
+        linked_path   BLOB,
+	port          INTEGER,
+        service       VARCHAR(64),
+        facility      VARCHAR(32),
+        priority      VARCHAR(32),
+        syslog_msg    BLOB,
+
+        mode_old      VARCHAR(16),
+        mode_new      VARCHAR(16),
+	attr_old      VARCHAR(16),
+	attr_new      VARCHAR(16),
+
+        device_old    VARCHAR(16),
+        device_new    VARCHAR(16),
+        owner_old     VARCHAR(9),
+        owner_new     VARCHAR(9),
+        group_old     VARCHAR(9),
+        group_new     VARCHAR(9),
+        ctime_old     DATETIME,
+        ctime_new     DATETIME,
+        atime_old     DATETIME,
+        atime_new     DATETIME,
+        mtime_old     DATETIME,
+        mtime_new     DATETIME,
+        chksum_old    VARCHAR(50),
+        chksum_new    VARCHAR(50),
+        link_old      BLOB,
+        link_new      BLOB,
+	
+        size_old      BIGINT UNSIGNED,
+        size_new      BIGINT UNSIGNED,
+        hardlinks_old BIGINT UNSIGNED,
+        hardlinks_new BIGINT UNSIGNED,
+        inode_old     BIGINT UNSIGNED,
+        inode_new     BIGINT UNSIGNED,
+
+	imode_old     BIGINT UNSIGNED,
+	imode_new     BIGINT UNSIGNED,
+	iattr_old     BIGINT UNSIGNED,
+	iattr_new     BIGINT UNSIGNED,
+	idevice_old   BIGINT UNSIGNED,
+	idevice_new   BIGINT UNSIGNED,
+	iowner_old    BIGINT UNSIGNED,
+	iowner_new    BIGINT UNSIGNED,
+	igroup_old    BIGINT UNSIGNED,
+	igroup_new    BIGINT UNSIGNED,
+	checkflags_old    BIGINT UNSIGNED,
+	checkflags_new    BIGINT UNSIGNED,
+	
+
+        acl_old       BLOB,
+        acl_new       BLOB
+                 
+        );
+	

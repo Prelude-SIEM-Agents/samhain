@@ -1,0 +1,452 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>HOWTO client+server troubleshooting</title>
+<style type="text/css">
+<!--
+
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #b6c5f2; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #2d4488;
+}
+
+div.warnblock {
+	background: #b6c5f2; color: #000;
+	background: #ffffcc; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #FF9900;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #285577; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #2d5588; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style></head>
+
+<body>
+<div class="body">
+<p style="text-align: center; background: #ccc; border: 1px solid #2d5588;"><a 
+   style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/">samhain file integrity 
+   scanner</a>&nbsp;|&nbsp;<a style="text-decoration: none;" 
+   href="http://www.la-samhna.de/samhain/s_documentation.html">online 
+   documentation</a></p>
+<br><center>
+<h1>Samhain client/server: What can go wrong, and how can you fix it ?</h1>
+</center>
+<br>
+<hr>
+<div class="warnblock">
+<ul>
+  <li>Almost all problems can only be diagnosed correctly by checking the 
+      <b>server logs</b>.</li>
+  <li>
+    If the server does not write logs, <b>fix this first</b>. For debugging, 
+    stop the server, then run it in the foreground with 
+    <tt>yule -p info --foreground</tt>
+    <ul>
+      <li>
+	By default, the server logs to the file 
+	<tt>/var/log/yule/yule_log</tt>, and since the server drops 
+	root privileges on startup, the directory <tt>/var/log/yule</tt>
+	must be writable for the nonprivileged user the server runs 
+	as (the first existing out of: yule, daemon, nobody).
+      </li>
+      <li>
+	Logging to the logfile must be enabled in the
+	<tt>/etc/yulerc</tt> config file (e.g. LogSeverity=mark, or 
+	LogSeverity=info for enhanced verbosity).
+      </li>
+    </ul>
+  </li>
+</ul>
+</div>
+<p>
+This document aims to explain how to diagnose and fix common problems that
+may result from misunderstanding or misconfiguration when setting up 
+a client/server samhain system. This document is divided in several sections
+more or less corresponding to the different stages when a client
+connects to a server. Each section starts with a brief explanation that
+should provide a basic understanding of what is going on.
+</p>
+<p>
+This document does not discuss <i>how</i> to setup a client/server (for
+this, look into the manual and/or the HOWTO-client+server). 
+</p>
+
+<h2><a name="sect1">Table of Contents</a></h2>
+<p>
+<a href="#sect1">Connecting to the server</a><br>
+<a href="#sect2">Authentication</a><br>
+<a href="#sect3">Downloading config/database files</a><br>
+<a href="#sect4">Other connection problems</a><br>
+</p>
+
+<h2><a name="sect1">Connecting to the server</a></h2>
+
+<p>
+Client/server connections are always initiated from the client. The port
+is compiled in (there is a configure option to change the default).
+The default port is 49777.
+</p>
+
+<h3>Problem #1</h3>
+<p>
+The client reports: <b>Connection refused</b>. The server reports nothing.
+</p>
+<p>
+The server is down, listens on the wrong port, or network failure.
+</p>
+
+<h3>Problem #2</h3>
+<p>
+The client reports: <b>Connection error: Connection reset by peer</b>, and
+later also <b>Session key negotiation failed</b>. The server reports:
+<b>msg=&quot;Refused connection from ...&quot; subroutine=&quot;libwrap&quot;</b>.
+</p>
+<p>
+The server is compiled with libwrap (TCP Wrapper) support, and the
+client is either in <tt>/etc/hosts.deny</tt>, or you have set <i>yule: ALL</i>
+in <tt>/etc/hosts.deny</tt>, and forgot to put the client in 
+<tt>/etc/hosts.allow</tt>.
+</p>
+<p>
+To fix: make proper entries in <tt>/etc/hosts.allow</tt> and/or 
+<tt>/etc/hosts.deny</tt>. There is no need to restart/reload the server.
+</p>
+
+
+<h2><a name="sect2">Authentication</a></h2>
+<p>
+The client has a password that is used to authenticate to the server.
+This password is located within the binary, and is set with the
+<tt>samhain_setpwd</tt> helper application, as explained e.g. in the
+manual or in the Client+Server HOWTO.
+</p><p>
+The server has a list of clients that are allowed to connect, and the
+verifiers corresponding to the passwords of these clients.
+</p>
+<p>
+Upon successful authentication, client and server will negotiate
+a <b>session key</b> that is used for signing further messages
+from the client.
+</p>
+
+<h3>Problem #1</h3>
+
+<p>
+If the password is wrong, the client will report 
+<b>Session key negotiation failed</b>. The server will
+report: <b>Invalid connection attempt: Session key mismatch</b>
+</p>
+<p>
+To fix: make sure that the password has in fact been set, that you are
+using the correct executable for the client (the one where the password is 
+set), and that the entry in the server config file is the one generated
+for this password (also look out for double entries for this client).
+</p>
+
+<h3>Problem #2</h3>
+
+<p>
+If the client name (as resolved on the server) is wrong, the client 
+will report 
+<b>Session key negotiation failed</b>. The server will
+report: <b>Invalid connection attempt: Not in client list</b>,
+<i>and</i> it will tell you in the same error message 
+what name it has inferred for the connecting
+client (example): <b>client=&quot;client.mydomain.com&quot;</b>.
+</p>
+<p> 
+The fix depends on the nature of the problem. In principle, it should be
+sufficient to change the name of the client in the config file entry, which
+isn't really a solution if e.g. the server thinks the client is 'localhost'.
+</p>
+<p>
+There are two different ways to determine the client name. 
+Unfortunately, judging 
+from customer feedback as well from common sense, both do not work very well
+with a messed up local DNS (including /etc/hosts files) and/or
+&uuml;berparanoid or misconfigured firewalls (in case of connections 
+across one).
+</p>
+<ul>
+  <li>
+     <p>
+     <i>First method: Determine client name on client, and 
+     try to cross-check on server</i>
+     <p>
+     <p>
+     This does not work for a number of people because
+     <ol>
+       <li>
+	 the
+	 <tt>/etc/hosts</tt> file on the client machine has errors 
+	 (yes, there are plenty machines with a completely 
+	 messed up <tt>/etc/hosts</tt> file),
+       </li>
+       <li>
+	 the
+	 server cannot resolve the client address because the local DNS is
+	 misconfigured, or 
+       </li>
+       <li> 
+	 the client machine has multiple network interfaces, and
+	 the interface used is not the one the client name resolves to.
+       </li>
+     </ol>
+     </p>
+
+     <p>
+       If the client uses the wrong interface on a multi-interface machine, 
+       there is a config file option 
+       <tt>SetBindAddress=</tt><i>IP address</i>
+       that allows to choose the interface the client will use for
+       outgoing connections.
+     </p>
+     <p>
+       If you want to download the config file from the server, you
+       should instead use the corresponding command line option
+       <tt>--bind-address=</tt><i>IP address</i>
+       to select the interface.
+     </p>
+
+     <p>
+       If you encounter problems, you may (1) fix your 
+       <tt>/etc/hosts</tt> file(s), (2) fix your local DNS, or
+       (3) switch to the second method.
+     </p>
+     <p>
+       Error messages related to name resolving/cross-checking can be 
+       suppressed by setting a 
+       very low severity (lower than the logging threshold), e.g.
+     </p>
+     <p>
+       <tt>SeverityLookup=</tt><i>debug</i>
+     </p>
+     <p>
+       in the <i>Misc</i> section of the server configuration,
+       if you prefer running <i>unsafe</i> at any speed 
+       instead of fixing the problem (you have been warned). Doing so will
+       allow an attacker to pose as the client.
+     </p>
+  </li>
+  <li>
+     <p><i>Second method: Use address of connecting entity as 
+     known to the communication layer</i></p>
+     <p>
+     This has been dropped as default 
+     long ago because it may not always be the 
+     address of the client machine. 
+     To enable this method, use
+     </p>
+     <p>
+     <tt>SetClientFromAccept=</tt><i>true</i>
+     </p>
+     <p>
+     in the <i>Misc</i> section of the server configuration
+     file. If the address cannot be resolved, or reverse lookup of the
+     resolved name fails, <i>no</i> error message will be issued,
+     but the numerical address will be used.
+     </p>
+  </li>
+</ul>
+
+
+<h2><a name="sect3">Downloading config/database files</a></h2>
+
+<p>
+The client does <i>not</i> tell the server the path to the requested
+file - it just tells the <em>type</em> of the file, i.e. 
+either a configuration file or a database file. It is entirely the
+responsibility of the server to locate the correct file and send it.
+</p>
+<p>
+The server has a <i>data directory</i>, which by default would be 
+<tt>/var/lib/yule</tt>. Here the config/database files should be placed.
+</p>
+<p>
+Configuration files: <tt>rc.</tt><i>client.mydomain.tld</i> or 
+simply <tt>rc</tt> 
+(this can be used as a catchall file).
+</p>
+<p>
+Database files: <tt>file.</tt><i>client.mydomain.tld</i> or 
+simply <tt>file</tt> 
+(this can be used as a catchall file).
+</p>
+
+<h3>Problem #1</h3>
+
+<p>
+If the server cannot access the configuration (or database) file, either
+because it does not exist or the server has no read permission, the
+client will report <b>File download failed</b>. The server will
+report: <b>File not accessible</b>, <i>and</i> it will tell you in the
+same report the path where it would have expected the file (example):
+<b>path=&quot;/var/lib/yule/rc.client.mydomain.com&quot;</b>
+</p>
+<p>
+To fix: put the file in the correct location, make sure the permissions
+are ok.
+<ul>
+  <li>
+    Note that <em>the server drops root privileges at startup</em> and
+    runs as an unprivileged user (the first existing out of: 
+    yule, daemon, nobody).
+  </li>
+  <li>
+    Also remember that to access a file, at least execute permission is required
+    <em>for every directory in the path</em>.
+  </li>
+</ul>
+</p>
+
+
+<h2><a name="sect4">Other connection problems</a></h2>
+
+<p>
+The server has a table with client names and their session keys. If 
+another client process accesses the server from the same host,
+it will negotiate a fresh session key for that host. As a consequence,
+the session key of the first client process will become <i>invalid</i>.
+</p>
+<p>
+Also, the server keeps track of the status of a client. If a client 
+process does not announce its termination to the server, the server
+will not expect a <i>startup</i> message, and issue a warning for any
+such message.
+</p>
+
+<h3>Problem #1</h3>
+
+<p>
+The client reports: <b>Invalid connection state</b>. The server reports:
+<b>Invalid connection attempt: Signature mismatch</b>. This is a sign that
+a client has tried to connect using an invalid session key. Most probably,
+another instance of the client is/was started on the respective host.
+</p>
+<p>
+To fix: if you need to have concurrent access to the server, 
+suspend the first process with SIGUSR2 before starting the second. Use
+SIGUSR2 again to wake up the first process. Give the process a second or two
+to return into the main event loop and go into suspend mode. Do not just use
+SIGSTOP/SIGCONT: it is important that the client tells the server that
+it will go into suspend.
+</p>
+
+<h3>Problem #2</h3>
+
+<p>
+The server reports:
+<b>Restart without prior exit</b> for a client.
+This is a sign that
+a client has re-started without informing the server about a previous
+termination.
+</p>
+<p>
+This would happen if the client was killed with SIGKILL, or if it terminated
+within the routine to send a message to the server (the routine is 
+not re-entrant). You may want to investigate messages logged via another
+logging facility (e.g. the client's local logfile). Of course it <i>may</i>
+also be a segfault, which would be reported via syslog.
+</p>
+
+</div>
+</body>
+</html>

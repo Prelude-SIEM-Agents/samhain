@@ -1,0 +1,726 @@
+#! /usr/bin/perl
+
+# Copyright Rainer Wichmann (2004)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+use warnings;
+use strict;
+use Getopt::Long;
+use File::Basename;
+use File::Copy;
+use File::stat;
+use File::Temp qw/ tempfile tempdir unlink0 /;
+use IO::Handle;
+use Fcntl qw(:DEFAULT :flock);
+use Tie::File;
+
+# Do I/O to the data file in binary mode (so it 
+# wouldn't complain about invalid UTF-8 characters).
+use bytes;
+
+File::Temp->safe_level( File::Temp::HIGH );
+
+my %opts = ();
+my $action;
+my $file1;
+my $file2;
+my $passphrase;
+my $secretkeyring;
+my $return_from_sign = 0;
+my $no_print_examine = 0;
+my $no_remove_lock   = 0;
+my $base = basename($0);
+
+my $cfgfile  = "@myconffile@";
+my $datafile = "@mydatafile@";
+my $daemon   = "@sbindir@/@install_name@";
+my $gpg      = "@mygpg@";
+
+my $TARGETKEYID = "@mykeyid@";
+my $KEYTAG      = "@mykeytag@";
+
+$cfgfile  =~ s/^REQ_FROM_SERVER//;
+$datafile =~ s/^REQ_FROM_SERVER//;
+
+$gpg = "gpg" if ($gpg eq "");
+
+sub check_gpg_agent() {
+    my  $gpgconf = "$ENV{'HOME'}/.gnupg/gpg.conf";
+
+    if (!-f "$gpgconf") {
+	$gpgconf = "$ENV{'HOME'}/.gnupg/options";
+    }
+
+    if (-f $gpgconf) {
+
+	my @array = ();
+	tie @array, 'Tie::File', $gpgconf or die "Cannot tie ${gpgconf}: $!";
+	my @grep = grep(/^\s*use-agent/, @array);
+	
+	# print "matches = $#grep\n";
+	
+	if ($#grep >= 0)
+	{
+	    if (exists $ENV{'GPG_AGENT_INFO'})
+	    {
+		my $socke = $ENV{'GPG_AGENT_INFO'};
+		$socke =~ s/:.*//;
+		
+		# print "socke = $socke\n";
+		
+		if (! -S $socke)
+		{
+		    print "--------------------------------------------------\n";
+		    print "\n";
+		    print " GPG is set to use gpg-agent, but GPG agent is";
+		    print " not running, though GPG_AGENT_INFO is defined.\n\n";
+		    print " Please restart gpg-agent, or remove the use-agent\n";
+		    print " option from ${gpgconf} and unset GPG_AGENT_INFO\n\n";
+		    print "--------------------------------------------------\n";
+		    print "\n";
+		    exit 1;
+		}
+	    }
+	    else
+	    {
+		print "--------------------------------------------------\n";
+		print "\n";
+		print " GPG is set to use gpg-agent, but ";
+		print " GPG_AGENT_INFO is not defined.\n\n";
+		print " Please start gpg-agent, or remove the use-agent\n";
+		print " option from ${gpgconf}\n\n";
+		print "--------------------------------------------------\n";
+		print "\n";
+		exit 1;
+	    }
+	}
+	untie @array;
+    }
+}
+
+
+sub usage() {
+    print "Usage:\n";
+    print "  $base { -m F | --create-cfgfile }    [options] [in.cfgfile]\n";
+    print "    Sign the configuration file. If in.cfgfile is given, sign it\n";
+    print "    and install it as configuration file.\n\n";
+
+    print "  $base { -m f | --print-cfgfile }     [options] \n";
+    print "    Print the configuration file to stdout. Signatures are removed.\n\n";
+
+    print "  $base { -m D | --create-datafile }   [options] [in.datafile]\n";
+    print "    Sign the database file. If in.datafile is given, sign it\n";
+    print "    and install it as database file.\n\n";
+
+    print "  $base { -m d | --print-datafile }    [options] \n";
+    print "    Print the database file to stdout. Signatures are removed. Use\n";
+    print "    option --list to list files in database rather than printing the raw file.\n\n";
+
+    print "  $base { -m R | --remove-signature }  [options] file1 [file2 ...]\n";
+    print "    Remove cleartext signature from input file(s). The file\n";
+    print "    is replaced by the non-signed file.\n\n";
+
+    print "  $base { -m E | --sign }              [options] file1 [file2 ...]\n";
+    print "    Sign file(s) with a cleartext signature. The file\n";
+    print "    is replaced by the signed file.\n\n";
+
+    print "  $base { -m e | --examine }           [options] file1 [file2 ...]\n";
+    print "    Report signature status of file(s).\n\n";
+
+    print "  $base { -m G | --generate-keys }     [options] \n";
+    print "    Generate a PGP keypair to use for signing.\n\n";
+
+    print "Options:\n";
+    print "  -c cfgfile    --cfgfile cfgfile\n";
+    print "    Select an alternate configuration file.\n\n";
+
+    print "  -d datafile   --datafile datafile\n";
+    print "    Select an alternate database file.\n\n";
+
+    print "  -p passphrase --passphrase passphrase\n";
+    print "    Set the passphrase for gpg. By default, gpg will ask.\n\n";
+
+    print "  -s gnupg_homedir --secretkeyring gnupg_homedir\n";
+    print "    Select an alternate gpg homedirectory to locate the secret keyring.\n";
+    print "    Will use '$ENV{'HOME'}/.gnupg/' by default.\n\n";
+
+    print "  -k keyid      --keyid keyid\n";
+    print "   Select the keyid to use for signing.\n\n";
+
+    print "  -l            --list\n";
+    print "    List the files in database rather than printing the raw file.\n\n";
+
+    print "  -v            --verbose\n";
+    print "    Verbose output.\n\n";
+    return;
+}
+
+sub check_gpg_uid () {
+    if (0 != $>) {
+	print "--------------------------------------------------\n";
+	print "\n";
+	print " You are not root. Please remember that samhain/yule\n";
+	print " will use the public keyring of root to verify a signature.\n";
+	print "\n";
+	print "--------------------------------------------------\n";
+    } else {
+	if (!("@yulectl_prg@" =~ //)) {
+	    print "--------------------------------------------------\n";
+	    print "\n";
+	    print " Please remember that yule will drop root after startup. Signature\n";
+	    print " verification on SIGHUP will fail if you do not import the public key\n";
+	    print " into the keyring of the non-root yule user.\n";
+	    print "\n";
+	    print "--------------------------------------------------\n";
+	}
+    }
+}
+    
+sub check_gpg_sign () {
+    if ( defined($secretkeyring)) {
+        if ( (!-d "$secretkeyring")){
+            print "--------------------------------------------------\n";
+            print "\n";
+            print " Secret keyring $secretkeyring not found!\n";
+            print "\n";
+            print " Please check the path/name of the alternate secret keyring.\n";
+            print "\n";
+            print "--------------------------------------------------\n";
+            print "\n";
+            exit;
+        }
+    } else {
+        if ( (!-d "$ENV{'HOME'}/.gnupg") || (!-e "$ENV{'HOME'}/.gnupg/secring.gpg")) {
+	    print "--------------------------------------------------\n";
+	    print "\n";
+	    if (!-d "$ENV{'HOME'}/.gnupg") {
+	        print " Directory \$HOME/.gnupg not found!\n";
+	    } else {
+	        print " Secret keyring \$HOME/.gnupg/secring.gpg not found!\n";
+	    }
+	    print "\n";
+	    print " This indicates that you have never created a \n";
+	    print " public/private keypair, and thus cannot sign.\n";
+	    print " \n";
+	    print " Please use $0 --generate-keys or gpg --gen-key\n";
+	    print " to generate a public/private keypair first.\n";
+	    print "\n";
+	    print "--------------------------------------------------\n";
+	    print "\n";
+	    exit;
+        }
+    }
+}
+
+sub check_gpg_verify () {
+    if ( (!-d "$ENV{'HOME'}/.gnupg") || (!-e "$ENV{'HOME'}/.gnupg/pubring.gpg")) {
+	print "--------------------------------------------------\n";
+	print "\n";
+	if (!-d "$ENV{'HOME'}/.gnupg") {
+	    print " Directory \$HOME/.gnupg not found!\n";
+	} else {
+	    print " Public keyring \$HOME/.gnupg/pubring.gpg not found!\n";
+	}
+	print "\n";
+	print " This indicates that you have never used gpg before \n";
+	print " and/or have no public keys to verify signatures.\n";
+	print " \n";
+	print " Please use 'gpg --export key_id' to export the public\n";
+	print " signing key of the user who is signing the\n";
+	print " configuration/database files.\n\n";
+	print " Then you can use 'gpg --import keyfile' to import the key\n";
+	print " into this user's public keyring.\n";
+	print "\n";
+	print "--------------------------------------------------\n";
+	print "\n";
+	exit;
+    }
+}
+
+
+sub generate () {
+    my $command = "$gpg --homedir $ENV{'HOME'}/.gnupg --gen-key";
+    check_gpg_uid();
+    system ($command) == 0 
+	or die "system $command failed: $?";
+    exit;
+}
+
+sub examine () {
+    my $iscfg = 0;
+    my $have_fp  = 0;
+    my $have_sig = 0;
+    my $message = '';
+    my $retval  = 9;
+    my $fh;
+    my $filename;
+
+    if (!($file1 =~ /^\-$/)) {
+	die ("Cannot open $file1 for read: $!") unless ((-e $file1) && (-r _));
+    }
+    open FIN,  "<$file1" or die "Cannot open $file1 for read: $!";
+
+    my $dir = tempdir( CLEANUP => 1 );
+    $filename = $dir . "/exa_jhfdbilw." . $$;
+    open $fh, ">$filename" or die "Cannot open $filename";
+    autoflush $fh 1;
+
+    while (<FIN>) {
+	print $fh $_;
+	if ($_ =~ /^\s*\[Misc\]/) {
+	    $iscfg = 1;
+	}
+    }
+    if ($iscfg == 1) {
+	$message .=  "File $file1 is a configuration file\n\n";
+    } else {
+	$message .=  "File $file1 is a database file\n\n";
+    }
+
+
+    my $command = "$gpg --homedir $ENV{'HOME'}/.gnupg --status-fd 1 ";
+    $command .= "--verbose " if (defined($opts{'v'}));
+    $command .= "--verify $filename ";
+    if (defined($opts{'v'})) {
+	$command .= "2>&1";
+    } else {
+	$command .= "2>/dev/null";
+    }
+
+    print STDOUT "Using: $command\n\n" if (defined($opts{'v'}));
+    open  GPGIN, "$command |" or die "Cannot fork: $!";
+
+    while (<GPGIN>) {
+	if ($_ =~ /^\[GNUPG:\] GOODSIG ([0-9A-F]+) (.*)$/) {
+	    $message .= "GOOD signature with key: $1\n";
+	    $message .= "Key owner:               $2\n";
+	    $have_sig = 1;
+	    $retval   = 0;
+	}
+	if ($_ =~ /^\[GNUPG:\] VALIDSIG ([0-9A-F]+) ([0-9\-]+)\s/) {
+	    $message .= "Key fingerprint:         $1\n";
+	    $message .= "Signature generated on:  $2\n\n";
+	    $have_fp = 1;
+	    $message .=  "This file is signed with a valid signature.\n" 
+		if ($have_sig == 1);
+	    $have_sig = 1;
+	    $have_fp = 1;
+	}
+	if ($_ =~ /^\[GNUPG:\] NODATA 1/) {
+	    $message .=  "NO signature found.\n\n";
+	    $message .=  "This file is not signed !!!\n";
+	    $have_sig = 1;
+	    $have_fp = 1;
+	    $retval  = 2;
+	}
+	if ($_ =~ /^\[GNUPG:\] BADSIG ([0-9A-F]+) (.*)$/) {
+	    $message .=  "BAD signature with key: $1\n";
+	    $message .=  "Key owner:              $2\n\n";
+	    $message .=  "This file is signed with an invalid signature !!!\n";
+	    $have_sig = 1;
+	    $have_fp = 1;
+	    $retval = 1;
+	}
+	if ($_ =~ /^\[GNUPG:\] NO_PUBKEY ([0-9A-F]+)/) {
+	    $message .=  "NOT CHECKED signature with key: $1\n\n";
+	    $message .=  "The signature of this file cannot be checked: no public key available !!!\n";
+	    $have_sig = 1;
+	    $have_fp = 1;
+	    $retval  = 1;
+	}
+	print STDOUT $_ if (defined($opts{'v'}));
+    }
+    close (GPGIN);
+    print STDOUT "\n" if (defined($opts{'v'}));
+    if ($have_sig == 0) {
+	$message .=  "NO valid signature found\n";
+    } 
+    elsif ($have_fp == 0) {
+	$message .=  "NO fingerprint found\n";
+    }
+    close (FIN);
+    if ($no_print_examine == 0) {
+	print STDOUT $message;
+    }
+    unlink0( $fh, $filename ) or die "Cannot unlink $filename safely";
+    return $retval;
+}
+
+sub remove () {
+    my $bodystart = 1;
+    my $sigstart  = 0;
+    my $sigend    = 0;
+    my $filename  = "";
+    my $fh;
+    my $stats;
+
+    open FH, "<$file1" or die "Cannot open file $file1 for read: $!";
+    if (!($file1 =~ /^\-$/)) {
+	flock(FH, LOCK_EX) unless ($no_remove_lock == 1);
+	my $dir = tempdir( CLEANUP => 1 ) or die "Tempdir failed";
+	$filename = $dir . "/rem_iqegBCQb." . $$;
+	open $fh, ">$filename" or die "Cannot open $filename";
+	$stats = stat($file1);
+	# ($fh, $filename) = tempfile(UNLINK => 1);
+    } else {
+	open $fh, ">$file1" or die "Cannot open file $file1 for write: $!";
+    }
+    autoflush $fh 1;
+    while (<FH>) {
+	if ($_ =~ /^-----BEGIN PGP SIGNED MESSAGE-----/) {
+	    $sigstart = 1;
+	    $bodystart = 0;
+	    next;
+	} elsif (($sigstart == 1) && ($_ =~ /^\s+$/)) {
+	    $sigstart = 0;
+	    $bodystart = 1;
+	    next;
+	} elsif ($_ =~ /^-----BEGIN PGP SIGNATURE-----/) {
+	    $bodystart = 0;
+	    $sigend = 1;
+	    next;
+	} elsif (($sigend == 1) && ($_ =~ /^-----END PGP SIGNATURE-----/)) {
+	    $sigend = 0;
+	    $bodystart = 1;
+	    next;
+	}
+	if ($bodystart == 1) {
+	    print $fh $_;
+	}
+    }
+    if (!($file1 =~ /^\-$/)) {
+	copy("$filename", "$file1") 
+	    or die "Copy $filename to $file1 failed: $!";
+	chmod $stats->mode, $file1;
+	chown $stats->uid, $stats->gid, $file1;
+	flock(FH, LOCK_UN) unless ($no_remove_lock == 1);
+	close FH;
+    }
+    unlink0( $fh, $filename ) or die "Cannot unlink $filename safely";
+    return;
+}
+
+sub print_cfgfile () {
+    my $bodystart = 0;
+    my $sigstart  = 0;
+
+    if (!defined($file2)) {
+	$file2 = '-';
+    }
+
+    open FH, "<$file1" or die "Cannot open file $file1 for read: $!";
+    open FO, ">$file2" or die "Cannot open file $file2 for write: $!";
+    while (<FH>) {
+	if ($_ =~ /^-----BEGIN PGP SIGNED MESSAGE-----/) {
+	    $sigstart = 1;
+	    next;
+	} elsif (($sigstart == 1) && ($_ =~ /^\s+$/)) {
+	    $sigstart = 0;
+	    $bodystart = 1;
+	    next;
+	} elsif ($_ =~ /^-----BEGIN PGP SIGNATURE-----/) {
+	    $bodystart = 0;
+	    exit;
+	}
+	if ($bodystart == 1) {
+	    print FO $_;
+	}
+    }
+    exit;
+}
+sub print_datafile () {
+    die ("Cannot find program $daemon") 
+	unless (-e $daemon);
+    if (defined($opts{'v'})) {
+	open FH, "$daemon --full-detail -d $datafile |" 
+	    or die "Cannot open datafile $datafile for read: $!";
+    } else {
+	open FH, "$daemon -d $datafile |" 
+	    or die "Cannot open datafile $datafile for read: $!";
+    }
+    while (<FH>) {
+	print $_;
+    }
+    exit;
+}
+
+sub sign_file () {
+
+    my $fileout = '';
+    my $bodystart = 1;
+    my $sigstart  = 0;
+    my $sigend    = 0;
+    my $stats;
+    my $fh1;
+    my $filename1;
+    my $flag1     = 0;
+
+    check_gpg_uid();
+    check_gpg_agent();
+
+    if (!defined($file2)) {
+	$file2 = $file1;
+    }
+
+    if ($file1 =~ /^\-$/) {
+	my $dir = tempdir( CLEANUP => 1 ) or die "Tempdir failed";
+	$filename1 = $dir . "/sig_vs8827sd." . $$;
+	open $fh1, ">$filename1" or die "Cannot open $filename1";
+	$flag1 = 1;
+	# my ($fh1, $filename1) = tempfile(UNLINK => 1);
+
+	while (<STDIN>) {
+	  if ($_ =~ /^-----BEGIN PGP SIGNED MESSAGE-----/) {
+	    $sigstart = 1;
+	    $bodystart = 0;
+	    next;
+	  } elsif (($sigstart == 1) && ($_ =~ /^\s+$/)) {
+	    $sigstart = 0;
+	    $bodystart = 1;
+	    next;
+	  } elsif ($_ =~ /^-----BEGIN PGP SIGNATURE-----/) {
+	    $bodystart = 0;
+	    $sigend = 1;
+	    next;
+	  } elsif (($sigend == 1) && ($_ =~ /^-----END PGP SIGNATURE-----/)) {
+	    $sigend = 0;
+	    $bodystart = 1;
+	    next;
+	  }
+	  if ($bodystart == 1) {
+	    print $fh1 $_;
+	  }
+	  #
+	  # print $fh1 $_;
+	  #
+	}
+	$file1 = $filename1;
+	$fileout = '-';
+    } else {
+	open (LOCKFILE, "<$file1") or die "Cannot open $file1: $!";
+	flock(LOCKFILE, LOCK_EX);
+	$no_print_examine = 1;
+	$no_remove_lock   = 1;
+	if (examine() < 2) {
+	    remove();
+	}
+	$fileout = $file1 . ".asc";
+	$stats   = stat($file1)
+	    or die "No file $file1: $!";
+    }
+
+    if (defined($passphrase)) {
+	local $SIG{PIPE} = 'IGNORE';
+	my $command = "$gpg --homedir $ENV{'HOME'}/.gnupg --passphrase-fd 0 -a ${KEYTAG} ${TARGETKEYID} --clearsign -o $fileout --not-dash-escaped ";
+        $command .= "--secret-keyring $secretkeyring " if (defined($opts{'s'}));
+	$command .= "$file1";
+	open (FH, "|$command")  or die "can't fork: $!";
+	print FH "$passphrase"  or die "can't write: $!";
+	close FH                or die "can't close: status=$?";
+    } else {
+	my $command = "$gpg --homedir $ENV{'HOME'}/.gnupg                   -a ${KEYTAG} ${TARGETKEYID} --clearsign -o $fileout --not-dash-escaped ";
+        $command .= "--secret-keyring $secretkeyring " if (defined($opts{'s'}));
+	$command .= "$file1";
+	system("$command") == 0 
+	    or die "system $command failed: $?";
+    }
+
+    if (!($fileout =~ /^\-$/)) {
+	my $st_old = stat($file1) 
+	    or die "No file $file1: $!";
+	my $st_new = stat($fileout) 
+	    or die "No file $fileout: $!";
+	die ("Signed file is smaller than unsigned file") 
+	    unless ($st_new->size > $st_old->size);
+	move("$fileout", "$file2") 
+	    or die "Move $fileout to $file2 failed: $!";
+	chmod $stats->mode, $file2;
+	chown $stats->uid, $stats->gid, $file2;
+	flock(LOCKFILE, LOCK_UN);
+    }
+
+    if ($flag1 == 1) {
+	unlink0( $fh1, $filename1 ) or die "Cannot unlink $filename1 safely";
+    }
+    if ($return_from_sign == 1) {
+	return;
+    }
+    exit;
+}
+
+Getopt::Long::Configure ("posix_default");
+Getopt::Long::Configure ("bundling");
+# Getopt::Long::Configure ("debug");
+
+GetOptions (\%opts, 'm=s', 'h|help', 'v|verbose', 'l|list',
+	    'c|cfgfile=s',
+	    'd|datafile=s',
+	    'p|passphrase=s',
+	    's|secretkeyring=s',
+            'k|keyid=s',
+	    'create-cfgfile',  # -m F
+	    'print-cfgfile',   # -m f
+	    'create-datafile', # -m D
+	    'print-datafile',  # -m d
+	    'remove-signature',# -m R
+	    'sign',            # -m E
+	    'examine',         # -m e
+	    'generate-keys');  # -m G
+
+if (defined ($opts{'h'})) {
+    usage();
+    exit;
+}
+
+if (defined($opts{'k'})) {
+    $TARGETKEYID = $opts{'k'};
+    $KEYTAG = "--default-key";
+}
+if (defined($opts{'c'})) {
+    $cfgfile = $opts{'c'};
+}
+if (defined($opts{'d'})) {
+    $datafile = $opts{'d'};
+}
+if (defined($opts{'p'})) {
+    $passphrase = $opts{'p'};
+}
+if (defined($opts{'s'})) {
+    $secretkeyring = $opts{'s'};
+}
+
+if (defined ($opts{'m'}) && ($opts{'m'} =~ /[FfDdREeG]{1}/) ) {
+    $action = $opts{'m'};
+}
+elsif (defined ($opts{'create-cfgfile'})) {
+    $action = 'F';
+}
+elsif (defined ($opts{'print-cfgfile'})) {
+    $action = 'f';
+}
+elsif (defined ($opts{'create-datafile'})) {
+    $action = 'D';
+}
+elsif (defined ($opts{'print-datafile'})) {
+    $action = 'd';
+}
+elsif (defined ($opts{'remove-signature'})) {
+    $action = 'R';
+}
+elsif (defined ($opts{'sign'})) {
+    $action = 'E';
+}
+elsif (defined ($opts{'examine'})) {
+    $action = 'e';
+}
+elsif (defined ($opts{'generate-keys'})) {
+    $action = 'G';
+}
+else {
+    usage();
+    die ("No valid action specified !");
+}
+
+if (defined($ARGV[0])) {
+    $file1 = $ARGV[0];
+} 
+if (defined($ARGV[1])) {
+    $file2 = $ARGV[1];
+} 
+
+
+if (($action =~ /[REe]{1}/) && !defined($file1)) {
+    usage();
+    die("Option -m $action requires a filename (or '-' for stdio)\n");
+}
+
+if ($action =~ /^F$/) {
+    if (!defined($file1)) {
+	$file1 = $cfgfile;
+    }
+    $file2 = $cfgfile;
+    sign_file ();
+}
+
+if ($action =~ /^D$/) {
+    if (!defined($file1)) {
+	$file1 = $datafile;
+    }
+    $file2 = $datafile;
+    sign_file ();
+}
+
+if ($action =~ /^R$/) {
+    # $file1 defined
+    my $i = 0;
+    while (defined($ARGV[$i])) {
+	$file1 = $ARGV[$i];
+	remove ();
+	++$i;
+    }
+}
+
+if ($action =~ /^E$/) {
+    # $file1 defined
+    # default: $file2 = $file1
+    check_gpg_sign();
+    my $i = 0;
+    while (defined($ARGV[$i])) {
+	$file1 = $ARGV[$i];
+	$file2 = $file1;
+	$return_from_sign = 1;
+	sign_file ();
+	++$i;
+    }
+}
+
+if ($action =~ /^e$/) {
+    # $file1 defined
+    # default: $file2 = stdout
+    check_gpg_verify();
+    my $i = 0;
+    my $ret = 0;
+    while (defined($ARGV[$i])) {
+	print "\n";
+	$file1 = $ARGV[$i];
+	$ret += examine ();
+	++$i;
+	print "\n--------------------------------\n" if (defined($ARGV[$i]));
+    }
+    exit($ret);
+}
+
+if ($action =~ /^f$/) {
+    $file1 = $cfgfile;
+    $file2 = "-";
+    print_cfgfile ();
+}
+
+if ($action =~ /^d$/) {
+    # $file1 irrelevant
+    if (defined($opts{'l'})) {
+	print_datafile ();
+    } else {
+	$file1 = $datafile;
+	$file2 = "-";
+	print_cfgfile ();
+    }
+}
+
+
+

@@ -1,0 +1,643 @@
+#########################################################################
+#
+# Subroutine for the 'install' command
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+commandINSTALL() {
+
+    printINFO "About to run \"$action\" on host \"$host\""
+    #
+    # configuration options we should know about
+    #
+    is_packed=0
+    is_nocl="start"
+    is_xor="no"
+
+
+    if test -f "${basedir}/configs/${arch}.configure"
+    then
+	:
+    else
+	printFATAL "Configure options ${basedir}/configs/${arch}.configure missing."
+    fi
+
+    if test -f "${basedir}/configs/${arch}.samhainrc"
+    then
+	:
+    else
+	printFATAL "Configuration file ${basedir}/configs/${arch}.samhainrc missing."
+    fi
+
+    realformat=`echo $format | sed s,solaris-,,`; export realformat
+
+    if test -f "${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}"
+    then
+	:
+    else
+	printFATAL "Binary package OS: ${arch}, version: ${src_version}, format ${format} does not exist."
+    fi
+
+    if test -f "${basedir}/archpkg/${arch}/install-${src_version}.${realformat}"
+    then
+	:
+    else
+	printFATAL "Binary package OS: ${arch}, version: ${src_version}, format ${format} is incomplete and cannot be installed."
+    fi
+
+
+    if test -f "${basedir}/archpkg/${arch}/PASSWD-${src_version}.${realformat}"
+    then
+	printINFO "Binary package OS: ${arch}, version: ${src_version}, format ${format} is packed."
+	is_packed=1
+	is_passwd=`cat "${basedir}/archpkg/${arch}/PASSWD-${src_version}.${realformat}" | tr -d '\n'`
+    else
+	is_passwd=`eval "${yule_exec}" -G`
+	if test x$? != x0
+	then
+	    printFATAL "Could not generate password. Is yule in your PATH ?"
+	fi
+    fi
+
+    if test -f "${basedir}/configs/${arch}.preinstall"
+    then
+	cp "${basedir}/configs/${arch}.preinstall" "${tmpD}/preinstall" || \
+	    printFATAL "Could not copy ${basedir}/configs/${arch}.preinstall to ${tmpD}/preinstall"
+	is_preinstall_full="${tmpD}/preinstall"
+    else
+	is_preinstall_full="${basedir}/libexec/preinstall"
+    fi
+
+    if test -f "${basedir}/configs/${arch}.postinstall"
+    then
+	cp "${basedir}/configs/${arch}.postinstall" "${tmpD}/postinstall" || \
+	    printFATAL "Could not copy ${basedir}/configs/${arch}.postinstall to ${tmpD}/postinstall"
+	is_postinstall_full="${tmpD}/postinstall"
+    else
+	is_postinstall_full="${basedir}/libexec/postinstall"
+    fi
+
+    if test -f "${basedir}/configs/${arch}.initscript"
+    then
+	cp "${basedir}/configs/${arch}.initscript" "${tmpD}/initscript" || \
+	    printFATAL "Could not copy ${basedir}/configs/${arch}.initscript to ${tmpD}/initscript"
+	is_initscript_full="${tmpD}/initscript"
+    else
+	is_initscript_full="${basedir}/libexec/initscript"
+    fi
+
+    #---------------------------------------------------------------------
+    # Get important configuration options.
+    #---------------------------------------------------------------------
+
+    getconfopts "${basedir}/archpkg/${arch}/configure-${src_version}.${realformat}" || printFATAL "Could not check config file ${basedir}/archpkg/${arch}/configure-${src_version}.${realformat}"
+
+
+    #---------------------------------------------------------------------
+    # Prepare the configuration file
+    #---------------------------------------------------------------------
+
+    if test -f "${basedir}/hosts/${host}/${arch}.samhainrc"
+    then
+	hostconfig="${basedir}/hosts/${host}/${arch}.samhainrc"
+    elif test -f "${basedir}/hosts/${host}/samhainrc"
+    then
+	hostconfig="${basedir}/hosts/${host}/samhainrc"
+    else 
+	hostconfig="${basedir}/configs/${arch}.samhainrc"
+    fi
+
+    test -f "${hostconfig}" || printFATAL "Configuration file ${hostconfig} missing."
+
+    # Handle the '--enable-stealth' option
+    #
+    if test x"${is_xor}" = xno
+    then
+	:
+    else
+	test -f "${basedir}/private/stealth_template.ps" || \
+	    printFATAL "${basedir}/private/stealth_template.ps not available."
+	${basedir}/libexec/samhain_stealth -o "${hostconfig}" >/dev/null ||\
+	    printFATAL "Problem reading ${hostconfig}".
+	ccount=`${basedir}/libexec/samhain_stealth -o "${hostconfig}" 2>&1 | awk '{ print $1 }'`
+	${basedir}/libexec/samhain_stealth -i "${basedir}/private/stealth_template.ps" >/dev/null || \
+	    printFATAL "Problem reading ${basedir}/private/stealth_template.ps"
+	mcount=`${basedir}/libexec/samhain_stealth -i "${basedir}/private/stealth_template.ps" 2>&1 | awk '{ print $7 }'`
+
+	if test ${mcount} -lt ${ccount}
+	then 
+	    printFATAL "Configuration file ${hostconfig} too big."
+        fi
+	
+	cp "${basedir}/private/stealth_template.ps" "$tmpD" || \
+	    printFATAL "Could not copy ${basedir}/private/stealth_template.ps to ${tmpD}/"
+	${basedir}/libexec/samhain_stealth -s "${tmpD}/stealth_template.ps" "${hostconfig}" >/dev/null
+	if test "x$?" = x0
+	then
+	    printINFO "Configuration file hidden into stealth_template.ps"
+	    hostconfig="${tmpD}/stealth_template.ps"
+	else
+	    printFATAL "Could not run ${basedir}/libexec/samhain_stealth -s ${tmpD}/stealth_template.ps  ${hostconfig}"
+        fi
+    fi
+
+    rm -f "${tmpD}/prepared_samhainrc"
+    cp "${hostconfig}" "${tmpD}/prepared_samhainrc" || \
+        printFATAL "Could not copy ${hostconfig} to ${tmpD}/prepared_samhainrc"
+    hostconfig="${tmpD}/prepared_samhainrc"
+
+    #---------------------------------------------------------------------
+    # Create temporary directory on host.
+    #---------------------------------------------------------------------
+
+    tmpdir=`eval echo "${temp_dir}/sh_${src_version}_${arch}_${format}_$$"`
+
+    if test x"$simulate" = x0
+    then
+	ssh -x -l "root" "${host}" '(umask 0077; mkdir "'${tmpdir}'")'
+    else
+	printINFO "ssh -x -l root ${host} (umask 0077; mkdir ${tmpdir})"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not create temporary directory ${tmpdir} on host ${host}."
+    else
+	printLOG "Directory ${tmpdir} created on host ${host}."
+    fi
+
+    #---------------------------------------------------------------------
+    # Copy to host.
+    #---------------------------------------------------------------------
+    if test x"$simulate" = x0
+    then
+	if test x"$silent" = x0
+	then
+	    scp "${is_initscript_full}" "${is_preinstall_full}" "${is_postinstall_full}" "${hostconfig}" "${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}" "${basedir}/archpkg/${arch}/install-${src_version}.${realformat}" "root@${host}:${tmpdir}/"
+	else
+	    scp -q "${is_initscript_full}" "${is_preinstall_full}" "${is_postinstall_full}" "${hostconfig}" "${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat}" "${basedir}/archpkg/${arch}/install-${src_version}.${realformat}" "root@${host}:${tmpdir}/"
+        fi
+    else
+	if test x"$silent" = x0
+	then
+	    printINFO "scp ${is_initscript_full} ${is_preinstall_full} ${is_postinstall_full} ${hostconfig} ${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat} ${basedir}/archpkg/${arch}/install-${src_version}.${realformat} root@${host}:${tmpdir}/"
+	else
+	    printINFO "scp -q ${is_initscript_full} ${is_preinstall_full} ${is_postinstall_full} ${hostconfig} ${basedir}/archpkg/${arch}/samhain-${src_version}.${realformat} ${basedir}/archpkg/${arch}/install-${src_version}.${realformat} root@${host}:${tmpdir}/"
+        fi
+    fi        
+    if test x"$?" != x0
+    then
+	printFATAL "Could not copy package to host ${host}."
+    else
+	printINFO "Package copied to host ${host}."
+    fi
+
+    #---------------------------------------------------------------------
+    # Run preinstall script.
+    #---------------------------------------------------------------------
+    if test x"$simulate" = x0
+    then
+        ssh -x -l "root" "${host}" '(cd "'${tmpdir}'" && cp "'install-${src_version}.${realformat}'" samhain-install.sh && chmod +x samhain-install.sh && chmod +x preinstall && ./preinstall)'
+    else
+	printINFO "ssh -x -l root ${host} (cd ${tmpdir} && cp install-${src_version}.${realformat} samhain-install.sh && chmod +x samhain-install.sh && chmod +x preinstall && ./preinstall)"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not run preinstall script on host ${host}."
+    else
+	printLOG "Preinstall script executed on host ${host}"
+    fi
+
+    #---------------------------------------------------------------------
+    # Install.
+    #---------------------------------------------------------------------
+    
+    if   test "x$format" = "xrun"; then
+       is_command="/bin/sh"
+    elif test "x$format" = "xdeb"; then
+       is_command="dpkg --install --force-downgrade --force-confnew"
+    elif test "x$format" = "xrpm"; then
+       is_command="rpm --upgrade --quiet --oldpackage" 
+    elif test "x$format" = "xtbz2"; then
+       is_command="emerge -K"
+    elif test "x$format" = "xsolaris-pkg"; then
+       is_command="pkgadd -n -d"
+    elif test "x$format" = "xdepot"; then
+       is_command="/usr/sbin/swinstall -x fix_explicit_directories=false -v -s "
+    else
+       printFATAL "Don't know how to install package format ${format}"
+    fi
+
+    if test "x$format" = "xdepot"
+    then
+        tmp_iname=`/bin/sh ${basedir}/archpkg/${arch}/install-${src_version}.${realformat} --print-config name`
+        if test x"$simulate" = x0
+        then
+            ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && PATH="'/usr/local/sbin:/usr/sbin:/sbin:$PATH'" && export PATH && eval "'${is_command}'" "'${tmpdir}/samhain-${src_version}.${realformat}'" "'${tmp_iname}'") >/dev/null '\'
+        else
+	    printINFO "ssh -x -l root ${host} /bin/sh -c '(cd ${tmpdir} && eval ${is_command} ${tmpdir}/samhain-${src_version}.${realformat} ${tmp_iname})'"
+        fi
+    elif test "x$format" = "xsolaris-pkg"
+    then
+        if test x"$simulate" = x0
+        then
+            ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH'" && export PATH && eval "'${is_command}'" "'samhain-${src_version}.${realformat} all'") >/dev/null '\'
+        else
+	    printINFO "ssh -x -l root ${host} /bin/sh -c '(cd ${tmpdir} && eval ${is_command} samhain-${src_version}.${realformat}) all'"
+        fi
+    elif test "x$format" = "xtbz2"
+    then
+        # Gentoo is a PITA
+	#
+        tmp_iname=`/bin/sh ${basedir}/archpkg/${arch}/install-${src_version}.${realformat} --print-config name`
+        if test x"$simulate" = x0
+        then
+            ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH'" && export PATH && cp "'samhain-${src_version}.${realformat}'" "'/usr/portage/packages/All/${tmp_iname}-${src_version}.tbz2'" && eval "'${is_command}'" "'${tmp_iname}-${src_version}.${realformat}'") >/dev/null '\'
+        else
+	    printINFO "ssh -x -l root ${host} /bin/sh -c '(cd ${tmpdir} && cp samhain-${src_version}.${realformat} /usr/portage/packages/${tmp_iname}-${src_version}.tbz2 && eval ${is_command} ${tmp_iname}-${src_version}.${realformat})'"
+        fi
+    else
+        if test x"$simulate" = x0
+        then
+            ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && PATH="'/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH'" && export PATH && eval "'${is_command}'" "'samhain-${src_version}.${realformat}'") >/dev/null '\'
+        else
+	    printINFO "ssh -x -l root ${host} /bin/sh -c '(cd ${tmpdir} && eval ${is_command} samhain-${src_version}.${realformat})'"
+        fi
+    fi
+
+    if test x"$?" != x0
+    then
+	printFATAL "Could not install package on host ${host}."
+    else
+	printLOG "Package installed on host ${host}"
+    fi
+
+
+    #---------------------------------------------------------------------
+    # Run postinstall script to fix the client password.
+    #---------------------------------------------------------------------
+    if test x"$simulate" = x0
+    then
+        if test "x${is_packed}" = "x0"
+        then
+            ssh -x -l "root" "${host}" '(cd "'${tmpdir}'" && chmod +x postinstall && ./postinstall "'${is_passwd}'") >/dev/null'
+        else
+	    # Dummy argument
+            ssh -x -l "root" "${host}" '(cd "'${tmpdir}'" && chmod +x postinstall && ./postinstall DUMMY ) >/dev/null'
+        fi
+    else
+        if test "x${is_packed}" = "x0"
+        then
+            printINFO "ssh -x -l root ${host} (cd ${tmpdir} && chmod +x postinstall && ./postinstall ${is_passwd})"
+        else
+	    # Dummy argument
+            printINFO "ssh -x -l root ${host} (cd ${tmpdir} && chmod +x postinstall && ./postinstall DUMMY )"
+        fi
+    fi
+
+    if test x"$?" != x0
+    then
+        printFATAL "Could not run postinstall script on host ${host}."
+    else
+        printLOG "Postinstall script executed on host ${host}"
+    fi
+
+    #---------------------------------------------------------------------
+    # Update the rc file
+    #---------------------------------------------------------------------
+    
+    if test "x${is_rcfile}" = xy
+    then
+	mytest_file=`ls -1 "${yule_data}/rc*" 2>/dev/null | tail -n 1 2>/dev/null`
+	if test "x$mytest_file" = x; then
+	    rcfile_perm=640;
+	    xgid=`(cat /etc/group; ypcat group) 2>/dev/null |\
+              grep "^samhain:" | awk -F: '{ print $3; }'`
+	    if test "x$xgid" = x; then
+	      rcfile_owner=`ls -ld ${yule_data} | awk '{print $3 }'`
+	      rcfile_group=`ls -ld ${yule_data} | awk '{print $4 }'`
+	    else
+	      rcfile_owner=`ls -ld ${yule_data} | awk '{print $3 }'`
+	      rcfile_group=samhain
+	    fi
+	else
+	    mytest_file=`basename $mytest_file`
+	    rcfile_perm=`ls -l "${yule_data}/${mytest_file}" | \
+	    awk '{ u= substr($1,2,3); g=substr($1,5,3); o=substr($1,8,3); \
+	       gsub("-","",u); gsub("-","",g); gsub("-","",o); \
+	       print "u=" u ",g=" g ",o=" o; }'`
+            rcfile_perm=`echo ${rcfile_perm} | sed s%g=,%g-rwx,% | sed s%,o=$%,o-rwx%`
+	    rcfile_owner=`ls -l "${yule_data}/${mytest_file}" | \
+	       awk '{print $3 }'`
+	    rcfile_group=`ls -l "${yule_data}/${mytest_file}" | \
+	       awk '{print $4 }'`
+	fi
+
+	if test -f "${hostconfig}"
+	then
+            if test x"$simulate" = x0
+            then
+	        ageFILE "${yule_data}/rc.${host}" || printFATAL "Could not backup ${yule_data}/rc.${host}."
+	        cp "${hostconfig}" "${yule_data}/rc.${host}" || printFATAL "Could not copy ${hostconfig} to ${yule_data}/rc.${host}"
+                chown ${rcfile_owner}:${rcfile_group} "${yule_data}/rc.${host}" || printFATAL "Could not chown ${rcfile_owner}:${rcfile_group} ${yule_data}/rc.${host}"
+                chmod ${rcfile_perm} "${yule_data}/rc.${host}" || printFATAL "Could not chmod ${rcfile_perm} ${yule_data}/rc.${host}"
+            else
+	        printINFO "Backup existing ${yule_data}/rc.${host}"
+	        printINFO "Copy ${hostconfig} to ${yule_data}/rc.${host}"
+	    fi
+	else
+	    printFATAL "${hostconfig} is missing."
+	fi
+        printLOG "Server-side config file ${yule_data}/rc.${host} copied from ${hostconfig}."
+    fi
+
+    #---------------------------------------------------------------------
+    # Server entry and restart
+    #---------------------------------------------------------------------
+
+    instlock="${yule_conf}.lockdir";
+    trap "rm -rf ${instlock}" 1 2 13 15
+
+    if test x"$simulate" = x0
+    then
+	#
+	# A lockfile will not work, because 'root' can write anyway.
+	# However, 'mkdir' an existing directory will fail even for root
+	#
+	until (umask 222; mkdir "${instlock}") 2>/dev/null   # test & set
+	do
+	   printINFO "Waiting for lock"
+	   sleep 1
+	done
+    fi
+
+    Replace=`"${yule_exec}" -P "${is_passwd}" | sed s%HOSTNAME%${host}%g`
+    if test "x$Replace" = x
+    then
+	rm -rf "${instlock}"
+	printFATAL "Could not execute ${yule_exec} -P ${is_passwd}."
+    fi
+    SearchString="Client=${host}@"
+    Seen=n
+    echo >"$tmpF" || printFATAL "Cannot write new server configuration."
+    while read line
+    do 
+        if test "x$Seen" = xn
+	then
+	    echo "$line" >>"$tmpF"
+            if test -n "`echo $line | awk '/^\[Clients\]/'`"
+            then
+	        Seen=y
+		echo "$Replace" >>"$tmpF" 
+		if [ $? -ne 0 ]; then
+			rm -rf "${instlock}"
+			printFATAL "Cannot write new server configuration."
+		fi
+	    fi
+        else
+	    if test -n "`echo $line | awk '/^'${SearchString}'/'`"
+	    then
+		:
+	    else
+		echo "$line" >>"$tmpF"
+		if [ $? -ne 0 ]; then
+			rm -rf "${instlock}"
+			printFATAL "Cannot write new server configuration."
+		fi
+            fi
+        fi
+    done <"${yule_conf}"
+
+    rcfile_perm=`ls -l "${yule_conf}" | \
+    awk '{ u= substr($1,2,3); g=substr($1,5,3); o=substr($1,8,3); \
+	gsub("-","",u); gsub("-","",g); gsub("-","",o); \
+	print "u=" u ",g=" g ",o=" o; }'`
+    rcfile_perm=`echo ${rcfile_perm} | sed s%g=,%g-rwx,% | sed s%,o=$%,o-rwx%`
+    rcfile_owner=`ls -l "${yule_conf}" | \
+        awk '{print $3 }'`
+    rcfile_group=`ls -l "${yule_conf}" | \
+	awk '{print $4 }'`
+    
+    if test x"$simulate" = x0
+    then
+        ageFILE "${yule_conf}"
+	if [ $? -ne 0 ]; then
+		rm -rf "${instlock}"
+		printFATAL "Could not backup ${yule_conf}"
+	fi
+
+        rm -f "${yule_conf}" && cp "$tmpF"  "${yule_conf}"
+	if [ $? -ne 0 ]; then
+		rm -rf "${instlock}"
+		printFATAL "Could not write new server config. Backup is ${yule_conf}.1"
+	fi
+
+        chown ${rcfile_owner}:${rcfile_group} "${yule_conf}"
+	if [ $? -ne 0 ]; then
+		rm -rf "${instlock}"
+		printFATAL "Could not chown ${rcfile_owner}:${rcfile_group} ${yule_conf}"
+	fi
+
+        chmod ${rcfile_perm} "${yule_conf}"
+	if [ $? -ne 0 ]; then
+		rm -rf "${instlock}"
+		printFATAL "Could not chmod ${rcfile_perm} ${yule_conf}"
+	fi
+    else
+        printINFO "Backup and update ${yule_conf}"
+    fi
+
+    if test "x${local_command}" = x
+    then
+	:
+    else
+        if test x"$simulate" = x0
+        then
+	    eval "${local_command}" "${host}" "${arch}" "${basedir}" "${yule_data}" "first"
+	else
+	    printINFO "eval ${local_command} ${host} ${arch} ${basedir} ${yule_data} first"
+        fi
+    fi
+
+    yule_name=`basename "${yule_exec}"`
+
+    if test x"$simulate" = x0
+    then
+        if test -f "/etc/init.d/${yule_name}"
+        then
+	    eval "/etc/init.d/${yule_name}" reload
+	    if test x"$?" != x0
+	    then   
+		printWARNING "Could not reload server using: /etc/init.d/${yule_name} reload."
+	    fi
+        else 
+	    eval "${yule_exec}" reload
+	    if test x"$?" != x0
+	    then   
+		printWARNING "Could not reload server using: ${yule_exec} reload."
+	    fi
+        fi
+	#
+	# wait for the server to pick up the new configuration
+	#
+	sleep 5
+	#
+	rm -rf "${instlock}"
+    else
+        printINFO "Reloading server configuration."
+    fi    
+
+    printLOG "Server configuration updated and reloaded."
+
+
+    #---------------------------------------------------------------------
+    # Write/update client database
+    #---------------------------------------------------------------------
+
+    SH_NAME=`/bin/sh ${basedir}/archpkg/${arch}/install-${src_version}.${realformat}  --print-config name`; export SH_NAME
+    SH_PREFIX=`/bin/sh ${basedir}/archpkg/${arch}/install-${src_version}.${realformat}  --print-config prefix`; export SH_PREFIX
+
+    if test x"$simulate" = x0
+    then
+        updateDB
+    else
+        printINFO "Updating client database."
+    fi
+
+    #---------------------------------------------------------------------
+    # Initialize and fetch database
+    #---------------------------------------------------------------------
+    
+    if test "x${is_init}" = xy
+    then
+        if test x"$simulate" = x0
+        then
+	    if test x"$silent" !=  x0
+	    then
+	        ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && chmod +x initscript && ./initscript ${is_nocl} >/dev/null 2>&1 )'\'
+            else
+	        ssh -x -l "root" "${host}" /bin/sh -c \''(cd "'${tmpdir}'" && chmod +x initscript && ./initscript ${is_nocl} >/dev/null 2>&1 )'\'
+	    fi
+	    if test x"$?" != x0
+	    then
+	        printFATAL "Could not initialize database on host ${host}."
+            else
+	        printLOG "Database initialized on host ${host}"
+	    fi
+	    scp -q "root@${host}:${tmpdir}/data" "$tmpD" || \
+		printFATAL "Could not retrieve database file root@${host}:${tmpdir}/data"
+        else
+	    printINFO "ssh -x -l root ${host} /bin/sh -c '(cd ${tmpdir} && chmod +x initscript && ./initscript ${is_nocl})'"
+	    printLOG "Database initialized on host ${host}"
+	    printINFO "scp -q root@${host}:${tmpdir}/data $tmpD"
+        fi
+
+	mytest_file=`ls -1 "${yule_data}/file*" 2>/dev/null | tail -n 1 2>/dev/null`
+	if test "x$mytest_file" = x; then
+	    rcfile_perm=640;
+	    xgid=`(cat /etc/group; ypcat group) 2>/dev/null |\
+              grep "^samhain:" | awk -F: '{ print $3; }'`
+	    if test "x$xgid" = x; then
+	      rcfile_owner=`ls -ld ${yule_data} | awk '{print $3 }'`
+	      rcfile_group=`ls -ld ${yule_data} | awk '{print $4 }'`
+	    else
+	      rcfile_owner=`ls -ld ${yule_data} | awk '{print $3 }'`
+	      rcfile_group=samhain
+	    fi
+	else
+	    mytest_file=`basename $mytest_file`
+	    rcfile_perm=`ls -l "${yule_data}/${mytest_file}" | \
+	    awk '{ u= substr($1,2,3); g=substr($1,5,3); o=substr($1,8,3); \
+	       gsub("-","",u); gsub("-","",g); gsub("-","",o); \
+	       print "u=" u ",g=" g ",o=" o; }'`
+            rcfile_perm=`echo ${rcfile_perm} | sed s%g=,%g-rwx,% | sed s%,o=$%,o-rwx%`
+	    rcfile_owner=`ls -l "${yule_data}/${mytest_file}" | \
+	        awk '{print $3 }'`
+	    rcfile_group=`ls -l "${yule_data}/${mytest_file}" | \
+	        awk '{print $4 }'`
+	fi
+
+	if test x"$simulate" = x0
+        then
+	    if test -f "$tmpD/data"
+	    then
+		ageFILE "${yule_data}/file.${host}" || printFATAL "Could not backup ${yule_conf}."
+		mv "$tmpD/data" "${yule_data}/file.${host}" || printFATAL "Could not move database file to ${yule_data}/file.${host}"
+		chown ${rcfile_owner}:${rcfile_group} "${yule_data}/file.${host}" || printFATAL "Could not chown ${rcfile_owner}:${rcfile_group} ${yule_data}/file.${host}"
+		chmod ${rcfile_perm} "${yule_data}/file.${host}" || printFATAL "Could not chmod ${rcfile_perm} ${yule_data}/file.${host}"
+	    else
+	        printFATAL "Database file not downloaded from host ${host}"
+            fi
+	else
+	    printINFO "Backup and replace ${yule_data}/file.${host}"
+        fi
+    fi 
+	    
+    #---------------------------------------------------------------------
+    # Start up.
+    #---------------------------------------------------------------------
+
+    if test "x${local_command}" = x
+    then
+	:
+    else
+        if test x"$simulate" = x0
+        then
+	    eval "${local_command}" "${host}" "${arch}" "${basedir}" "${yule_data}" "second"
+	else
+	    printINFO "eval ${local_command} ${host} ${arch} ${basedir} ${yule_data} second"
+        fi        
+    fi
+
+    if test "x${is_startup}" = xy
+    then
+        if test x"$simulate" = x0
+        then
+	    ssh -x -l "root" "${host}" '(cd "'${tmpdir}'" && chmod +x initscript && eval "'./initscript ${is_nocl} start'")'
+	else
+	    printINFO "Starting remote client now."
+        fi
+	if test x"$?" != x0
+	then   
+	    printFATAL "Could not start client on host ${host}."
+	else
+	    printLOG "Client started on host ${host}."
+	fi
+    fi
+
+    #---------------------------------------------------------------------
+    # Clean up.
+    #---------------------------------------------------------------------
+
+    if test x"$simulate" = x0
+    then
+        ssh -x -l "root" "${host}" '(rm -rf "'${tmpdir}'")'
+    else
+        printINFO "ssh -x -l root ${host} (rm -rf ${tmpdir})"
+    fi
+    if test x"$?" != x0
+    then
+	printFATAL "Could not remove temporary directory ${tmpdir} on host ${host}."
+    else
+	printLOG "Directory ${tmpdir} deleted on host ${host}."
+    fi
+
+}
+

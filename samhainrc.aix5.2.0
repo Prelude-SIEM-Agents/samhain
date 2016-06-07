@@ -1,0 +1,236 @@
+#####################################################################
+#
+# 		AIX 5.2.0 configuration file for Samhain. 
+#
+####################################################################
+#	
+# Date    : 23.10.2003
+# Author  : Christoph Kiefer (chkiefer@intergga.ch) 
+# Comment : Samhain client configuration file. Should work
+#           for AIX 5.1.0. The Samhain version is 1.7.12
+#		This configuration fits MY needs, YOU will
+#		probably have to modify it.
+#
+# Changes : Date          Name    			Remarks
+#           23.10.2003    Christoph Kiefer     	Initial Version
+#
+#####################################################################
+# 
+# -- empty lines and lines starting with '#', ';' or '//' are ignored
+# -- boolean options can be Yes/No or True/False or 1/0 
+# -- you can PGP clearsign this file -- samhain will check (if compiled
+#    with support) or otherwise ignore the signature
+# -- CHECK mail address
+#
+# To each log facility, you can assign a threshold severity. Only
+# reports with at least the threshold severity will be logged
+# to the respective facility (even further below).
+#
+#####################################################################
+# SETUP for file system checking:
+# (i)   There are several policies, each has its own section. Put files
+#       into the section for the appropriate policy (see below).
+# (ii)  Section [EventSeverity]: 
+#       To each policy, you can assign a severity (further below).
+# (iii) Section [Log]: 
+#       To each log facility, you can assign a threshold severity. Only
+#       reports with at least the threshold severity will be logged
+#       to the respective facility (even further below).
+#####################################################################
+
+#####################################################################
+#
+# Files are defined with: file = /absolute/path
+#
+# Directories are defined with:                  dir = /absolute/path
+# or with an optional recursion depth (N <= 99): dir = N/absolute/path
+#
+# Directory inodes are checked. If you only want to check files
+# in a directory, but not the directory inode itself, use (e.g.):
+#
+# [ReadOnly]
+# dir = /some/directory
+# [IgnoreAll]
+# file = /some/directory
+#
+# You can use shell-style globbing patterns, like: file = /path/foo*
+# 
+######################################################################
+
+[Misc]
+MessageHeader=""
+RedefLogFiles=-INO
+SetFilecheckTime=3600
+SetLoopTime=3600
+SetRecursionLevel=99
+DigestAlgo=SHA1
+ChecksumTest=check
+SetTimeServer=localhost
+ReportFullDetail=no
+Daemon=yes
+HideSetup=yes
+ReportOnlyOnce=yes
+UseLocalTime=yes
+
+## The Prelude-IDS profile to use for reporting
+## default value is "samhain"
+#
+# PreludeProfile = samhain
+
+## Map these samhain severities to impact severity 'info' severity
+#
+# PreludeMapToInfo =
+
+## Map these samhain severities to impact severity 'low' severity
+#
+# PreludeMapToLow = debug info
+
+## Map these samhain severities to impact severity 'medium' severity
+#
+# PreludeMapToMedium = notice warn err
+
+## Map these samhain severities to impact severity 'high' severity
+#
+# PreludeMapToHigh = crit alert
+
+[IgnoreAll]
+dir=-1/etc/objrepos
+dir=-1/etc/vg
+dir=-1/dev/.SRC-unix
+dir=-1/dev/pts
+dir=-1/opt
+dir=-1/tmp
+dir=-1/usr/share/lib/objrepos
+dir=-1/usr/share/man
+dir=-1/var/adm/cron
+dir=-1/var/tmp
+file=/dev/log*
+
+[Attributes]
+file=/etc/lpp/diagnostics/data/*
+file=/audit/auditb
+file=/dev
+# file=/etc/bootpd.dump
+file=/etc/bootptab
+file=/etc/inittab
+file=/etc/xtab
+dir=/dev
+dir=/usr/dt
+dir=/usr/lib/instl
+dir=/usr/lib/lpd
+dir=/usr/lib/mh
+dir=/usr/lib/sa
+dir=/usr/lpp
+
+[LogFiles]
+file=/etc/rmtab
+file=/etc/security/failedlogin
+file=/etc/security/lastlog
+file=/etc/security/portlog
+file=/etc/utmp
+# file=/smit.log
+file=/var/adm/*log*
+file=/var/adm/ras/*log*
+file=/var/adm/wtmp
+file=/var/log/*log*
+
+[IgnoreNone]
+file=/etc/tsh_profile
+
+[ReadOnly]
+dir=/etc/security/ldap
+file=/etc/*.cnf
+file=/etc/*conf*
+file=/etc/aliases
+file=/etc/dumpdates
+file=/etc/environment
+file=/etc/exports
+file=/etc/filesystems
+file=/etc/ftpusers
+file=/etc/group
+file=/etc/hosts*
+file=/etc/motd
+file=/etc/passwd
+file=/etc/profile
+file=/etc/protocols
+file=/etc/publickey
+file=/etc/rc.*
+file=/etc/rpc
+file=/etc/security/acl
+file=/etc/security/environ
+file=/etc/security/group
+file=/etc/security/limits
+file=/etc/security/login.cfg
+file=/etc/security/passwd
+file=/etc/security/roles
+file=/etc/security/smitacl.*
+file=/etc/security/user*
+file=/etc/sendmail.cf
+file=/etc/services
+file=/etc/sudoers
+file=/etc/swapspaces
+file=/etc/vfs
+# file=/smit.script
+dir=/etc/mail
+dir=/etc/rc.d
+dir=/etc/security/audit
+dir=/home/root
+dir=/sbin
+dir=/usr/X11R6
+dir=/usr/bin
+dir=/usr/ccs
+dir=/usr/etc
+dir=/usr/include
+dir=/usr/lib/boot
+dir=/usr/lib/methods
+dir=/usr/lib/microcode
+dir=/usr/lib/security
+dir=/usr/lib/smit
+dir=/usr/local/bin
+dir=/usr/sbin
+dir=/usr/share
+dir=/usr/ucb
+
+[EventSeverity]
+SeverityAttributes=crit
+SeverityDirs=err
+SeverityFiles=err
+SeverityGrowingLogs=warn
+SeverityIgnoreNone=crit
+SeverityLogFiles=crit
+SeverityReadOnly=crit
+SeverityIgnoreAll=info
+SeverityNames=info
+
+[Log]
+ExportClass=RUN FIL PANIC ERR ENET EINPUT
+LogSeverity=none
+MailSeverity=none
+PrintSeverity=none
+ExportSeverity=warn
+SyslogSeverity=warn
+
+## Logging to a Prelude-IDS
+##
+# PreludeSeverity = crit
+
+[SuidCheck]
+SuidCheckExclude=/proc
+SuidCheckActive=1
+SuidCheckInterval=1800
+SuidCheckFps=250
+#SuidCheckYield=no
+SeveritySuidCheck=alert
+#SuidCheckQuarantineFiles=yes
+#SuidCheckQuarantineMethod=0
+# SuidCheckQuarantineDelete = yes
+
+
+[Utmp]
+LoginCheckActive=1
+LoginCheckInterval=30
+SeverityLogin=info
+SeverityLogout=info
+SeverityLoginMulti=warn
+
+[EOF]

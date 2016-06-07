@@ -1,0 +1,11 @@
+<!ELEMENT logs (trail|req_machine|req_date)+>
+<!ELEMENT req_machine (#PCDATA)>
+<!ELEMENT req_date (#PCDATA)>
+<!ELEMENT trail (log)+>
+<!ELEMENT log (log|sig)>
+<!ELEMENT sig (#PCDATA)>
+<!ATTLIST log
+   sev     CDATA #REQUIRED
+   tstamp  CDATA #REQUIRED
+   msg     CDATA #REQUIRED
+>

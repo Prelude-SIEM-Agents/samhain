@@ -1,0 +1,280 @@
+#########################################################################
+#
+# Subroutine for the 'download' command
+#
+#########################################################################
+#
+# Copyright Rainer Wichmann (2005)
+#
+# License Information:
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+#
+
+commandDOWNLOAD() {
+    printINFO "About to run \"$action\" for samhain version \"$src_version\""
+
+    needEXE du gunzip tar gpg
+
+
+    if test x"$simulate" = x0
+    then
+	cd "${basedir}/tmp" || printFATAL "could not cd to ${basedir}/tmp"
+	rm -f "samhain-${src_version}.tar.gz"
+    else
+	# 
+	# -- Simulate only: print what would be done
+	#
+	printINFO "cd ${basedir}/tmp"
+	printINFO "rm -f samhain-${src_version}.tar.gz"
+    fi
+
+    command=""
+
+    if test -z "$command"
+    then
+        findEXE wget
+        if test -n "$EXECUTABLE"
+        then
+	    command="$EXECUTABLE"
+	    opt1="--quiet"
+	    opt2="-O"
+	    opt3="-"
+        fi
+    fi
+
+    if test -z "$command"
+    then
+        findEXE curl
+        if test -n "$EXECUTABLE"
+        then
+	    command="$EXECUTABLE"
+	    opt1="--silent"
+	    opt2="--show-error"
+	    opt3="--fail"
+        fi
+    fi
+
+    if test -z "$command"
+    then
+	findEXE lynx
+	if test -n "$EXECUTABLE"
+	then
+	    command="$EXECUTABLE"
+	    opt1="-source"
+	    opt2=""
+	    opt3=""
+	fi
+    fi
+
+    if test -z "$command"
+    then
+	findEXE links
+	if test -n "$EXECUTABLE"
+	then
+	    command="$EXECUTABLE"
+	    opt1="-source"
+	    opt2=""
+	    opt3=""
+	fi
+    fi
+
+    if test -z "$command"
+    then
+	findEXE lwp-request
+	if test -n "$EXECUTABLE"
+	then
+	    command="$EXECUTABLE"
+	    opt1=""
+	    opt2=""
+	    opt3=""
+	fi
+    fi
+
+    if test -z "$command"
+    then
+	findEXE fetch
+	if test -n "$EXECUTABLE"
+	then
+	    command="$EXECUTABLE"
+	    opt1="-q"
+	    opt2="-o"
+	    opt3="-"
+	fi
+    fi
+
+    if test -z "$command"
+    then
+	findEXE fget
+	if test -n "$EXECUTABLE"
+	then
+	    command="$EXECUTABLE"
+	    opt1=""
+	    opt2=""
+	    opt3=""
+	fi
+    fi
+
+    if test -z "$command"
+    then
+	printFATAL "No wget, curl, lynx, links, lwp-request, fetch, fget in your \$PATH, cannot download"
+    fi
+
+    if test x"${src_version}" = xcurrent
+    then
+	location="http://la-samhna.de/samhain/samhain-current.tar.gz"
+	if test -f /usr/bin/md5sum && test -f /bin/hostname
+	then
+	    #
+	    # for testing
+	    #
+	    dl_tmp_hna=`/bin/hostname -f 2>/dev/null`
+	    dl_tmp_md5=`echo "x${dl_tmp_hna}" | md5sum`
+	    if test x"$dl_tmp_md5" = "xc5f41bf28a7baf12c763f1be27a9b863"
+	    then
+		location="http://localhost/samhain-current.tar.gz"
+	    fi
+	fi
+    else
+	location="http://la-samhna.de/archive/samhain_signed-${src_version}.tar.gz"
+	if test -f /usr/bin/md5sum && test -f /bin/hostname
+	then
+	    #
+	    # for testing
+	    #
+	    dl_tmp_hna=`/bin/hostname -f 2>/dev/null`
+	    dl_tmp_md5=`echo "x${dl_tmp_hna}" | /usr/bin/md5sum 2>/dev/null`
+	    if test x"$dl_tmp_md5" = "xc5f41bf28a7baf12c763f1be27a9b863"
+	    then
+	    	location="http://localhost/samhain_signed-${src_version}.tar.gz"
+	    fi
+	fi
+    fi
+
+
+    printINFO "Executing $command $opt1 $opt2 $opt3 $location"
+
+    if test x"$simulate" = x0
+    then
+	eval "$command" "$opt1" "$opt2" "$opt3" "$location" 1>"samhain-${src_version}.tar.gz" 2>/dev/null
+    else
+	printINFO "$command" "$opt1" "$opt2" "$opt3" "$location" 1>"samhain-${src_version}.tar.gz"
+	printINFO "du -s -k samhain-${src_version}.tar.gz | awk '{ print $1 }'"
+	printLOG  "Downloaded to samhain-${src_version}.tar.gz (XXX kB)"
+	printINFO "gunzip -c samhain-${src_version}.tar.gz | tar -tvf - "
+	printINFO "Source in tarball is version X.X.X"
+	printINFO "Unpacking to ${tmpD}"
+	printINFO "cd ${tmpD}"
+	printINFO "gunzip -c ${basedir}/tmp/samhain-${src_version}.tar.gz | tar -xf -"
+	printINFO "rm -f ${basedir}/tmp/samhain-${src_version}.tar.gz"
+	printINFO "Checking PGP signature" 
+	printINFO "(LANG=C; gpg --status-fd 1 --verify samhain-X.X.X.tar.gz.asc samhain-X.X.X.tar.gz 2>&1 | grep 'GOODSIG')"
+	printINFO "cp samhain-X.X.X.tar.gz.asc samhain-X.X.X.tar.gz ${basedir}/source"
+	printLOG "Installed samhain (X.X.X) source"
+	return 0
+    fi
+
+    if test -f "samhain-${src_version}.tar.gz"
+    then
+	:
+    else
+	printFATAL "failed: $command $location"
+    fi
+
+    size=`du -s -k "samhain-${src_version}.tar.gz" | awk '{ print $1 }'`
+
+    if test $size -lt 100
+    then
+	rm -f "samhain-${src_version}.tar.gz"
+	printFATAL "failed: $command $location"
+    else
+	printLOG   "Downloaded to samhain-${src_version}.tar.gz (${size} kB)"
+    fi
+
+    files=`gunzip -c "samhain-${src_version}.tar.gz" | tar -tvf - 2>/dev/null`
+    sig=`echo $files | egrep ' samhain.*tar\.gz\.asc$' 2>/dev/null`
+    sig_version=`echo $files | egrep ' samhain.*tar\.gz\.asc$' 2>/dev/null | sed 's/.*samhain\-//g' | sed 's/\.tar\.gz\.asc//g'`
+    if test x"$sig" = x
+    then
+	rm -f "samhain-${src_version}.tar.gz"
+	printFATAL "downloaded file does not contain a PGP signature"
+    fi
+
+    if test x"${sig_version}" = x
+    then
+	rm -f "samhain-${src_version}.tar.gz"
+	printFATAL "cannot determine samhain version from downloaded file"
+    fi
+
+    if test x"${src_version}" != xcurrent
+    then
+	if test x"${src_version}" != x"${sig_version}"
+	then
+	    rm -f "samhain-${src_version}.tar.gz"
+	    printFATAL "downloaded version (${sig_version}) != requested version (${src_version})"
+	fi
+    fi
+
+    printINFO "Source in tarball is version ${sig_version}"
+    printINFO "Unpacking to ${basedir}/source"
+
+    cd "${tmpD}" || { 
+	rm -f "${basedir}/tmp/samhain-${src_version}.tar.gz"
+	printFATAL "could not cd to ${tmpD}"
+	}
+
+    gunzip -c "${basedir}/tmp/samhain-${src_version}.tar.gz" | tar -xf - 
+
+    rm -f "${basedir}/tmp/samhain-${src_version}.tar.gz"
+
+    if test -f "samhain-${sig_version}.tar.gz"
+    then
+	if test -f "samhain-${sig_version}.tar.gz.asc"
+	then
+	    :
+	else
+	    printFATAL "not found in source: PGP signature samhain-${sig_version}.tar.gz.asc"
+	fi
+    else
+	printFATAL "not found in source: samhain-${sig_version}.tar.gz"
+    fi
+
+
+    printINFO "Checking PGP signature" 
+    sig_lines=`(LANG="C"; gpg --status-fd 1 --verify "samhain-${sig_version}.tar.gz.asc" "samhain-${sig_version}.tar.gz" 2>/dev/null)`
+    sig_ok=`echo ${sig_lines} | grep 'GOODSIG'`
+
+    sig_nokey=`echo ${sig_lines} | grep 'NO_PUBKEY'`
+
+    if test x"${sig_nokey}" != x
+    then
+	printWARNING "Public key (ID 0F571F6C) not found, trying to import it."
+	gpg --import ${basedir}/private/0F571F6C.asc 2>&5
+	sig_ok=`(LANG="C"; gpg --status-fd 1 --verify "samhain-${sig_version}.tar.gz.asc" "samhain-${sig_version}.tar.gz" 2>/dev/null | grep 'GOODSIG')`
+    fi
+
+    if test x"${sig_ok}" = x
+    then
+	(LANG="C"; gpg --verify "samhain-${sig_version}.tar.gz.asc" "samhain-${sig_version}.tar.gz")
+	printFATAL "no good signature"
+    fi
+
+    cp  "samhain-${sig_version}.tar.gz"  "samhain-${sig_version}.tar.gz.asc" \
+	${basedir}/source/ || \
+	printFATAL "failed: cp samhain-${sig_version}.tar.gz samhain-${sig_version}.tar.gz.asc ${basedir}/source/"
+	      
+    printLOG "Installed samhain source (version=${sig_version})"
+
+    return 0
+}

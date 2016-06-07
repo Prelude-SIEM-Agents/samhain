@@ -1,0 +1,88 @@
+#! /bin/sh
+
+
+PATH=/usr/sbin:/usr/bin:/sbin
+export PATH
+
+rval=0
+
+DAEMON=@sbindir@/@install_name@
+NAME=@install_name@
+
+if /sbin/chkconfig verbose; then
+    verbose=1
+else
+    verbose=0
+fi
+
+log_stat_msg () {
+case "$1" in
+	0)
+	echo "Service $NAME: Running";
+	break;
+	;;
+	1)
+	echo "Service $NAME: Stopped and /var/run pid file exists";
+	break;
+	;;
+	3)
+	echo "Service $NAME: Stopped";
+	break;
+	;;
+	*)
+	echo "Service $NAME: Status unknown";
+	break;
+	;;
+esac
+}
+
+case "$1" in
+
+  'start')
+	test $verbose = 1 && echo "Starting $NAME"
+	$DAEMON start
+	rval=$?
+	exit $rval
+	;;
+
+  stop)
+	test $verbose = 1 && echo "Stopping $NAME"
+	$DAEMON  stop
+	rval=$?
+	#
+	# Remove a stale lockfile, if found
+	#
+	if test -f @mylockfile@; then
+	    /bin/rm -f @mylockfile@
+	fi
+	exit $rval
+	;;
+
+  restart)
+	test $verbose = 1 && echo "Restarting $NAME"
+	$DAEMON restart
+	rval=$?
+	exit $rval
+	;;
+
+  reload|force-reload)
+	test $verbose = 1 && echo "Reloading $NAME"
+	$DAEMON reload
+	rval=$?
+	exit $rval
+	;;
+
+  status)
+	${DAEMON} status
+	ERRNUM=$?
+	log_stat_msg ${ERRNUM}
+	exit ${ERRNUM}
+	;;
+
+  *)
+        echo "Usage: @install_name@ {start|stop|restart|reload}"
+        exit 1
+	;;
+esac
+
+exit $rval

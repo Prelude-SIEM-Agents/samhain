@@ -1,0 +1,99 @@
+
+
+This directory contains miscellaneous useful scripts, some of them contributed
+by various users. Additions and/or improvements are welcome. 
+
+chroot.sh: prepare chroot environment for the log server
+---------
+
+   Usage: chroot.sh <chroot_directory>
+
+   Tested on Debian Linux. Your mileage may vary.
+   After running the script, review <chroot_directory>/etc/passwd
+   to replace passwords with a *, and to fix the
+   path to the home directory of the yule user.
+   If using a signed configuration file, you need
+   a working copy of GnuPG inside the chroot jail.
+
+   This script will probably fail on systems other than Linux, 
+   mainly because of the mknod commands to create devices 
+   in the chroot jail.
+
+   NO WARRANTY !!!
+
+samhainadmin.pl
+---------------
+
+   Perform various tasks useful if you are using signed configuration
+   and database files.
+
+   Run 'samhainadmin.pl -h' for usage instructions.
+
+yuleadmin.pl
+------------
+
+   Perl script (by Riccardo Murri) to list, add, and remove clients 
+   from the yulerc file.
+
+   Run 'yuleadmin.pl -h' for usage instructions.
+
+check_samhain.pl
+----------------
+
+   Nagios plugin for samhain. Will execute samhain and report results
+   in the way expected by nagios. Drop this into your nagios/libexec/
+   directory.
+
+samhain.logrotator: logrotate script
+------------------
+
+   This is a logrotate script (contributed by Simon Bailey)
+
+concat.pl
+---------
+
+   Concatenate samhain file signature databases and write the resulting
+   database file to stdout. Does not work on signed or otherwise modified
+   file signature databases.
+
+samhain.{cgi|dtd|xsl}: display XML logfile in XML capable browser 
+---------------------  (works with Mozilla 1.2, possibly Mozilla 1.0, IE 6)
+
+   Usage: 1. review samhain.cgi (see remarks in file)
+          2. drop samhain.cgi, samhain.dtd, samhain.xsl in some
+             directory on your webserver
+          3. use .htaccess to protect access to that directory
+          4. point your browser at samhain.cgi
+
+   You may need to rename samhain.cgi to samhain.php if you use
+   mod_php. Also, you will certainly need to edit the path to the
+   logfile in samhain.cgi.
+
+   CAVEAT: There is no built-in access restriction (use .htaccess to
+	   password-protect the directory).
+
+   The XSL stylesheet is based on a contribution by Olivier Salaun.
+
+
+samhain.spec: RPM spec file for building a vanilla single-host RPM
+------------
+
+   Contributed by Andre Oliveira da Costa <brblueser@uol.com.br>
+
+   This is a spec file to produce a vanilla single-host samhain RPM
+   (no fancy options, standard directory layout :).
+
+   Accepted parameters for 'rpmbuild':
+
+   --with gpg		- enables gpg support
+   --with tests		- make tests before building
+
+redhat_i386.client.spec: RPM spec file for building a RedHat client RPM
+------------
+
+   Contributed by Philipp Stadler <philipp@stadler.priv.at>
+
+   Does not install documentation or local config file.
+
+
+		   

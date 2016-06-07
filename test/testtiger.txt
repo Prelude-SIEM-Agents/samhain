@@ -1,0 +1,13 @@
+Test results of the TIGER hash algorithm
+
+(use samhain -H string to test)
+
+string=<>, hash=<24F0130C63AC933216166E76B1BB925FF373DE2D49584E7A>
+string=<abc>, hash=<F258C1E88414AB2A527AB541FFC5B8BF935F7B951C132951>
+string=<Tiger>, hash=<9F00F599072300DD276ABB38C8EB6DEC37790C116F9D2BDF>
+string=<ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+->, hash=<87FB2A9083851CF7470D2CF810E6DF9EB586445034A5A386>
+string=<ABCDEFGHIJKLMNOPQRSTUVWXYZ=abcdefghijklmnopqrstuvwxyz+0123456789>, hash=<467DB80863EBCE488DF1CD1261655DE957896565975F9197>
+string=<Tiger - A Fast New Hash Function, by Ross Anderson and Eli Biham>, hash=<0C410A042968868A1671DA5A3FD29A725EC1E457D3CDB303>
+string=<Tiger - A Fast New Hash Function, by Ross Anderson and Eli Biham, proceedings of Fast Software Encryption 3, Cambridge.>, hash=<EBF591D5AFA655CE7F22894FF87F54AC89C811B6B0DA3193>
+string=<Tiger - A Fast New Hash Function, by Ross Anderson and Eli Biham, proceedings of Fast Software Encryption 3, Cambridge, 1996.>, hash=<3D9AEB03D1BD1A6357B2774DFD6D5B24DD68151D503974FC>
+string=<ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+->, hash=<00B83EB4E53440C576AC6AAEE0A7485825FD15E70A59FFE4>
